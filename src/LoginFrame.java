@@ -1,5 +1,6 @@
-﻿import java.awt.BorderLayout;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -7,7 +8,6 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
@@ -18,26 +18,34 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 public class LoginFrame extends JFrame {
-    private static final Color PAGE_BACKGROUND = css("#F3F4F6");
-    private static final Color FORM_BACKGROUND = css("#FFFFFF");
-    private static final Color FORM_BORDER = css("#D1D5DB");
-    private static final Color FORM_SHADOW = new Color(15, 23, 42, 22);
-    private static final Color TEXT_PRIMARY = css("#0F172A");
-    private static final Color TEXT_SECONDARY = css("#6B7280");
-    private static final Color FIELD_BACKGROUND = css("#FFFFFF");
-    private static final Color FIELD_BORDER = css("#D1D5DB");
-    private static final Color ACCENT = css("#3B82F6");
-    private static final Color SUCCESS = css("#10B981");
-    private static final Color ERROR = css("#DC2626");
+    private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
+    private static final Color PAGE_BACKGROUND = AppTheme.color("--login-page-background", "#F3F4F6");
+    private static final Color FORM_BACKGROUND = AppTheme.color("--login-form-background", "#FFFFFF");
+    private static final Color FORM_BORDER = AppTheme.color("--login-form-border", "#D1D5DB");
+    private static final Color FORM_SHADOW = AppTheme.color("--login-form-shadow", "rgba(15, 23, 42, 22)");
+    private static final Color TEXT_PRIMARY = AppTheme.color("--login-text-primary", "#0F172A");
+    private static final Color TEXT_SECONDARY = AppTheme.color("--login-text-secondary", "#6B7280");
+    private static final Color FIELD_BACKGROUND = AppTheme.color("--login-field-background", "#FFFFFF");
+    private static final Color FIELD_BORDER = AppTheme.color("--login-field-border", "#D1D5DB");
+    private static final Color ACCENT = AppTheme.color("--login-accent", "#3B82F6");
+    private static final Color ACCENT_DARK = AppTheme.color("--login-accent-dark", "#2563EB");
+    private static final Color SUCCESS = AppTheme.color("--login-success", "#10B981");
+    private static final Color ERROR = AppTheme.color("--login-error", "#DC2626");
+    private static final Color HERO_EYEBROW = AppTheme.color("--login-hero-eyebrow", "#DBEAFE");
+    private static final Color HERO_BODY = AppTheme.color("--login-hero-body", "#EFF6FF");
+    private static final Color FEATURE_PILL_BACKGROUND = AppTheme.color("--login-feature-pill-background", "rgba(255, 255, 255, 34)");
 
     private final JTextField usernameField = new JTextField();
     private final JPasswordField passwordField = new JPasswordField();
-    private final JLabel statusLabel = new JLabel("Sign in to continue", SwingConstants.LEFT);
+    private final JLabel statusLabel = new JLabel("Use demo credentials to continue.");
+    private final HeroPanel infoPanel = createInfoPanel();
+    private final FormCardPanel formPanel = createFormPanel();
 
     public LoginFrame() {
         super("Finance Hub Login");
@@ -46,8 +54,9 @@ public class LoginFrame extends JFrame {
 
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setMinimumSize(new Dimension(720, 540));
         setSize(1000, 600);
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
         setContentPane(createRoot());
     }
@@ -57,33 +66,39 @@ public class LoginFrame extends JFrame {
         root.setLayout(new BorderLayout());
         root.setBorder(new EmptyBorder(32, 32, 32, 32));
 
-        JPanel shell = new JPanel(new GridLayout(1, 2, 24, 24));
-        shell.setOpaque(false);
-        shell.add(createInfoPanel());
-        shell.add(createFormPanel());
+        ResponsiveShellPanel shell = new ResponsiveShellPanel(infoPanel, formPanel);
 
-        root.add(shell, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(shell);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        root.add(scrollPane, BorderLayout.CENTER);
         return root;
     }
 
-    private JPanel createInfoPanel() {
+    private HeroPanel createInfoPanel() {
         HeroPanel panel = new HeroPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(new EmptyBorder(36, 36, 36, 36));
+        panel.setAlignmentY(Component.TOP_ALIGNMENT);
 
         JLabel eyebrow = new JLabel("WELCOME BACK");
-        eyebrow.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        eyebrow.setForeground(css("#DBEAFE"));
+        eyebrow.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        eyebrow.setForeground(HERO_EYEBROW);
         eyebrow.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel("<html>Manage your finances with a clean desktop workflow.</html>");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        JLabel title = new JLabel("<html><div style='width: 20em;'>Manage your finances with a clean desktop workflow.</div></html>");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel body = new JLabel("<html>Use the login form to access your dashboard. This starter flow is styled like a modern web sign-in page.</html>");
-        body.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        body.setForeground(css("#EFF6FF"));
+        JLabel body = new JLabel("<html><div style='width: 28em;'>Use the login form to access your dashboard. This starter flow is styled like a modern web sign-in page.</div></html>");
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
+        body.setForeground(HERO_BODY);
         body.setAlignmentX(LEFT_ALIGNMENT);
 
         panel.add(eyebrow);
@@ -95,22 +110,22 @@ public class LoginFrame extends JFrame {
         panel.add(createFeaturePill("Demo login: admin / password123"));
         panel.add(Box.createVerticalStrut(12));
         panel.add(createFeaturePill("Validation checks blank and incorrect entries"));
-
         return panel;
     }
 
-    private JPanel createFormPanel() {
+    private FormCardPanel createFormPanel() {
         FormCardPanel panel = new FormCardPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(new EmptyBorder(36, 36, 36, 36));
+        panel.setAlignmentY(Component.TOP_ALIGNMENT);
 
         JLabel title = new JLabel("Login");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 28));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(LEFT_ALIGNMENT);
 
         JLabel subtitle = new JLabel("Enter your username and password");
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         subtitle.setForeground(TEXT_SECONDARY);
         subtitle.setAlignmentX(LEFT_ALIGNMENT);
 
@@ -122,7 +137,7 @@ public class LoginFrame extends JFrame {
 
         JButton loginButton = createLoginButton();
 
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        statusLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         statusLabel.setForeground(TEXT_SECONDARY);
         statusLabel.setAlignmentX(LEFT_ALIGNMENT);
 
@@ -150,7 +165,7 @@ public class LoginFrame extends JFrame {
 
     private JLabel createFieldLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         label.setForeground(TEXT_PRIMARY);
         label.setAlignmentX(LEFT_ALIGNMENT);
         return label;
@@ -159,7 +174,7 @@ public class LoginFrame extends JFrame {
     private void styleTextField(JTextField field, String placeholder) {
         field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
         field.setPreferredSize(new Dimension(0, 46));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         field.setBackground(FIELD_BACKGROUND);
         field.setForeground(TEXT_PRIMARY);
         field.setCaretColor(ACCENT);
@@ -173,7 +188,7 @@ public class LoginFrame extends JFrame {
     private void stylePasswordField(JPasswordField field, String placeholder) {
         field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
         field.setPreferredSize(new Dimension(0, 46));
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         field.setBackground(FIELD_BACKGROUND);
         field.setForeground(TEXT_PRIMARY);
         field.setCaretColor(ACCENT);
@@ -193,9 +208,9 @@ public class LoginFrame extends JFrame {
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBackground(ACCENT);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(css("#2563EB")),
+                BorderFactory.createLineBorder(ACCENT_DARK),
                 new EmptyBorder(12, 16, 12, 16)));
         button.setAlignmentX(LEFT_ALIGNMENT);
         button.addActionListener(event -> handleLogin());
@@ -209,9 +224,9 @@ public class LoginFrame extends JFrame {
 
         JLabel label = new JLabel(text);
         label.setOpaque(true);
-        label.setBackground(new Color(255, 255, 255, 34));
+        label.setBackground(FEATURE_PILL_BACKGROUND);
         label.setForeground(Color.WHITE);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         label.setBorder(new EmptyBorder(12, 14, 12, 14));
 
         panel.add(label);
@@ -220,7 +235,7 @@ public class LoginFrame extends JFrame {
 
     private JLabel createFooterNote() {
         JLabel note = new JLabel("Use demo credentials to test validation.");
-        note.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         note.setForeground(TEXT_SECONDARY);
         note.setAlignmentX(LEFT_ALIGNMENT);
         return note;
@@ -258,10 +273,6 @@ public class LoginFrame extends JFrame {
     private void showStatus(String message, Color color) {
         statusLabel.setText(message);
         statusLabel.setForeground(color);
-    }
-
-    private static Color css(String hex) {
-        return Color.decode(hex);
     }
 
     private static class GradientPanel extends JPanel {
@@ -310,6 +321,70 @@ public class LoginFrame extends JFrame {
             g2.setColor(FORM_BORDER);
             g2.drawRoundRect(0, 0, width, height, 28, 28);
             g2.dispose();
+        }
+    }
+
+    private static class ResponsiveShellPanel extends JPanel {
+        private static final int STACK_BREAKPOINT = 920;
+        private static final int PANEL_GAP = 24;
+        private static final int HERO_MIN_WIDTH = 420;
+        private static final int FORM_WIDTH = 360;
+
+        private final JPanel heroPanel;
+        private final JPanel formPanel;
+
+        ResponsiveShellPanel(JPanel heroPanel, JPanel formPanel) {
+            this.heroPanel = heroPanel;
+            this.formPanel = formPanel;
+            setOpaque(false);
+            setLayout(null);
+            add(heroPanel);
+            add(formPanel);
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            int availableWidth = getParent() == null ? 1000 : Math.max(0, getParent().getWidth());
+            if (availableWidth <= 0) {
+                availableWidth = 1000;
+            }
+
+            if (availableWidth < STACK_BREAKPOINT) {
+                int width = Math.max(availableWidth, FORM_WIDTH);
+                int heroHeight = heroPanel.getPreferredSize().height;
+                int formHeight = formPanel.getPreferredSize().height;
+                return new Dimension(width, heroHeight + PANEL_GAP + formHeight);
+            }
+
+            int width = Math.max(availableWidth, HERO_MIN_WIDTH + FORM_WIDTH + PANEL_GAP);
+            int heroWidth = Math.max(HERO_MIN_WIDTH, width - FORM_WIDTH - PANEL_GAP);
+            int heroHeight = scaledHeroHeight(heroWidth);
+            int formHeight = formPanel.getPreferredSize().height;
+            return new Dimension(width, Math.max(heroHeight, formHeight));
+        }
+
+        @Override
+        public void doLayout() {
+            int width = getWidth();
+            if (width < STACK_BREAKPOINT) {
+                int heroHeight = heroPanel.getPreferredSize().height;
+                int formHeight = formPanel.getPreferredSize().height;
+                heroPanel.setBounds(0, 0, width, heroHeight);
+                formPanel.setBounds(0, heroHeight + PANEL_GAP, width, formHeight);
+                return;
+            }
+
+            int formWidth = Math.min(FORM_WIDTH, Math.max(320, (int) Math.round(width * 0.34)));
+            int heroWidth = Math.max(HERO_MIN_WIDTH, width - formWidth - PANEL_GAP);
+            int heroHeight = scaledHeroHeight(heroWidth);
+            int formHeight = Math.max(formPanel.getPreferredSize().height, heroHeight);
+
+            heroPanel.setBounds(0, 0, heroWidth, heroHeight);
+            formPanel.setBounds(heroWidth + PANEL_GAP, 0, formWidth, formHeight);
+        }
+
+        private int scaledHeroHeight(int width) {
+            return Math.max(320, Math.min(520, (int) Math.round(width * 0.58)));
         }
     }
 }

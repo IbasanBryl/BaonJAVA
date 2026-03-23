@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -45,27 +46,50 @@ public class MainFrame extends JFrame {
     private static final String PAGE_SAVING_GOAL = "saving_goal";
     private static final String PAGE_FORECAST = "forecast";
 
-    private static final Color PAGE_BACKGROUND = css("#F5EED9");
-    private static final Color PAGE_BACKGROUND_SOFT = css("#FBF7EC");
-    private static final Color SURFACE = css("#FFFDF8");
-    private static final Color SURFACE_TINT = css("#EFF8F7");
-    private static final Color SURFACE_BLUE = css("#EEF7FB");
-    private static final Color SURFACE_BORDER = css("#E5D1A8");
-    private static final Color TEXT_PRIMARY = css("#14213D");
-    private static final Color TEXT_SECONDARY = css("#7B5E34");
-    private static final Color SIDEBAR_BACKGROUND = css("#255D60");
-    private static final Color SIDEBAR_BUTTON = css("#2D676A");
-    private static final Color SIDEBAR_BUTTON_ACTIVE = css("#3E7779");
-    private static final Color SIDEBAR_BORDER = css("#4A8082");
-    private static final Color SIDEBAR_TEXT = Color.WHITE;
-    private static final Color SIDEBAR_MUTED = css("#D5E7E7");
-    private static final Color TEAL = css("#4A8B8D");
-    private static final Color TEAL_DARK = css("#2C6A6C");
-    private static final Color GOLD = css("#F3B24F");
-    private static final Color ORANGE = css("#E79A51");
-    private static final Color RED = css("#D85A5A");
-    private static final Color GREEN = css("#7CBF8E");
-    private static final Color SHADOW = new Color(110, 76, 23, 28);
+    private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
+    private static final Color PAGE_BACKGROUND = AppTheme.color("--main-page-background", "#F5EED9");
+    private static final Color PAGE_BACKGROUND_SOFT = AppTheme.color("--main-page-background-soft", "#FBF7EC");
+    private static final Color SURFACE = AppTheme.color("--main-surface", "#FFFDF8");
+    private static final Color SURFACE_TINT = AppTheme.color("--main-surface-tint", "#EFF8F7");
+    private static final Color SURFACE_BLUE = AppTheme.color("--main-surface-blue", "#EEF7FB");
+    private static final Color SURFACE_BORDER = AppTheme.color("--main-surface-border", "#E5D1A8");
+    private static final Color TEXT_PRIMARY = AppTheme.color("--main-text-primary", "#14213D");
+    private static final Color TEXT_SECONDARY = AppTheme.color("--main-text-secondary", "#7B5E34");
+    private static final Color SIDEBAR_BACKGROUND = AppTheme.color("--main-sidebar-background", "#255D60");
+    private static final Color SIDEBAR_BUTTON = AppTheme.color("--main-sidebar-button", "#2D676A");
+    private static final Color SIDEBAR_BUTTON_ACTIVE = AppTheme.color("--main-sidebar-button-active", "#3E7779");
+    private static final Color SIDEBAR_BORDER = AppTheme.color("--main-sidebar-border", "#4A8082");
+    private static final Color SIDEBAR_TEXT = AppTheme.color("--main-sidebar-text", "#FFFFFF");
+    private static final Color SIDEBAR_MUTED = AppTheme.color("--main-sidebar-muted", "#D5E7E7");
+    private static final Color TEAL = AppTheme.color("--main-teal", "#4A8B8D");
+    private static final Color TEAL_DARK = AppTheme.color("--main-teal-dark", "#2C6A6C");
+    private static final Color GOLD = AppTheme.color("--main-gold", "#F3B24F");
+    private static final Color ORANGE = AppTheme.color("--main-orange", "#E79A51");
+    private static final Color RED = AppTheme.color("--main-red", "#D85A5A");
+    private static final Color GREEN = AppTheme.color("--main-green", "#7CBF8E");
+    private static final Color SHADOW = AppTheme.color("--main-shadow", "rgba(110, 76, 23, 28)");
+    private static final Color ROOT_STRIPE = AppTheme.color("--main-root-stripe", "rgba(255, 255, 255, 90)");
+    private static final Color ROOT_ORB = AppTheme.color("--main-root-orb", "rgba(217, 201, 164, 40)");
+    private static final Color SIDEBAR_CHIP_BACKGROUND = AppTheme.color("--main-sidebar-chip-background", "#376F72");
+    private static final Color MENU_BADGE_BACKGROUND = AppTheme.color("--main-menu-badge-background", "#3A7376");
+    private static final Color MENU_BADGE_BORDER = AppTheme.color("--main-menu-badge-border", "#588B8E");
+    private static final Color CARD_BLUE_BORDER = AppTheme.color("--main-card-blue-border", "#C7E5E8");
+    private static final Color CARD_GOLD_BORDER = AppTheme.color("--main-card-gold-border", "#EDD1A3");
+    private static final Color CARD_DIVIDER = AppTheme.color("--main-card-divider", "#CFE0EA");
+    private static final Color CARD_TINT_BORDER = AppTheme.color("--main-card-tint-border", "#C6E6DE");
+    private static final Color CARD_SKY_BORDER = AppTheme.color("--main-card-sky-border", "#D2E6E8");
+    private static final Color CARD_CREAM_BORDER = AppTheme.color("--main-card-cream-border", "#E6D6B6");
+    private static final Color CATEGORY_DEFAULT_BORDER = AppTheme.color("--main-category-default-border", "#CFE7D9");
+    private static final Color PROGRESS_BACKGROUND = AppTheme.color("--main-progress-background", "#D5E8E2");
+    private static final Color EMPTY_TABLE_BORDER = AppTheme.color("--main-empty-table-border", "#CDE6DE");
+    private static final Color EMPTY_TABLE_HEADER_BACKGROUND = AppTheme.color("--main-empty-table-header-background", "rgb(230, 244, 240)");
+    private static final Color TABLE_GRID = AppTheme.color("--main-table-grid", "#D7E6DD");
+    private static final Color TABLE_SELECTION = AppTheme.color("--main-table-selection", "#DDEEE8");
+    private static final Color DONUT_OUTER = AppTheme.color("--main-donut-outer", "rgb(239, 229, 210)");
+    private static final Color DONUT_RING = AppTheme.color("--main-donut-ring", "rgb(222, 209, 180)");
+    private static final Color SIDEBAR_ACTIVE_BORDER = AppTheme.color("--main-sidebar-active-border", "#7FA6A7");
+    private static final Color FILLED_BADGE_BACKGROUND = AppTheme.color("--main-filled-badge-background", "rgba(255, 255, 255, 30)");
+    private static final Color FILLED_BODY_TEXT = AppTheme.color("--main-filled-body-text", "rgb(245, 248, 248)");
 
     private final ArrayList<IncomeEntry> incomeEntries = new ArrayList<IncomeEntry>();
     private final ArrayList<ExpenseEntry> expenseEntries = new ArrayList<ExpenseEntry>();
@@ -155,21 +179,23 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         super("BaonBrain Financial Overview");
         configureFrame();
+        loadStoredData();
         refreshAllSections();
         showPage(PAGE_DASHBOARD);
     }
 
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setMinimumSize(new Dimension(1100, 720));
         setSize(1360, 820);
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
 
-        BackgroundPanel root = new BackgroundPanel(PAGE_BACKGROUND, new Color(255, 255, 255, 90), new Color(217, 201, 164, 40));
+        BackgroundPanel root = new BackgroundPanel(PAGE_BACKGROUND, ROOT_STRIPE, ROOT_ORB);
         root.setLayout(new BorderLayout(24, 0));
         root.setBorder(new EmptyBorder(14, 14, 14, 14));
         root.add(createSidebar(), BorderLayout.WEST);
-        root.add(createPageContainer(), BorderLayout.CENTER);
+        root.add(createPageScrollPane(), BorderLayout.CENTER);
         setContentPane(root);
     }
 
@@ -183,16 +209,16 @@ public class MainFrame extends JFrame {
         brandBlock.setOpaque(false);
         brandBlock.setLayout(new BoxLayout(brandBlock, BoxLayout.Y_AXIS));
 
-        JLabel chip = createBadgeLabel("STUDENT BUDGET HUB", css("#376F72"), SIDEBAR_MUTED);
+        JLabel chip = createBadgeLabel("STUDENT BUDGET HUB", SIDEBAR_CHIP_BACKGROUND, SIDEBAR_MUTED);
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel brand = new JLabel("BaonBrain");
-        brand.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        brand.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
         brand.setForeground(SIDEBAR_TEXT);
         brand.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel body = new JLabel("<html>Track spending, plan smarter, and keep your weekly baon under control.</html>");
-        body.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(SIDEBAR_MUTED);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -237,17 +263,17 @@ public class MainFrame extends JFrame {
 
         JLabel menuBadge = new JLabel("=");
         menuBadge.setOpaque(true);
-        menuBadge.setBackground(css("#3A7376"));
+        menuBadge.setBackground(MENU_BADGE_BACKGROUND);
         menuBadge.setForeground(SIDEBAR_TEXT);
-        menuBadge.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        menuBadge.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
         menuBadge.setHorizontalAlignment(SwingConstants.CENTER);
         menuBadge.setPreferredSize(new Dimension(38, 38));
         menuBadge.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(css("#588B8E")),
+                BorderFactory.createLineBorder(MENU_BADGE_BORDER),
                 new EmptyBorder(2, 0, 4, 0)));
 
         JLabel username = new JLabel("  ibasanbryl7");
-        username.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        username.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         username.setForeground(SIDEBAR_TEXT);
 
         footer.add(menuBadge);
@@ -269,7 +295,7 @@ public class MainFrame extends JFrame {
         return button;
     }
 
-    private JPanel createPageContainer() {
+    private JScrollPane createPageScrollPane() {
         pagePanel.setOpaque(false);
         pagePanel.add(createDashboardPage(), PAGE_DASHBOARD);
         pagePanel.add(createIncomePage(), PAGE_INCOME);
@@ -277,7 +303,15 @@ public class MainFrame extends JFrame {
         pagePanel.add(createBudgetPage(), PAGE_BUDGET);
         pagePanel.add(createSavingGoalPage(), PAGE_SAVING_GOAL);
         pagePanel.add(createForecastPage(), PAGE_FORECAST);
-        return pagePanel;
+
+        JScrollPane scrollPane = new JScrollPane(pagePanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        return scrollPane;
     }
 
     private JPanel createDashboardPage() {
@@ -397,7 +431,7 @@ public class MainFrame extends JFrame {
         textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
 
         JLabel mainTitle = new JLabel("Financial Overview");
-        mainTitle.setFont(new Font("Segoe UI", Font.BOLD, 46));
+        mainTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
         mainTitle.setForeground(TEXT_PRIMARY);
         mainTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -405,12 +439,12 @@ public class MainFrame extends JFrame {
 
         if (sectionTitle != null && description != null) {
             JLabel section = new JLabel(sectionTitle);
-            section.setFont(new Font("Segoe UI", Font.BOLD, 34));
+            section.setFont(new Font(FONT_FAMILY, Font.BOLD, 34));
             section.setForeground(TEXT_PRIMARY);
             section.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             JLabel body = new JLabel("<html>" + description + "</html>");
-            body.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
             body.setForeground(TEXT_SECONDARY);
             body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -436,8 +470,8 @@ public class MainFrame extends JFrame {
 
     private JPanel createPrimarySecondaryRow(JPanel primaryPanel, JPanel secondaryPanel, int secondaryWidth) {
         JPanel row = new JPanel(new BorderLayout(18, 0));
-        row.setOpaque(false);
-        secondaryPanel.setPreferredSize(new Dimension(secondaryWidth, 0));
+        secondaryPanel.setPreferredSize(new Dimension(Math.max(300, secondaryWidth), 0));
+        secondaryPanel.setPreferredSize(new Dimension(Math.max(300, secondaryWidth), 0));
         row.add(primaryPanel, BorderLayout.CENTER);
         row.add(secondaryPanel, BorderLayout.EAST);
         return row;
@@ -448,19 +482,19 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 14), fillColor, borderColor, 24);
         panel.setBorder(new EmptyBorder(18, 18, 18, 18));
 
-        JLabel tag = createBadgeLabel(tagText, filled ? new Color(255, 255, 255, 30) : PAGE_BACKGROUND_SOFT,
+        JLabel tag = createBadgeLabel(tagText, filled ? FILLED_BADGE_BACKGROUND : PAGE_BACKGROUND_SOFT,
                 filled ? Color.WHITE : TEXT_SECONDARY);
         tag.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         title.setForeground(filled ? Color.WHITE : TEXT_PRIMARY);
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 46));
+        valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
         valueLabel.setForeground(filled ? Color.WHITE : TEXT_PRIMARY);
 
-        bodyLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        bodyLabel.setForeground(filled ? new Color(245, 248, 248) : TEXT_SECONDARY);
+        bodyLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        bodyLabel.setForeground(filled ? FILLED_BODY_TEXT : TEXT_SECONDARY);
 
         JPanel stack = new JPanel();
         stack.setOpaque(false);
@@ -514,7 +548,7 @@ public class MainFrame extends JFrame {
     private JPanel createNoticeCard(JLabel label) {
         SurfacePanel panel = createSurface(new BorderLayout(), SURFACE, SURFACE_BORDER, 18);
         panel.setBorder(new EmptyBorder(16, 18, 16, 18));
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         label.setForeground(TEXT_PRIMARY);
         panel.add(label, BorderLayout.CENTER);
         return panel;
@@ -532,7 +566,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createIncomeSummaryCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_BLUE, css("#C7E5E8"), 24);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_BLUE, CARD_BLUE_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel stack = new JPanel();
@@ -551,7 +585,7 @@ public class MainFrame extends JFrame {
         stack.add(Box.createVerticalStrut(16));
 
         JLabel footnote = new JLabel("Add your first income entry to start building a clearer picture.");
-        footnote.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        footnote.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         footnote.setForeground(TEXT_SECONDARY);
         stack.add(footnote);
         stack.add(Box.createVerticalGlue());
@@ -571,7 +605,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createExpenseSummaryCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, css("#EDD1A3"), 24);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, CARD_GOLD_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel stack = new JPanel();
@@ -588,19 +622,19 @@ public class MainFrame extends JFrame {
         stack.add(createValueRow("Expenses tracked", expenseTrackedCountValueLabel, false, null));
         stack.add(Box.createVerticalStrut(22));
 
-        expenseSummaryNoteLabel.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        expenseSummaryNoteLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 17));
         expenseSummaryNoteLabel.setForeground(TEXT_PRIMARY);
         stack.add(expenseSummaryNoteLabel);
         stack.add(Box.createVerticalStrut(10));
 
         JLabel body = new JLabel("Once you add expenses, each category total will appear here.");
-        body.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(TEXT_SECONDARY);
         stack.add(body);
         stack.add(Box.createVerticalStrut(18));
 
         JLabel extra = new JLabel("Add an expense to see your category totals build up here.");
-        extra.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        extra.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         extra.setForeground(TEXT_SECONDARY);
         stack.add(extra);
         stack.add(Box.createVerticalGlue());
@@ -623,7 +657,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createBudgetSnapshotCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_BLUE, css("#CFE0EA"), 24);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_BLUE, CARD_DIVIDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel stack = new JPanel();
@@ -645,21 +679,21 @@ public class MainFrame extends JFrame {
         stack.add(Box.createVerticalStrut(18));
 
         JLabel note = new JLabel("Add your first category budget to start tracking spending progress.");
-        note.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         note.setForeground(TEXT_SECONDARY);
         stack.add(note);
         stack.add(Box.createVerticalStrut(14));
 
         JPanel divider = new JPanel();
         divider.setOpaque(true);
-        divider.setBackground(css("#CFE0EA"));
+        divider.setBackground(CARD_DIVIDER);
         divider.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         divider.setPreferredSize(new Dimension(0, 1));
         stack.add(divider);
         stack.add(Box.createVerticalStrut(14));
 
         JLabel extra = new JLabel("Budget progress and snapshot will compare here once you add categories.");
-        extra.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        extra.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         extra.setForeground(TEXT_SECONDARY);
         stack.add(extra);
         stack.add(Box.createVerticalGlue());
@@ -669,7 +703,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createSavingGoalProgressCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_TINT, css("#C6E6DE"), 24);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_TINT, CARD_TINT_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel top = new JPanel(new BorderLayout(12, 0));
@@ -681,9 +715,9 @@ public class MainFrame extends JFrame {
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-        savingsGoalTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        savingsGoalTitleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         savingsGoalTitleLabel.setForeground(TEXT_PRIMARY);
-        savingsGoalBodyLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        savingsGoalBodyLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         savingsGoalBodyLabel.setForeground(TEXT_SECONDARY);
 
         styleProgressBar(savingsGoalProgressBar);
@@ -702,7 +736,7 @@ public class MainFrame extends JFrame {
         content.add(Box.createVerticalStrut(18));
 
         JLabel footnote = new JLabel("Set a target amount to start tracking progress.");
-        footnote.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        footnote.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         footnote.setForeground(TEXT_PRIMARY);
         content.add(footnote);
         content.add(Box.createVerticalGlue());
@@ -713,7 +747,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createSavingSnapshotCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, css("#D2E6E8"), 24);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, CARD_SKY_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel stack = new JPanel();
@@ -732,7 +766,7 @@ public class MainFrame extends JFrame {
         stack.add(Box.createVerticalStrut(18));
 
         JLabel note = new JLabel("Set your goal to unlock a clearer savings snapshot.");
-        note.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         note.setForeground(TEXT_SECONDARY);
         stack.add(note);
         stack.add(Box.createVerticalGlue());
@@ -752,7 +786,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createForecastPredictionCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, css("#E6D6B6"), 24);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, CARD_CREAM_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel header = new JPanel(new BorderLayout(12, 0));
@@ -769,15 +803,15 @@ public class MainFrame extends JFrame {
 
         styleProgressBar(forecastRiskProgressBar);
 
-        SurfacePanel riskPanel = createSurface(new BorderLayout(0, 12), SURFACE_TINT, css("#C6E6DE"), 18);
+        SurfacePanel riskPanel = createSurface(new BorderLayout(0, 12), SURFACE_TINT, CARD_TINT_BORDER, 18);
         riskPanel.setBorder(new EmptyBorder(12, 12, 12, 12));
 
         JPanel riskHeader = new JPanel(new BorderLayout());
         riskHeader.setOpaque(false);
         JLabel riskTitle = new JLabel("Chance of Overspending");
-        riskTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        riskTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
         riskTitle.setForeground(TEXT_PRIMARY);
-        forecastOverspendingPercentLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        forecastOverspendingPercentLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         forecastOverspendingPercentLabel.setForeground(TEXT_PRIMARY);
         riskHeader.add(riskTitle, BorderLayout.WEST);
         riskHeader.add(forecastOverspendingPercentLabel, BorderLayout.EAST);
@@ -822,12 +856,12 @@ public class MainFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel body = new JLabel("<html>" + bodyText + "</html>");
-        body.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(TEXT_SECONDARY);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -839,7 +873,7 @@ public class MainFrame extends JFrame {
 
     private JPanel createValueRow(String titleText, JLabel valueLabel, boolean highlighted, Color highlightColor) {
         Color fillColor = highlighted ? highlightColor : SURFACE;
-        Color borderColor = highlighted ? highlightColor.darker() : css("#CFE7D9");
+        Color borderColor = highlighted ? highlightColor.darker() : CATEGORY_DEFAULT_BORDER;
         Color textColor = highlighted ? Color.WHITE : TEAL_DARK;
 
         SurfacePanel row = createSurface(new BorderLayout(), fillColor, borderColor, 16);
@@ -847,10 +881,10 @@ public class MainFrame extends JFrame {
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         title.setForeground(textColor);
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 17));
         valueLabel.setForeground(highlighted ? Color.WHITE : TEXT_PRIMARY);
         valueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
@@ -860,14 +894,14 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createMiniStatTile(String titleText, JLabel valueLabel) {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 10), SURFACE, css("#E6D6B6"), 16);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 10), SURFACE, CARD_CREAM_BORDER, 16);
         panel.setBorder(new EmptyBorder(12, 12, 12, 12));
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        title.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         title.setForeground(TEXT_SECONDARY);
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         valueLabel.setForeground(TEXT_PRIMARY);
 
         panel.add(title, BorderLayout.NORTH);
@@ -879,7 +913,7 @@ public class MainFrame extends JFrame {
         JButton button = new JButton(text);
         button.setFocusable(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         button.setForeground(TEXT_PRIMARY);
         button.setBackground(SURFACE);
         button.setBorder(BorderFactory.createCompoundBorder(
@@ -893,7 +927,7 @@ public class MainFrame extends JFrame {
         label.setOpaque(true);
         label.setBackground(fillColor);
         label.setForeground(textColor);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
         label.setBorder(new EmptyBorder(7, 12, 7, 12));
         return label;
     }
@@ -903,7 +937,7 @@ public class MainFrame extends JFrame {
         label.setOpaque(true);
         label.setBackground(fillColor);
         label.setForeground(textColor);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
         label.setBorder(new EmptyBorder(7, 12, 7, 12));
     }
 
@@ -911,7 +945,7 @@ public class MainFrame extends JFrame {
         progressBar.setOpaque(false);
         progressBar.setStringPainted(false);
         progressBar.setForeground(TEAL);
-        progressBar.setBackground(css("#D5E8E2"));
+        progressBar.setBackground(PROGRESS_BACKGROUND);
         progressBar.setBorder(BorderFactory.createEmptyBorder());
         progressBar.setPreferredSize(new Dimension(0, 12));
         progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 12));
@@ -1047,7 +1081,7 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel(new GridLayout(labels.length, 2, 10, 10));
         for (int index = 0; index < labels.length; index++) {
             JLabel label = new JLabel(labels[index]);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            label.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
             panel.add(label);
             panel.add(components[index]);
         }
@@ -1068,7 +1102,30 @@ public class MainFrame extends JFrame {
         handleFinancialDataChanged();
     }
 
+    private void loadStoredData() {
+        AppDatabase.DatabaseState state = AppDatabase.load();
+        incomeEntries.clear();
+        incomeEntries.addAll(state.incomeEntries);
+        expenseEntries.clear();
+        expenseEntries.addAll(state.expenseEntries);
+        savingEntries.clear();
+        savingEntries.addAll(state.savingEntries);
+        budgetLimit = state.budgetLimit;
+        savingGoalTarget = state.savingGoalTarget;
+    }
+
+    private void persistData() {
+        AppDatabase.DatabaseState state = new AppDatabase.DatabaseState();
+        state.incomeEntries.addAll(incomeEntries);
+        state.expenseEntries.addAll(expenseEntries);
+        state.savingEntries.addAll(savingEntries);
+        state.budgetLimit = budgetLimit;
+        state.savingGoalTarget = savingGoalTarget;
+        AppDatabase.save(state);
+    }
+
     private void handleFinancialDataChanged() {
+        persistData();
         refreshAllSections();
     }
 
@@ -1279,12 +1336,12 @@ public class MainFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Latest weekly pace: " + currencyFormat.format(calculateLatestWeekSpending()));
-        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel body = new JLabel("Average spending per expense is " + currencyFormat.format(calculateAverageSpending()) + ".");
-        body.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(TEXT_SECONDARY);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1299,7 +1356,7 @@ public class MainFrame extends JFrame {
     private JPanel createCategoryListPanel(LinkedHashMap<String, ArrayList<ExpenseEntry>> groupedExpenses) {
         JPanel panel = new JPanel(new BorderLayout(16, 0));
         panel.setOpaque(false);
-        panel.add(new DonutPlaceholderPanel(groupedExpenses.isEmpty() ? "No data\nyet" : "Top\nspend", SURFACE, new Color(239, 229, 210), new Color(222, 209, 180), TEXT_SECONDARY), BorderLayout.WEST);
+        panel.add(new DonutPlaceholderPanel(groupedExpenses.isEmpty() ? "No data\nyet" : "Top\nspend", SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY), BorderLayout.WEST);
 
         JPanel list = new JPanel();
         list.setOpaque(false);
@@ -1319,11 +1376,11 @@ public class MainFrame extends JFrame {
         row.setOpaque(false);
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         title.setForeground(TEXT_PRIMARY);
 
         JLabel value = new JLabel(currencyFormat.format(amount), SwingConstants.RIGHT);
-        value.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        value.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         value.setForeground(TEXT_PRIMARY);
 
         row.add(title, BorderLayout.WEST);
@@ -1336,7 +1393,7 @@ public class MainFrame extends JFrame {
         panel.setBorder(new EmptyBorder(12, 14, 12, 14));
 
         JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         label.setForeground(TEXT_SECONDARY);
         panel.add(label, BorderLayout.CENTER);
         return panel;
@@ -1345,10 +1402,10 @@ public class MainFrame extends JFrame {
     private JPanel createDonutEmptyPanel(String text) {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
-        panel.add(new DonutPlaceholderPanel("No data\nyet", SURFACE, new Color(239, 229, 210), new Color(222, 209, 180), TEXT_SECONDARY), BorderLayout.NORTH);
+        panel.add(new DonutPlaceholderPanel("No data\nyet", SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY), BorderLayout.NORTH);
 
         JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         label.setForeground(TEXT_SECONDARY);
         panel.add(label, BorderLayout.SOUTH);
         return panel;
@@ -1360,12 +1417,12 @@ public class MainFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel body = new JLabel(bodyText);
-        body.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(TEXT_SECONDARY);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1378,16 +1435,16 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createEmptyTableState(String[] headers, String titleText, String bodyText) {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 0), SURFACE_BLUE, css("#CDE6DE"), 18);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 0), SURFACE_BLUE, EMPTY_TABLE_BORDER, 18);
         panel.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         JPanel headerRow = new JPanel(new GridLayout(1, headers.length, 0, 0));
         headerRow.setOpaque(true);
-        headerRow.setBackground(new Color(230, 244, 240));
+        headerRow.setBackground(EMPTY_TABLE_HEADER_BACKGROUND);
         headerRow.setBorder(new EmptyBorder(12, 12, 12, 12));
         for (String header : headers) {
             JLabel label = new JLabel(header);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            label.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
             label.setForeground(TEXT_SECONDARY);
             headerRow.add(label);
         }
@@ -1398,12 +1455,12 @@ public class MainFrame extends JFrame {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel text = new JLabel(bodyText);
-        text.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        text.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         text.setForeground(TEXT_SECONDARY);
         text.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1427,11 +1484,11 @@ public class MainFrame extends JFrame {
         top.setOpaque(false);
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
         title.setForeground(TEXT_PRIMARY);
 
         JLabel value = new JLabel(currencyFormat.format(spent) + " / " + currencyFormat.format(limit), SwingConstants.RIGHT);
-        value.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        value.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         value.setForeground(TEXT_SECONDARY);
 
         JProgressBar progressBar = new JProgressBar(0, 100);
@@ -1448,7 +1505,7 @@ public class MainFrame extends JFrame {
 
     private JPanel createMutedNote(String text) {
         JLabel label = new JLabel("<html>" + text + "</html>");
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         label.setForeground(TEXT_SECONDARY);
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -1459,9 +1516,9 @@ public class MainFrame extends JFrame {
     private void applySidebarButtonStyle(JButton button, boolean active) {
         button.setBackground(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON);
         button.setForeground(SIDEBAR_TEXT);
-        button.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 16));
+        button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 16));
         button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(active ? css("#7FA6A7") : SIDEBAR_BORDER),
+                BorderFactory.createLineBorder(active ? SIDEBAR_ACTIVE_BORDER : SIDEBAR_BORDER),
                 new EmptyBorder(12, 16, 12, 16)));
     }
 
@@ -1490,20 +1547,20 @@ public class MainFrame extends JFrame {
     private JScrollPane createTableScrollPane(JTable table) {
         table.setFillsViewportHeight(true);
         table.setRowHeight(28);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(230, 244, 240));
+        table.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        table.getTableHeader().setBackground(EMPTY_TABLE_HEADER_BACKGROUND);
         table.getTableHeader().setForeground(TEXT_SECONDARY);
-        table.setGridColor(css("#D7E6DD"));
+        table.setGridColor(TABLE_GRID);
         table.setShowHorizontalLines(true);
         table.setShowVerticalLines(false);
-        table.setSelectionBackground(css("#DDEEE8"));
+        table.setSelectionBackground(TABLE_SELECTION);
         table.setSelectionForeground(TEXT_PRIMARY);
         table.setBorder(BorderFactory.createEmptyBorder());
         table.setBackground(SURFACE_BLUE);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(css("#CDE6DE")));
+        scrollPane.setBorder(BorderFactory.createLineBorder(EMPTY_TABLE_BORDER));
         scrollPane.getViewport().setBackground(SURFACE_BLUE);
         return scrollPane;
     }
@@ -1692,9 +1749,8 @@ public class MainFrame extends JFrame {
         panel.setLayout(layout);
         return panel;
     }
-
-    private static Color css(String hex) {
-        return Color.decode(hex);
-    }
-
 }
+
+
+
+

@@ -1,0 +1,70 @@
+:root {
+    --font-family: Segoe UI;
+
+    --ui-component-arc: 16;
+    --ui-button-arc: 16;
+    --ui-text-component-arc: 14;
+    --ui-progress-arc: 16;
+    --ui-scrollbar-width: 12;
+
+    --login-page-background: #F3F4F6;
+    --login-form-background: #FFFFFF;
+    --login-form-border: #D1D5DB;
+    --login-form-shadow: rgba(15, 23, 42, 22);
+    --login-text-primary: #0F172A;
+    --login-text-secondary: #6B7280;
+    --login-field-background: #FFFFFF;
+    --login-field-border: #D1D5DB;
+    --login-accent: #3B82F6;
+    --login-accent-dark: #2563EB;
+    --login-success: #10B981;
+    --login-error: #DC2626;
+    --login-hero-eyebrow: #DBEAFE;
+    --login-hero-body: #EFF6FF;
+    --login-feature-pill-background: rgba(255, 255, 255, 34);
+
+    --main-page-background: #F5EED9;
+    --main-page-background-soft: #FBF7EC;
+    --main-surface: #FFFDF8;
+    --main-surface-tint: #EFF8F7;
+    --main-surface-blue: #EEF7FB;
+    --main-surface-border: #E5D1A8;
+    --main-text-primary: #14213D;
+    --main-text-secondary: #7B5E34;
+    --main-sidebar-background: #255D60;
+    --main-sidebar-button: #2D676A;
+    --main-sidebar-button-active: #3E7779;
+    --main-sidebar-border: #4A8082;
+    --main-sidebar-text: #FFFFFF;
+    --main-sidebar-muted: #D5E7E7;
+    --main-teal: #4A8B8D;
+    --main-teal-dark: #2C6A6C;
+    --main-gold: #F3B24F;
+    --main-orange: #E79A51;
+    --main-red: #D85A5A;
+    --main-green: #7CBF8E;
+    --main-shadow: rgba(110, 76, 23, 28);
+    --main-root-stripe: rgba(255, 255, 255, 90);
+    --main-root-orb: rgba(217, 201, 164, 40);
+    --main-sidebar-chip-background: #376F72;
+    --main-menu-badge-background: #3A7376;
+    --main-menu-badge-border: #588B8E;
+    --main-card-blue-border: #C7E5E8;
+    --main-card-gold-border: #EDD1A3;
+    --main-card-divider: #CFE0EA;
+    --main-card-tint-border: #C6E6DE;
+    --main-card-sky-border: #D2E6E8;
+    --main-card-cream-border: #E6D6B6;
+    --main-category-default-border: #CFE7D9;
+    --main-progress-background: #D5E8E2;
+    --main-empty-table-border: #CDE6DE;
+    --main-empty-table-header-background: rgb(230, 244, 240);
+    --main-table-grid: #D7E6DD;
+    --main-table-selection: #DDEEE8;
+    --main-donut-outer: rgb(239, 229, 210);
+    --main-donut-ring: rgb(222, 209, 180);
+    --main-sidebar-active-border: #7FA6A7;
+    --main-filled-badge-background: rgba(255, 255, 255, 30);
+    --main-filled-body-text: rgb(245, 248, 248);
+}
+

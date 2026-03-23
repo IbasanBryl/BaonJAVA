@@ -1,4 +1,4 @@
-﻿import java.awt.Color;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 
 public class DonutPlaceholderPanel extends JPanel {
     private static final long serialVersionUID = 1L;
+    private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
 
     private final String text;
     private final Color centerColor;
@@ -38,7 +39,7 @@ public class DonutPlaceholderPanel extends JPanel {
         g2.setColor(centerColor);
         g2.fillOval(26, 26, 66, 66);
         g2.setColor(textColor);
-        g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        g2.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
 
         String[] lines = text.split("\\n");
         int y = 55 - ((lines.length - 1) * 8);
