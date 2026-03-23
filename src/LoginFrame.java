@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
@@ -20,6 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
@@ -43,7 +46,7 @@ public class LoginFrame extends JFrame {
 
     private final JTextField usernameField = new JTextField();
     private final JPasswordField passwordField = new JPasswordField();
-    private final JLabel statusLabel = new JLabel("Use demo credentials to continue.");
+    private final JLabel statusLabel = new JLabel(" ");
     private final HeroPanel infoPanel = createInfoPanel();
     private final FormCardPanel formPanel = createFormPanel();
 
@@ -55,7 +58,7 @@ public class LoginFrame extends JFrame {
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(720, 540));
-        setSize(1000, 600);
+        setSize(1040, 640);
         setResizable(true);
         setLocationRelativeTo(null);
         setContentPane(createRoot());
@@ -64,7 +67,7 @@ public class LoginFrame extends JFrame {
     private JPanel createRoot() {
         GradientPanel root = new GradientPanel();
         root.setLayout(new BorderLayout());
-        root.setBorder(new EmptyBorder(32, 32, 32, 32));
+        root.setBorder(new EmptyBorder(26, 28, 26, 28));
 
         ResponsiveShellPanel shell = new ResponsiveShellPanel(infoPanel, formPanel);
 
@@ -83,7 +86,7 @@ public class LoginFrame extends JFrame {
     private HeroPanel createInfoPanel() {
         HeroPanel panel = new HeroPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(36, 36, 36, 36));
+        panel.setBorder(new EmptyBorder(38, 36, 36, 36));
         panel.setAlignmentY(Component.TOP_ALIGNMENT);
 
         JLabel eyebrow = new JLabel("WELCOME BACK");
@@ -91,20 +94,20 @@ public class LoginFrame extends JFrame {
         eyebrow.setForeground(HERO_EYEBROW);
         eyebrow.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel("<html><div style='width: 20em;'>Manage your finances with a clean desktop workflow.</div></html>");
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
+        JLabel title = new JLabel("<html><div style='width: 17em;'>Manage your finances with a clean desktop workflow.</div></html>");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 31));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel body = new JLabel("<html><div style='width: 28em;'>Use the login form to access your dashboard. This starter flow is styled like a modern web sign-in page.</div></html>");
+        JLabel body = new JLabel("<html><div style='width: 26em;'>Use the login form to access your dashboard. Track spending, review your budget, and keep everything in one calm desktop space.</div></html>");
         body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
         body.setForeground(HERO_BODY);
         body.setAlignmentX(LEFT_ALIGNMENT);
 
         panel.add(eyebrow);
-        panel.add(Box.createVerticalStrut(18));
+        panel.add(Box.createVerticalStrut(20));
         panel.add(title);
-        panel.add(Box.createVerticalStrut(16));
+        panel.add(Box.createVerticalStrut(18));
         panel.add(body);
         panel.add(Box.createVerticalGlue());
         panel.add(createFeaturePill("Demo login: admin / password123"));
@@ -116,11 +119,12 @@ public class LoginFrame extends JFrame {
     private FormCardPanel createFormPanel() {
         FormCardPanel panel = new FormCardPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(36, 36, 36, 36));
+        panel.setBorder(new EmptyBorder(36, 36, 34, 36));
         panel.setAlignmentY(Component.TOP_ALIGNMENT);
 
+        JLabel eyebrow = createFormChip("STUDENT BUDGET HUB");
         JLabel title = new JLabel("Login");
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 28));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(LEFT_ALIGNMENT);
 
@@ -137,10 +141,12 @@ public class LoginFrame extends JFrame {
 
         JButton loginButton = createLoginButton();
 
-        statusLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        statusLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         statusLabel.setForeground(TEXT_SECONDARY);
         statusLabel.setAlignmentX(LEFT_ALIGNMENT);
 
+        panel.add(eyebrow);
+        panel.add(Box.createVerticalStrut(18));
         panel.add(title);
         panel.add(Box.createVerticalStrut(8));
         panel.add(subtitle);
@@ -154,13 +160,25 @@ public class LoginFrame extends JFrame {
         panel.add(passwordField);
         panel.add(Box.createVerticalStrut(24));
         panel.add(loginButton);
-        panel.add(Box.createVerticalStrut(18));
+        panel.add(Box.createVerticalStrut(16));
         panel.add(statusLabel);
-        panel.add(Box.createVerticalGlue());
+        panel.add(Box.createVerticalStrut(14));
         panel.add(createFooterNote());
+        panel.add(Box.createVerticalGlue());
 
         getRootPane().setDefaultButton(loginButton);
         return panel;
+    }
+
+    private JLabel createFormChip(String text) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setOpaque(true);
+        label.setBackground(new Color(59, 130, 246, 22));
+        label.setForeground(ACCENT_DARK);
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 11));
+        label.setBorder(new EmptyBorder(7, 10, 7, 10));
+        label.setAlignmentX(LEFT_ALIGNMENT);
+        return label;
     }
 
     private JLabel createFieldLabel(String text) {
@@ -234,7 +252,7 @@ public class LoginFrame extends JFrame {
     }
 
     private JLabel createFooterNote() {
-        JLabel note = new JLabel("Use demo credentials to test validation.");
+        JLabel note = new JLabel("Use the demo account to test validation and open the dashboard.");
         note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         note.setForeground(TEXT_SECONDARY);
         note.setAlignmentX(LEFT_ALIGNMENT);
@@ -324,10 +342,10 @@ public class LoginFrame extends JFrame {
         }
     }
 
-    private static class ResponsiveShellPanel extends JPanel {
+    private static class ResponsiveShellPanel extends JPanel implements Scrollable {
         private static final int STACK_BREAKPOINT = 920;
         private static final int PANEL_GAP = 24;
-        private static final int HERO_MIN_WIDTH = 420;
+        private static final int HERO_MIN_WIDTH = 430;
         private static final int FORM_WIDTH = 360;
 
         private final JPanel heroPanel;
@@ -344,14 +362,14 @@ public class LoginFrame extends JFrame {
 
         @Override
         public Dimension getPreferredSize() {
-            int availableWidth = getParent() == null ? 1000 : Math.max(0, getParent().getWidth());
+            int availableWidth = getParent() == null ? 1040 : Math.max(0, getParent().getWidth());
             if (availableWidth <= 0) {
-                availableWidth = 1000;
+                availableWidth = 1040;
             }
 
             if (availableWidth < STACK_BREAKPOINT) {
                 int width = Math.max(availableWidth, FORM_WIDTH);
-                int heroHeight = heroPanel.getPreferredSize().height;
+                int heroHeight = Math.max(330, heroPanel.getPreferredSize().height);
                 int formHeight = formPanel.getPreferredSize().height;
                 return new Dimension(width, heroHeight + PANEL_GAP + formHeight);
             }
@@ -359,32 +377,65 @@ public class LoginFrame extends JFrame {
             int width = Math.max(availableWidth, HERO_MIN_WIDTH + FORM_WIDTH + PANEL_GAP);
             int heroWidth = Math.max(HERO_MIN_WIDTH, width - FORM_WIDTH - PANEL_GAP);
             int heroHeight = scaledHeroHeight(heroWidth);
-            int formHeight = formPanel.getPreferredSize().height;
-            return new Dimension(width, Math.max(heroHeight, formHeight));
+            int formHeight = Math.max(formPanel.getPreferredSize().height, heroHeight);
+            return new Dimension(width, formHeight);
         }
 
         @Override
         public void doLayout() {
             int width = getWidth();
+
             if (width < STACK_BREAKPOINT) {
-                int heroHeight = heroPanel.getPreferredSize().height;
+                int heroHeight = Math.max(330, heroPanel.getPreferredSize().height);
                 int formHeight = formPanel.getPreferredSize().height;
-                heroPanel.setBounds(0, 0, width, heroHeight);
-                formPanel.setBounds(0, heroHeight + PANEL_GAP, width, formHeight);
+                int totalHeight = heroHeight + PANEL_GAP + formHeight;
+                int startY = Math.max(0, (getHeight() - totalHeight) / 2);
+                heroPanel.setBounds(0, startY, width, heroHeight);
+                formPanel.setBounds(0, startY + heroHeight + PANEL_GAP, width, formHeight);
                 return;
             }
 
-            int formWidth = Math.min(FORM_WIDTH, Math.max(320, (int) Math.round(width * 0.34)));
+            int formWidth = Math.min(FORM_WIDTH, Math.max(332, (int) Math.round(width * 0.34)));
             int heroWidth = Math.max(HERO_MIN_WIDTH, width - formWidth - PANEL_GAP);
             int heroHeight = scaledHeroHeight(heroWidth);
             int formHeight = Math.max(formPanel.getPreferredSize().height, heroHeight);
+            int startY = Math.max(0, (getHeight() - formHeight) / 2);
 
-            heroPanel.setBounds(0, 0, heroWidth, heroHeight);
-            formPanel.setBounds(heroWidth + PANEL_GAP, 0, formWidth, formHeight);
+            heroPanel.setBounds(0, startY, heroWidth, heroHeight);
+            formPanel.setBounds(heroWidth + PANEL_GAP, startY, formWidth, formHeight);
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 24;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return Math.max(visibleRect.height - 48, 48);
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return getParent() != null && getPreferredSize().height <= getParent().getHeight();
         }
 
         private int scaledHeroHeight(int width) {
-            return Math.max(320, Math.min(520, (int) Math.round(width * 0.58)));
+            return Math.max(360, Math.min(520, (int) Math.round(width * 0.62)));
         }
     }
 }
+
+
+
+

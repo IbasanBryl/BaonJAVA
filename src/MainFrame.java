@@ -2,6 +2,8 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -11,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -31,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.Scrollable;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.JTextField;
@@ -97,7 +101,7 @@ public class MainFrame extends JFrame {
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
 
     private final CardLayout pageLayout = new CardLayout();
-    private final JPanel pagePanel = new JPanel(pageLayout);
+    private final JPanel pagePanel = new ResponsivePagePanel(pageLayout);
 
     private JButton dashboardNavButton;
     private JButton incomeNavButton;
@@ -311,6 +315,13 @@ public class MainFrame extends JFrame {
         scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent event) {
+                pagePanel.revalidate();
+                pagePanel.repaint();
+            }
+        });
         return scrollPane;
     }
 
@@ -334,8 +345,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createDashboardMetricRow() {
-        JPanel panel = new JPanel(new GridLayout(1, 4, 16, 16));
-        panel.setOpaque(false);
+        ResponsiveGridPanel panel = new ResponsiveGridPanel(220, 16);
         panel.add(createDashboardMetricCard("INCOME TRACKED", "Total Allowance", dashboardIncomeValueLabel,
                 dashboardIncomeBodyLabel, SURFACE, SURFACE_BORDER, false));
         panel.add(createDashboardMetricCard("OUTGOING CASH", "Total Spent", dashboardExpenseValueLabel,
@@ -454,27 +464,23 @@ public class MainFrame extends JFrame {
             textBlock.add(body);
         }
 
-        panel.add(textBlock, BorderLayout.WEST);
+        panel.add(textBlock, BorderLayout.CENTER);
 
         if (actionButtons != null && actionButtons.length > 0) {
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 80));
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
             actions.setOpaque(false);
+            actions.setBorder(new EmptyBorder(18, 0, 0, 0));
             for (JButton button : actionButtons) {
                 actions.add(button);
             }
-            panel.add(actions, BorderLayout.EAST);
+            panel.add(actions, BorderLayout.SOUTH);
         }
 
         return panel;
     }
 
     private JPanel createPrimarySecondaryRow(JPanel primaryPanel, JPanel secondaryPanel, int secondaryWidth) {
-        JPanel row = new JPanel(new BorderLayout(18, 0));
-        secondaryPanel.setPreferredSize(new Dimension(Math.max(300, secondaryWidth), 0));
-        secondaryPanel.setPreferredSize(new Dimension(Math.max(300, secondaryWidth), 0));
-        row.add(primaryPanel, BorderLayout.CENTER);
-        row.add(secondaryPanel, BorderLayout.EAST);
-        return row;
+        return new ResponsiveSplitPanel(primaryPanel, secondaryPanel, secondaryWidth);
     }
 
     private JPanel createDashboardMetricCard(String tagText, String titleText, JLabel valueLabel, JLabel bodyLabel,
@@ -795,8 +801,7 @@ public class MainFrame extends JFrame {
                 "Run the forecast to refresh your latest month-end estimate."), BorderLayout.WEST);
         header.add(forecastRiskBadgeLabel, BorderLayout.EAST);
 
-        JPanel stats = new JPanel(new GridLayout(1, 3, 10, 0));
-        stats.setOpaque(false);
+        ResponsiveGridPanel stats = new ResponsiveGridPanel(180, 10);
         stats.add(createMiniStatTile("Estimated Remaining", forecastEstimatedRemainingValueLabel));
         stats.add(createMiniStatTile("High-Risk Category", forecastHighRiskCategoryValueLabel));
         stats.add(createMiniStatTile("Projected Daily Spend", forecastProjectedDailyValueLabel));
@@ -914,11 +919,12 @@ public class MainFrame extends JFrame {
         button.setFocusable(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
-        button.setForeground(TEXT_PRIMARY);
-        button.setBackground(SURFACE);
+        button.setForeground(Color.WHITE);
+        button.setBackground(TEAL);
+        button.setOpaque(true);
         button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(SURFACE_BORDER),
-                new EmptyBorder(10, 16, 10, 16)));
+                BorderFactory.createLineBorder(TEAL_DARK),
+                new EmptyBorder(10, 18, 10, 18)));
         return button;
     }
 
@@ -1738,6 +1744,161 @@ public class MainFrame extends JFrame {
         return total;
     }
 
+    private static class ResponsivePagePanel extends JPanel implements Scrollable {
+        ResponsivePagePanel(LayoutManager layout) {
+            super(layout);
+            setOpaque(false);
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 24;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return Math.max(visibleRect.height - 48, 48);
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
+
+    private static class ResponsiveGridPanel extends JPanel {
+        private final int minCellWidth;
+        private final int gap;
+
+        ResponsiveGridPanel(int minCellWidth, int gap) {
+            this.minCellWidth = minCellWidth;
+            this.gap = gap;
+            setOpaque(false);
+            setLayout(null);
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            int width = getParent() == null ? (minCellWidth * Math.max(1, getComponentCount())) : Math.max(getParent().getWidth(), minCellWidth);
+            int columns = Math.max(1, Math.min(getComponentCount(), (width + gap) / (minCellWidth + gap)));
+            int rows = Math.max(1, (int) Math.ceil(getComponentCount() / (double) columns));
+            int cellWidth = Math.max(minCellWidth, (width - ((columns - 1) * gap)) / columns);
+            int totalHeight = 0;
+
+            for (int row = 0; row < rows; row++) {
+                int rowHeight = 0;
+                for (int column = 0; column < columns; column++) {
+                    int index = (row * columns) + column;
+                    if (index >= getComponentCount()) {
+                        break;
+                    }
+                    Component component = getComponent(index);
+                    Dimension preferred = component.getPreferredSize();
+                    rowHeight = Math.max(rowHeight, Math.max(preferred.height, cellWidth / 2));
+                }
+                totalHeight += rowHeight;
+                if (row < rows - 1) {
+                    totalHeight += gap;
+                }
+            }
+
+            return new Dimension(width, totalHeight);
+        }
+
+        @Override
+        public void doLayout() {
+            int count = getComponentCount();
+            if (count == 0) {
+                return;
+            }
+
+            int width = getWidth();
+            int columns = Math.max(1, Math.min(count, (width + gap) / (minCellWidth + gap)));
+            int cellWidth = Math.max(minCellWidth, (width - ((columns - 1) * gap)) / columns);
+            int x = 0;
+            int y = 0;
+            int rowHeight = 0;
+
+            for (int index = 0; index < count; index++) {
+                if (index > 0 && index % columns == 0) {
+                    x = 0;
+                    y += rowHeight + gap;
+                    rowHeight = 0;
+                }
+
+                Component component = getComponent(index);
+                int preferredHeight = Math.max(component.getPreferredSize().height, cellWidth / 2);
+                component.setBounds(x, y, cellWidth, preferredHeight);
+                rowHeight = Math.max(rowHeight, preferredHeight);
+                x += cellWidth + gap;
+            }
+        }
+    }
+
+    private static class ResponsiveSplitPanel extends JPanel {
+        private static final int GAP = 18;
+        private static final int STACK_BREAKPOINT = 1180;
+
+        private final JPanel primaryPanel;
+        private final JPanel secondaryPanel;
+        private final int secondaryWidth;
+
+        ResponsiveSplitPanel(JPanel primaryPanel, JPanel secondaryPanel, int secondaryWidth) {
+            this.primaryPanel = primaryPanel;
+            this.secondaryPanel = secondaryPanel;
+            this.secondaryWidth = Math.max(300, secondaryWidth);
+            setOpaque(false);
+            setLayout(null);
+            add(primaryPanel);
+            add(secondaryPanel);
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            int availableWidth = getParent() == null ? 1200 : Math.max(0, getParent().getWidth());
+            int primaryHeight = primaryPanel.getPreferredSize().height;
+            int secondaryHeight = secondaryPanel.getPreferredSize().height;
+
+            if (availableWidth < STACK_BREAKPOINT) {
+                int width = Math.max(availableWidth, secondaryWidth);
+                return new Dimension(width, primaryHeight + GAP + secondaryHeight);
+            }
+
+            int width = Math.max(availableWidth, secondaryWidth + 340 + GAP);
+            return new Dimension(width, Math.max(primaryHeight, secondaryHeight));
+        }
+
+        @Override
+        public void doLayout() {
+            int width = getWidth();
+            int primaryHeight = primaryPanel.getPreferredSize().height;
+            int secondaryHeight = secondaryPanel.getPreferredSize().height;
+
+            if (width < STACK_BREAKPOINT) {
+                primaryPanel.setBounds(0, 0, width, primaryHeight);
+                secondaryPanel.setBounds(0, primaryHeight + GAP, width, secondaryHeight);
+                return;
+            }
+
+            int resolvedSecondaryWidth = Math.min(this.secondaryWidth, Math.max(300, (int) Math.round(width * 0.34)));
+            int resolvedPrimaryWidth = Math.max(320, width - resolvedSecondaryWidth - GAP);
+            int sharedHeight = Math.max(primaryHeight, secondaryHeight);
+
+            primaryPanel.setBounds(0, 0, resolvedPrimaryWidth, sharedHeight);
+            secondaryPanel.setBounds(resolvedPrimaryWidth + GAP, 0, resolvedSecondaryWidth, sharedHeight);
+        }
+    }
+
     private SurfacePanel createSurface(LayoutManager layout) {
         SurfacePanel panel = new SurfacePanel(SURFACE, SURFACE_BORDER, 24, SHADOW);
         panel.setLayout(layout);
@@ -1750,6 +1911,18 @@ public class MainFrame extends JFrame {
         return panel;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
