@@ -43,6 +43,8 @@ public class LoginFrame extends JFrame {
     private static final Color HERO_EYEBROW = AppTheme.color("--login-hero-eyebrow", "#DBEAFE");
     private static final Color HERO_BODY = AppTheme.color("--login-hero-body", "#EFF6FF");
     private static final Color FEATURE_PILL_BACKGROUND = AppTheme.color("--login-feature-pill-background", "rgba(255, 255, 255, 34)");
+    private static final String HERO_TITLE_WIDTH = AppTheme.text("--login-hero-title-width", "17em");
+    private static final String HERO_BODY_WIDTH = AppTheme.text("--login-hero-body-width", "26em");
 
     private final JTextField usernameField = new JTextField();
     private final JPasswordField passwordField = new JPasswordField();
@@ -94,12 +96,12 @@ public class LoginFrame extends JFrame {
         eyebrow.setForeground(HERO_EYEBROW);
         eyebrow.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel("<html><div style='width: 17em;'>Manage your finances with a clean desktop workflow.</div></html>");
+        JLabel title = new JLabel(wrapHtmlBlock("Manage your finances with a clean desktop workflow.", HERO_TITLE_WIDTH));
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 31));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(LEFT_ALIGNMENT);
 
-        JLabel body = new JLabel("<html><div style='width: 26em;'>Use the login form to access your dashboard. Track spending, review your budget, and keep everything in one calm desktop space.</div></html>");
+        JLabel body = new JLabel(wrapHtmlBlock("Use the login form to access your dashboard. Track spending, review your budget, and keep everything in one calm desktop space.", HERO_BODY_WIDTH));
         body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
         body.setForeground(HERO_BODY);
         body.setAlignmentX(LEFT_ALIGNMENT);
@@ -257,6 +259,10 @@ public class LoginFrame extends JFrame {
         note.setForeground(TEXT_SECONDARY);
         note.setAlignmentX(LEFT_ALIGNMENT);
         return note;
+    }
+
+    private static String wrapHtmlBlock(String text, String width) {
+        return "<html><div style='width: " + width + ";'>" + text + "</div></html>";
     }
 
     private void handleLogin() {
@@ -435,7 +441,3 @@ public class LoginFrame extends JFrame {
         }
     }
 }
-
-
-
-

@@ -22,6 +22,8 @@
     --login-hero-eyebrow: #DBEAFE;
     --login-hero-body: #EFF6FF;
     --login-feature-pill-background: rgba(255, 255, 255, 34);
+    --login-hero-title-width: 17em;
+    --login-hero-body-width: 26em;
 
     --main-page-background: #F5EED9;
     --main-page-background-soft: #FBF7EC;
@@ -67,4 +69,3 @@
     --main-filled-badge-background: rgba(255, 255, 255, 30);
     --main-filled-body-text: rgb(245, 248, 248);
 }
-
