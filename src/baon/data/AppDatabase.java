@@ -3,202 +3,732 @@ package baon.data;
 import baon.model.ExpenseEntry;
 import baon.model.IncomeEntry;
 import baon.model.SavingEntry;
+import baon.security.SmtpClient;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class AppDatabase {
-    private static final Path DATA_PATH = Paths.get("data", "database.json");
+    private static final String DEFAULT_JDBC_URL = "jdbc:sqlite:data/baon.db";
+    private static final String DEFAULT_APP_EMAIL = "student@email.com";
+    private static final Path DOT_ENV_PATH = Paths.get(".env");
+    private static final Map<String, String> DOT_ENV_VALUES = loadDotEnv();
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static volatile boolean initialized;
 
     private AppDatabase() {
     }
 
+    public static synchronized void initialize() {
+        if (initialized) {
+            return;
+        }
+
+        try (Connection connection = openConnection();
+                Statement statement = connection.createStatement()) {
+            if (isSqlite()) {
+                statement.execute("PRAGMA foreign_keys = ON");
+            }
+
+            statement.execute("CREATE TABLE IF NOT EXISTS users ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "display_name TEXT NOT NULL,"
+                    + "email TEXT NOT NULL UNIQUE,"
+                    + "password_hash TEXT NOT NULL,"
+                    + "created_at TEXT NOT NULL"
+                    + ")");
+
+            statement.execute("CREATE TABLE IF NOT EXISTS user_settings ("
+                    + "user_id INTEGER PRIMARY KEY,"
+                    + "budget_limit REAL NOT NULL DEFAULT 0,"
+                    + "saving_goal_target REAL NOT NULL DEFAULT 0,"
+                    + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
+                    + ")");
+
+            statement.execute("CREATE TABLE IF NOT EXISTS income_entries ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "user_id INTEGER NOT NULL,"
+                    + "amount REAL NOT NULL,"
+                    + "source TEXT NOT NULL,"
+                    + "entry_date TEXT NOT NULL,"
+                    + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
+                    + ")");
+
+            statement.execute("CREATE TABLE IF NOT EXISTS expense_entries ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "user_id INTEGER NOT NULL,"
+                    + "amount REAL NOT NULL,"
+                    + "category TEXT NOT NULL,"
+                    + "entry_date TEXT NOT NULL,"
+                    + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
+                    + ")");
+
+            statement.execute("CREATE TABLE IF NOT EXISTS saving_entries ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "user_id INTEGER NOT NULL,"
+                    + "amount REAL NOT NULL,"
+                    + "entry_date TEXT NOT NULL,"
+                    + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
+                    + ")");
+
+            statement.execute("CREATE TABLE IF NOT EXISTS otp_codes ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "email TEXT NOT NULL,"
+                    + "code_hash TEXT NOT NULL,"
+                    + "expires_at_epoch_ms INTEGER NOT NULL,"
+                    + "used INTEGER NOT NULL DEFAULT 0,"
+                    + "created_at_epoch_ms INTEGER NOT NULL"
+                    + ")");
+
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_otp_codes_email ON otp_codes(email)");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_income_entries_user ON income_entries(user_id)");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_expense_entries_user ON expense_entries(user_id)");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_saving_entries_user ON saving_entries(user_id)");
+            initialized = true;
+        } catch (SQLException | IOException exception) {
+            throw new IllegalStateException("Failed to initialize JDBC schema.", exception);
+        }
+    }
+
     public static DatabaseState load() {
-        try {
-            ensureFileExists();
-            String json = new String(Files.readAllBytes(DATA_PATH), StandardCharsets.UTF_8);
-            DatabaseState state = new DatabaseState();
-            state.budgetLimit = readDouble(json, "budgetLimit", 0.0);
-            state.savingGoalTarget = readDouble(json, "savingGoalTarget", 0.0);
-            state.incomeEntries.addAll(readIncomeEntries(readArray(json, "incomeEntries")));
-            state.expenseEntries.addAll(readExpenseEntries(readArray(json, "expenseEntries")));
-            state.savingEntries.addAll(readSavingEntries(readArray(json, "savingEntries")));
+        return loadForUser(defaultEmail());
+    }
+
+    public static void save(DatabaseState state) {
+        saveForUser(defaultEmail(), state);
+    }
+
+    public static DatabaseState loadForUser(String email) {
+        initialize();
+        DatabaseState state = new DatabaseState();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
             return state;
-        } catch (IOException exception) {
+        }
+
+        try (Connection connection = openConnection()) {
+            Integer userId = findUserId(connection, normalizedEmail);
+            if (userId == null) {
+                return state;
+            }
+
+            loadSettings(connection, userId.intValue(), state);
+            loadIncomeEntries(connection, userId.intValue(), state);
+            loadExpenseEntries(connection, userId.intValue(), state);
+            loadSavingEntries(connection, userId.intValue(), state);
+            return state;
+        } catch (SQLException | IOException exception) {
             return new DatabaseState();
         }
     }
 
-    public static void save(DatabaseState state) {
-        try {
-            ensureFileExists();
-            Files.write(DATA_PATH, toJson(state).getBytes(StandardCharsets.UTF_8));
-        } catch (IOException ignored) {
-            // Keep the UI responsive even if persistence fails.
+    public static void saveForUser(String email, DatabaseState state) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty() || state == null) {
+            return;
+        }
+
+        try (Connection connection = openConnection()) {
+            connection.setAutoCommit(false);
+            Integer userId = findUserId(connection, normalizedEmail);
+            if (userId == null) {
+                String fallbackName = normalizedEmail.contains("@")
+                        ? normalizedEmail.substring(0, normalizedEmail.indexOf('@'))
+                        : "User";
+                createUser(connection, fallbackName, normalizedEmail, hashPassword("password123"));
+                userId = findUserId(connection, normalizedEmail);
+            }
+
+            if (userId == null) {
+                connection.rollback();
+                return;
+            }
+
+            overwriteSettings(connection, userId.intValue(), state);
+            overwriteIncomeEntries(connection, userId.intValue(), state.incomeEntries);
+            overwriteExpenseEntries(connection, userId.intValue(), state.expenseEntries);
+            overwriteSavingEntries(connection, userId.intValue(), state.savingEntries);
+            connection.commit();
+        } catch (SQLException | IOException exception) {
+            // Keep UI responsive even if persistence fails.
         }
     }
 
-    private static void ensureFileExists() throws IOException {
-        Path parent = DATA_PATH.getParent();
+    public static boolean userExists(String email) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return false;
+        }
+        try (Connection connection = openConnection()) {
+            return findUserId(connection, normalizedEmail) != null;
+        } catch (SQLException | IOException exception) {
+            return false;
+        }
+    }
+
+    public static boolean createUser(String displayName, String email, String plainPassword) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        String safeName = sanitizeDisplayName(displayName, normalizedEmail);
+        if (normalizedEmail.isEmpty() || plainPassword == null || plainPassword.trim().isEmpty()) {
+            return false;
+        }
+
+        String passwordHash = hashPassword(plainPassword.trim());
+        try (Connection connection = openConnection()) {
+            connection.setAutoCommit(false);
+            if (findUserId(connection, normalizedEmail) != null) {
+                connection.rollback();
+                return false;
+            }
+            createUser(connection, safeName, normalizedEmail, passwordHash);
+            connection.commit();
+            return true;
+        } catch (SQLException | IOException exception) {
+            return false;
+        }
+    }
+
+    public static UserRecord authenticateUser(String email, String plainPassword) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty() || plainPassword == null || plainPassword.trim().isEmpty()) {
+            return null;
+        }
+
+        String sql = "SELECT id, display_name, email, password_hash FROM users WHERE email = ?";
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, normalizedEmail);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+                String storedHash = resultSet.getString("password_hash");
+                if (!verifyPassword(plainPassword.trim(), storedHash)) {
+                    return null;
+                }
+                return new UserRecord(
+                        resultSet.getInt("id"),
+                        resultSet.getString("display_name"),
+                        resultSet.getString("email"));
+            }
+        } catch (SQLException | IOException exception) {
+            return null;
+        }
+    }
+
+    public static boolean updateDisplayName(String email, String displayName) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return false;
+        }
+        String safeName = sanitizeDisplayName(displayName, normalizedEmail);
+        String sql = "UPDATE users SET display_name = ? WHERE email = ?";
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, safeName);
+            statement.setString(2, normalizedEmail);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException | IOException exception) {
+            return false;
+        }
+    }
+
+    public static boolean updatePassword(String email, String newPassword) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "UPDATE users SET password_hash = ? WHERE email = ?";
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, hashPassword(newPassword.trim()));
+            statement.setString(2, normalizedEmail);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException | IOException exception) {
+            return false;
+        }
+    }
+
+    public static OtpDispatchResult sendOtp(String email) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return OtpDispatchResult.failure("Email is required.");
+        }
+
+        String otpCode = String.format("%06d", Integer.valueOf(RANDOM.nextInt(1000000)));
+        long now = Instant.now().toEpochMilli();
+        int expiryMinutes = Math.max(1, getConfigInt("OTP_EXPIRY_MINUTES", 5));
+        long expiresAt = now + (expiryMinutes * 60L * 1000L);
+
+        try (Connection connection = openConnection()) {
+            connection.setAutoCommit(false);
+            markUnusedOtpsUsed(connection, normalizedEmail);
+            String insertSql = "INSERT INTO otp_codes (email, code_hash, expires_at_epoch_ms, used, created_at_epoch_ms) "
+                    + "VALUES (?, ?, ?, 0, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
+                statement.setString(1, normalizedEmail);
+                statement.setString(2, hashOtpCode(otpCode));
+                statement.setLong(3, expiresAt);
+                statement.setLong(4, now);
+                statement.executeUpdate();
+            }
+            connection.commit();
+        } catch (SQLException | IOException exception) {
+            return OtpDispatchResult.failure("Could not generate OTP. Please try again.");
+        }
+
+        String subject = "Your BaonBrain OTP Code";
+        String body = "Your one-time code is " + otpCode + ". It expires in " + expiryMinutes + " minutes.";
+        try {
+            SmtpClient.sendEmail(normalizedEmail, subject, body);
+            return OtpDispatchResult.success("OTP sent. Check your email inbox.");
+        } catch (Throwable exception) {
+            if (isDevOtpFallbackEnabled()) {
+                return OtpDispatchResult.success("SMTP unavailable. Dev OTP: " + otpCode);
+            }
+            invalidateAllOtps(normalizedEmail);
+            return OtpDispatchResult.failure("Unable to send OTP email. Check SMTP settings in .env.");
+        }
+    }
+
+    public static boolean verifyOtp(String email, String otpCode) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        String trimmedCode = otpCode == null ? "" : otpCode.trim();
+        if (normalizedEmail.isEmpty() || trimmedCode.isEmpty()) {
+            return false;
+        }
+
+        String selectSql = "SELECT id, code_hash, expires_at_epoch_ms FROM otp_codes "
+                + "WHERE email = ? AND used = 0 ORDER BY created_at_epoch_ms DESC LIMIT 1";
+        try (Connection connection = openConnection();
+                PreparedStatement select = connection.prepareStatement(selectSql)) {
+            select.setString(1, normalizedEmail);
+            try (ResultSet resultSet = select.executeQuery()) {
+                if (!resultSet.next()) {
+                    return false;
+                }
+
+                int otpId = resultSet.getInt("id");
+                long expiresAt = resultSet.getLong("expires_at_epoch_ms");
+                String codeHash = resultSet.getString("code_hash");
+
+                if (Instant.now().toEpochMilli() > expiresAt) {
+                    markOtpUsedById(connection, otpId);
+                    return false;
+                }
+
+                if (!safeEquals(hashOtpCode(trimmedCode), codeHash)) {
+                    return false;
+                }
+
+                markOtpUsedById(connection, otpId);
+                return true;
+            }
+        } catch (SQLException | IOException exception) {
+            return false;
+        }
+    }
+
+    private static void loadSettings(Connection connection, int userId, DatabaseState state) throws SQLException {
+        String sql = "SELECT budget_limit, saving_goal_target FROM user_settings WHERE user_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    state.budgetLimit = resultSet.getDouble("budget_limit");
+                    state.savingGoalTarget = resultSet.getDouble("saving_goal_target");
+                }
+            }
+        }
+    }
+
+    private static void loadIncomeEntries(Connection connection, int userId, DatabaseState state) throws SQLException {
+        String sql = "SELECT amount, source, entry_date FROM income_entries WHERE user_id = ? ORDER BY id ASC";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    state.incomeEntries.add(new IncomeEntry(
+                            resultSet.getDouble("amount"),
+                            resultSet.getString("source"),
+                            resultSet.getString("entry_date")));
+                }
+            }
+        }
+    }
+
+    private static void loadExpenseEntries(Connection connection, int userId, DatabaseState state) throws SQLException {
+        String sql = "SELECT amount, category, entry_date FROM expense_entries WHERE user_id = ? ORDER BY id ASC";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    state.expenseEntries.add(new ExpenseEntry(
+                            resultSet.getDouble("amount"),
+                            resultSet.getString("category"),
+                            resultSet.getString("entry_date")));
+                }
+            }
+        }
+    }
+
+    private static void loadSavingEntries(Connection connection, int userId, DatabaseState state) throws SQLException {
+        String sql = "SELECT amount, entry_date FROM saving_entries WHERE user_id = ? ORDER BY id ASC";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    state.savingEntries.add(new SavingEntry(
+                            resultSet.getDouble("amount"),
+                            resultSet.getString("entry_date")));
+                }
+            }
+        }
+    }
+
+    private static void overwriteSettings(Connection connection, int userId, DatabaseState state) throws SQLException {
+        String updateSql = "UPDATE user_settings SET budget_limit = ?, saving_goal_target = ? WHERE user_id = ?";
+        try (PreparedStatement update = connection.prepareStatement(updateSql)) {
+            update.setDouble(1, state.budgetLimit);
+            update.setDouble(2, state.savingGoalTarget);
+            update.setInt(3, userId);
+            int affected = update.executeUpdate();
+            if (affected > 0) {
+                return;
+            }
+        }
+
+        String insertSql = "INSERT INTO user_settings (user_id, budget_limit, saving_goal_target) VALUES (?, ?, ?)";
+        try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
+            insert.setInt(1, userId);
+            insert.setDouble(2, state.budgetLimit);
+            insert.setDouble(3, state.savingGoalTarget);
+            insert.executeUpdate();
+        }
+    }
+
+    private static void overwriteIncomeEntries(Connection connection, int userId, ArrayList<IncomeEntry> entries)
+            throws SQLException {
+        try (PreparedStatement delete = connection.prepareStatement("DELETE FROM income_entries WHERE user_id = ?")) {
+            delete.setInt(1, userId);
+            delete.executeUpdate();
+        }
+
+        String insertSql = "INSERT INTO income_entries (user_id, amount, source, entry_date) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
+            for (IncomeEntry entry : entries) {
+                insert.setInt(1, userId);
+                insert.setDouble(2, entry.amount);
+                insert.setString(3, entry.source);
+                insert.setString(4, entry.date);
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+    }
+
+    private static void overwriteExpenseEntries(Connection connection, int userId, ArrayList<ExpenseEntry> entries)
+            throws SQLException {
+        try (PreparedStatement delete = connection.prepareStatement("DELETE FROM expense_entries WHERE user_id = ?")) {
+            delete.setInt(1, userId);
+            delete.executeUpdate();
+        }
+
+        String insertSql = "INSERT INTO expense_entries (user_id, amount, category, entry_date) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
+            for (ExpenseEntry entry : entries) {
+                insert.setInt(1, userId);
+                insert.setDouble(2, entry.amount);
+                insert.setString(3, entry.category);
+                insert.setString(4, entry.date);
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+    }
+
+    private static void overwriteSavingEntries(Connection connection, int userId, ArrayList<SavingEntry> entries)
+            throws SQLException {
+        try (PreparedStatement delete = connection.prepareStatement("DELETE FROM saving_entries WHERE user_id = ?")) {
+            delete.setInt(1, userId);
+            delete.executeUpdate();
+        }
+
+        String insertSql = "INSERT INTO saving_entries (user_id, amount, entry_date) VALUES (?, ?, ?)";
+        try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
+            for (SavingEntry entry : entries) {
+                insert.setInt(1, userId);
+                insert.setDouble(2, entry.amount);
+                insert.setString(3, entry.date);
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+    }
+
+    private static void createUser(Connection connection, String displayName, String email, String passwordHash)
+            throws SQLException {
+        String insertSql = "INSERT INTO users (display_name, email, password_hash, created_at) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
+            statement.setString(1, displayName);
+            statement.setString(2, email);
+            statement.setString(3, passwordHash);
+            statement.setString(4, Instant.now().toString());
+            statement.executeUpdate();
+        }
+    }
+
+    private static Integer findUserId(Connection connection, String normalizedEmail) throws SQLException {
+        String sql = "SELECT id FROM users WHERE email = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, normalizedEmail);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Integer.valueOf(resultSet.getInt("id"));
+                }
+                return null;
+            }
+        }
+    }
+
+    private static void markUnusedOtpsUsed(Connection connection, String email) throws SQLException {
+        String sql = "UPDATE otp_codes SET used = 1 WHERE email = ? AND used = 0";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void invalidateAllOtps(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return;
+        }
+        String sql = "UPDATE otp_codes SET used = 1 WHERE email = ? AND used = 0";
+        try (Connection connection = openConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, normalizedEmail);
+            statement.executeUpdate();
+        } catch (SQLException | IOException ignored) {
+            // Nothing else to do if invalidation fails.
+        }
+    }
+
+    private static void markOtpUsedById(Connection connection, int otpId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE otp_codes SET used = 1 WHERE id = ?")) {
+            statement.setInt(1, otpId);
+            statement.executeUpdate();
+        }
+    }
+
+    private static Connection openConnection() throws SQLException, IOException {
+        String jdbcUrl = jdbcUrl();
+        ensureSqliteDirectory(jdbcUrl);
+        String user = getConfig("JDBC_USER", "").trim();
+        String password = getConfig("JDBC_PASSWORD", "");
+
+        if (user.isEmpty()) {
+            return DriverManager.getConnection(jdbcUrl);
+        }
+        return DriverManager.getConnection(jdbcUrl, user, password);
+    }
+
+    private static void ensureSqliteDirectory(String jdbcUrl) throws IOException {
+        if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:sqlite:")) {
+            return;
+        }
+
+        String target = jdbcUrl.substring("jdbc:sqlite:".length());
+        int queryIndex = target.indexOf('?');
+        if (queryIndex >= 0) {
+            target = target.substring(0, queryIndex);
+        }
+
+        if (target.isEmpty() || ":memory:".equals(target) || target.startsWith("file:")) {
+            return;
+        }
+
+        Path dbPath = Paths.get(target);
+        Path parent = dbPath.getParent();
         if (parent != null && !Files.exists(parent)) {
             Files.createDirectories(parent);
         }
-        if (!Files.exists(DATA_PATH)) {
-            Files.write(DATA_PATH, defaultJson().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static boolean isSqlite() {
+        return jdbcUrl().startsWith("jdbc:sqlite:");
+    }
+
+    private static String jdbcUrl() {
+        return getConfig("JDBC_URL", DEFAULT_JDBC_URL);
+    }
+
+    private static String defaultEmail() {
+        return normalizeEmail(getConfig("APP_DEFAULT_EMAIL", DEFAULT_APP_EMAIL));
+    }
+
+    private static String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private static String sanitizeDisplayName(String displayName, String fallbackEmail) {
+        String trimmed = displayName == null ? "" : displayName.trim();
+        if (!trimmed.isEmpty()) {
+            return trimmed;
         }
-    }
-
-    private static String toJson(DatabaseState state) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\n");
-        builder.append("  \"budgetLimit\": ").append(formatDouble(state.budgetLimit)).append(",\n");
-        builder.append("  \"savingGoalTarget\": ").append(formatDouble(state.savingGoalTarget)).append(",\n");
-        builder.append("  \"incomeEntries\": [\n");
-        appendIncomeEntries(builder, state.incomeEntries);
-        builder.append("  ],\n");
-        builder.append("  \"expenseEntries\": [\n");
-        appendExpenseEntries(builder, state.expenseEntries);
-        builder.append("  ],\n");
-        builder.append("  \"savingEntries\": [\n");
-        appendSavingEntries(builder, state.savingEntries);
-        builder.append("  ]\n");
-        builder.append("}\n");
-        return builder.toString();
-    }
-
-    private static void appendIncomeEntries(StringBuilder builder, ArrayList<IncomeEntry> entries) {
-        for (int index = 0; index < entries.size(); index++) {
-            IncomeEntry entry = entries.get(index);
-            builder.append("    {\"amount\": ").append(formatDouble(entry.amount))
-                    .append(", \"source\": \"").append(escape(entry.source))
-                    .append("\", \"date\": \"").append(escape(entry.date)).append("\"}");
-            if (index < entries.size() - 1) {
-                builder.append(',');
-            }
-            builder.append("\n");
+        if (fallbackEmail != null && fallbackEmail.contains("@")) {
+            return fallbackEmail.substring(0, fallbackEmail.indexOf('@'));
         }
+        return "User";
     }
 
-    private static void appendExpenseEntries(StringBuilder builder, ArrayList<ExpenseEntry> entries) {
-        for (int index = 0; index < entries.size(); index++) {
-            ExpenseEntry entry = entries.get(index);
-            builder.append("    {\"amount\": ").append(formatDouble(entry.amount))
-                    .append(", \"category\": \"").append(escape(entry.category))
-                    .append("\", \"date\": \"").append(escape(entry.date)).append("\"}");
-            if (index < entries.size() - 1) {
-                builder.append(',');
-            }
-            builder.append("\n");
+    private static String hashPassword(String plainPassword) {
+        byte[] salt = new byte[16];
+        RANDOM.nextBytes(salt);
+        byte[] digest = sha256(concat(salt, plainPassword.getBytes(StandardCharsets.UTF_8)));
+        return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(digest);
+    }
+
+    private static boolean verifyPassword(String plainPassword, String storedHash) {
+        if (storedHash == null || !storedHash.contains(":")) {
+            return false;
         }
-    }
-
-    private static void appendSavingEntries(StringBuilder builder, ArrayList<SavingEntry> entries) {
-        for (int index = 0; index < entries.size(); index++) {
-            SavingEntry entry = entries.get(index);
-            builder.append("    {\"amount\": ").append(formatDouble(entry.amount))
-                    .append(", \"date\": \"").append(escape(entry.date)).append("\"}");
-            if (index < entries.size() - 1) {
-                builder.append(',');
-            }
-            builder.append("\n");
-        }
-    }
-
-    private static ArrayList<IncomeEntry> readIncomeEntries(String arrayJson) {
-        ArrayList<IncomeEntry> entries = new ArrayList<IncomeEntry>();
-        for (String objectJson : splitObjects(arrayJson)) {
-            entries.add(new IncomeEntry(
-                    readDouble(objectJson, "amount", 0.0),
-                    readString(objectJson, "source", ""),
-                    readString(objectJson, "date", "")));
-        }
-        return entries;
-    }
-
-    private static ArrayList<ExpenseEntry> readExpenseEntries(String arrayJson) {
-        ArrayList<ExpenseEntry> entries = new ArrayList<ExpenseEntry>();
-        for (String objectJson : splitObjects(arrayJson)) {
-            entries.add(new ExpenseEntry(
-                    readDouble(objectJson, "amount", 0.0),
-                    readString(objectJson, "category", ""),
-                    readString(objectJson, "date", "")));
-        }
-        return entries;
-    }
-
-    private static ArrayList<SavingEntry> readSavingEntries(String arrayJson) {
-        ArrayList<SavingEntry> entries = new ArrayList<SavingEntry>();
-        for (String objectJson : splitObjects(arrayJson)) {
-            entries.add(new SavingEntry(
-                    readDouble(objectJson, "amount", 0.0),
-                    readString(objectJson, "date", "")));
-        }
-        return entries;
-    }
-
-    private static ArrayList<String> splitObjects(String arrayJson) {
-        ArrayList<String> objects = new ArrayList<String>();
-        Matcher matcher = Pattern.compile("\\{[^\\{\\}]*\\}", Pattern.DOTALL).matcher(arrayJson);
-        while (matcher.find()) {
-            objects.add(matcher.group());
-        }
-        return objects;
-    }
-
-    private static String readArray(String json, String key) {
-        Matcher matcher = Pattern.compile("\\\"" + Pattern.quote(key) + "\\\"\\s*:\\s*\\[(.*?)\\]", Pattern.DOTALL)
-                .matcher(json);
-        return matcher.find() ? matcher.group(1) : "";
-    }
-
-    private static double readDouble(String json, String key, double fallback) {
-        Matcher matcher = Pattern.compile("\\\"" + Pattern.quote(key) + "\\\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)")
-                .matcher(json);
-        if (!matcher.find()) {
-            return fallback;
-        }
+        String[] parts = storedHash.split(":", 2);
         try {
-            return Double.parseDouble(matcher.group(1));
+            byte[] salt = Base64.getDecoder().decode(parts[0]);
+            byte[] expectedDigest = Base64.getDecoder().decode(parts[1]);
+            byte[] actualDigest = sha256(concat(salt, plainPassword.getBytes(StandardCharsets.UTF_8)));
+            return MessageDigest.isEqual(expectedDigest, actualDigest);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private static String hashOtpCode(String otpCode) {
+        byte[] digest = sha256(otpCode.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(digest);
+    }
+
+    private static boolean safeEquals(String left, String right) {
+        if (left == null || right == null) {
+            return false;
+        }
+        return MessageDigest.isEqual(
+                left.getBytes(StandardCharsets.UTF_8),
+                right.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static byte[] sha256(byte[] value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(value);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable.", exception);
+        }
+    }
+
+    private static byte[] concat(byte[] first, byte[] second) {
+        byte[] merged = new byte[first.length + second.length];
+        System.arraycopy(first, 0, merged, 0, first.length);
+        System.arraycopy(second, 0, merged, first.length, second.length);
+        return merged;
+    }
+
+    private static String getConfig(String key, String fallback) {
+        String environmentValue = System.getenv(key);
+        if (environmentValue != null && !environmentValue.trim().isEmpty()) {
+            return environmentValue.trim();
+        }
+        String dotEnvValue = DOT_ENV_VALUES.get(key);
+        if (dotEnvValue != null && !dotEnvValue.trim().isEmpty()) {
+            return dotEnvValue.trim();
+        }
+        return fallback;
+    }
+
+    private static int getConfigInt(String key, int fallback) {
+        String value = getConfig(key, String.valueOf(fallback));
+        try {
+            return Integer.parseInt(value.trim());
         } catch (NumberFormatException exception) {
             return fallback;
         }
     }
 
-    private static String readString(String json, String key, String fallback) {
-        Matcher matcher = Pattern.compile("\\\"" + Pattern.quote(key) + "\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"")
-                .matcher(json);
-        return matcher.find() ? unescape(matcher.group(1)) : fallback;
-    }
-
-    private static String escape(String value) {
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    private static String unescape(String value) {
-        return value.replace("\\\"", "\"").replace("\\\\", "\\");
-    }
-
-    private static String formatDouble(double value) {
-        if (value == (long) value) {
-            return String.format("%d", Long.valueOf((long) value));
+    private static boolean getConfigBoolean(String key, boolean fallback) {
+        String value = getConfig(key, String.valueOf(fallback)).trim().toLowerCase();
+        if ("true".equals(value) || "1".equals(value) || "yes".equals(value)) {
+            return true;
         }
-        return String.valueOf(value);
+        if ("false".equals(value) || "0".equals(value) || "no".equals(value)) {
+            return false;
+        }
+        return fallback;
     }
 
-    private static String defaultJson() {
-        return "{\n"
-                + "  \"budgetLimit\": 0.0,\n"
-                + "  \"savingGoalTarget\": 0.0,\n"
-                + "  \"incomeEntries\": [],\n"
-                + "  \"expenseEntries\": [],\n"
-                + "  \"savingEntries\": []\n"
-                + "}\n";
+    private static boolean isDevOtpFallbackEnabled() {
+        return getConfigBoolean("OTP_DEV_FALLBACK", true);
+    }
+
+    private static Map<String, String> loadDotEnv() {
+        if (!Files.exists(DOT_ENV_PATH)) {
+            return Collections.emptyMap();
+        }
+
+        HashMap<String, String> values = new HashMap<String, String>();
+        try {
+            List<String> lines = Files.readAllLines(DOT_ENV_PATH, StandardCharsets.UTF_8);
+            for (String rawLine : lines) {
+                String line = rawLine == null ? "" : rawLine.trim();
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+
+                int separator = line.indexOf('=');
+                if (separator <= 0) {
+                    continue;
+                }
+
+                String key = line.substring(0, separator).trim();
+                String value = line.substring(separator + 1).trim();
+                if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
+                    value = value.substring(1, value.length() - 1);
+                }
+                values.put(key, value);
+            }
+        } catch (IOException ignored) {
+            return Collections.emptyMap();
+        }
+
+        return values;
     }
 
     public static final class DatabaseState {
@@ -207,6 +737,36 @@ public final class AppDatabase {
         public final ArrayList<SavingEntry> savingEntries = new ArrayList<SavingEntry>();
         public double budgetLimit;
         public double savingGoalTarget;
+    }
+
+    public static final class UserRecord {
+        public final int id;
+        public final String displayName;
+        public final String email;
+
+        public UserRecord(int id, String displayName, String email) {
+            this.id = id;
+            this.displayName = displayName;
+            this.email = email;
+        }
+    }
+
+    public static final class OtpDispatchResult {
+        public final boolean success;
+        public final String message;
+
+        private OtpDispatchResult(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+
+        public static OtpDispatchResult success(String message) {
+            return new OtpDispatchResult(true, message);
+        }
+
+        public static OtpDispatchResult failure(String message) {
+            return new OtpDispatchResult(false, message);
+        }
     }
 }
 

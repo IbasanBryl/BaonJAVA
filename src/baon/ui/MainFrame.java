@@ -128,8 +128,8 @@ public class MainFrame extends JFrame {
     private JButton forecastNavButton;
 
     private JLabel sidebarUsernameLabel;
-    private String accountDisplayName = "ibasanbryl7";
-    private final String accountEmail = "ibasanbryl7@gmail.com";
+    private String accountDisplayName;
+    private final String accountEmail;
 
     private final JLabel dashboardIncomeValueLabel = new JLabel();
     private final JLabel dashboardIncomeBodyLabel = new JLabel();
@@ -205,7 +205,22 @@ public class MainFrame extends JFrame {
     private String currentPage = PAGE_DASHBOARD;
 
     public MainFrame() {
+        this("User", "");
+    }
+
+    public MainFrame(String accountDisplayName, String accountEmail) {
         super("BaonBrain Financial Overview");
+        this.accountEmail = accountEmail == null ? "" : accountEmail.trim().toLowerCase();
+        String sanitizedDisplayName = accountDisplayName == null ? "" : accountDisplayName.trim();
+        if (sanitizedDisplayName.isEmpty()) {
+            if (this.accountEmail.contains("@")) {
+                sanitizedDisplayName = this.accountEmail.substring(0, this.accountEmail.indexOf('@'));
+            } else {
+                sanitizedDisplayName = "User";
+            }
+        }
+        this.accountDisplayName = sanitizedDisplayName;
+
         configureFrame();
         configureSavingsHistoryAutoPagination();
         loadStoredData();
@@ -478,6 +493,10 @@ public class MainFrame extends JFrame {
                 JOptionPane.showMessageDialog(dialog, "Display name cannot be empty.", "Validation", JOptionPane.WARNING_MESSAGE);
                 return;
             }
+            if (!AppDatabase.updateDisplayName(accountEmail, displayName)) {
+                JOptionPane.showMessageDialog(dialog, "Could not update display name.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             accountDisplayName = displayName;
             if (sidebarUsernameLabel != null) {
                 sidebarUsernameLabel.setText("  " + accountDisplayName);
@@ -601,6 +620,10 @@ public class MainFrame extends JFrame {
         }
         if (!password.equals(confirmPassword)) {
             JOptionPane.showMessageDialog(owner, "Passwords do not match.", "Validation", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!AppDatabase.updatePassword(accountEmail, password)) {
+            JOptionPane.showMessageDialog(owner, "Could not update password.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         JOptionPane.showMessageDialog(owner, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -1460,7 +1483,7 @@ public class MainFrame extends JFrame {
     }
 
     private void loadStoredData() {
-        AppDatabase.DatabaseState state = AppDatabase.load();
+        AppDatabase.DatabaseState state = AppDatabase.loadForUser(accountEmail);
         incomeEntries.clear();
         incomeEntries.addAll(state.incomeEntries);
         expenseEntries.clear();
@@ -1478,7 +1501,7 @@ public class MainFrame extends JFrame {
         state.savingEntries.addAll(savingEntries);
         state.budgetLimit = budgetLimit;
         state.savingGoalTarget = savingGoalTarget;
-        AppDatabase.save(state);
+        AppDatabase.saveForUser(accountEmail, state);
     }
 
     private void handleFinancialDataChanged() {
@@ -2432,6 +2455,10 @@ public class MainFrame extends JFrame {
         }
     }
 }
+
+
+
+
 
 
 

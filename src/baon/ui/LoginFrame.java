@@ -1,5 +1,7 @@
 package baon.ui;
 
+import baon.data.AppDatabase;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -15,8 +17,6 @@ import java.awt.GridLayout;
 import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -70,8 +71,6 @@ public class LoginFrame extends JFrame {
     private JButton signInTabButton;
     private JButton createAccountTabButton;
 
-    private final Map<String, String> accounts = new HashMap<String, String>();
-
     public LoginFrame() {
         super("BaonBrain Login");
         configureFrame();
@@ -83,7 +82,15 @@ public class LoginFrame extends JFrame {
         setSize(1240, 760);
         setLocationRelativeTo(null);
         setContentPane(createRoot());
-        accounts.put("student@email.com", "password123");
+        try {
+            AppDatabase.initialize();
+        } catch (RuntimeException exception) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Database initialization failed. Check JDBC_URL and JDBC driver setup.",
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private JPanel createRoot() {
@@ -195,12 +202,18 @@ public class LoginFrame extends JFrame {
         rememberMe.setForeground(TEXT_SECONDARY);
         rememberMe.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        JLabel forgotPassword = new JLabel("Forgot password?");
-        forgotPassword.setFont(new Font(FONT_FAMILY, Font.PLAIN, 18));
-        forgotPassword.setForeground(TAB_ACTIVE_BORDER);
+        JButton forgotPasswordButton = new JButton("Forgot password?");
+        forgotPasswordButton.setFont(new Font(FONT_FAMILY, Font.PLAIN, 18));
+        forgotPasswordButton.setForeground(TAB_ACTIVE_BORDER);
+        forgotPasswordButton.setOpaque(false);
+        forgotPasswordButton.setContentAreaFilled(false);
+        forgotPasswordButton.setBorderPainted(false);
+        forgotPasswordButton.setFocusPainted(false);
+        forgotPasswordButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        forgotPasswordButton.addActionListener(event -> handleForgotPassword());
 
         optionsRow.add(rememberMe, BorderLayout.WEST);
-        optionsRow.add(forgotPassword, BorderLayout.EAST);
+        optionsRow.add(forgotPasswordButton, BorderLayout.EAST);
 
         JButton loginButton = createPrimaryButton("[ Sign In ]");
         loginButton.addActionListener(event -> handleLogin());
@@ -357,7 +370,7 @@ public class LoginFrame extends JFrame {
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
-    private void handleLogin() {
+        private void handleLogin() {
         String email = loginEmailField.getText().trim().toLowerCase();
         String password = new String(loginPasswordField.getPassword()).trim();
 
@@ -376,14 +389,21 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        if (!accounts.containsKey(email) || !password.equals(accounts.get(email))) {
+        AppDatabase.UserRecord user;
+        try {
+            user = AppDatabase.authenticateUser(email, password);
+        } catch (RuntimeException exception) {
+            showStatus("Database is unavailable. Check JDBC settings.", ERROR);
+            return;
+        }
+        if (user == null) {
             showStatus("Invalid email or password.", ERROR);
             return;
         }
 
         showStatus("Login successful. Opening dashboard...", SUCCESS);
         dispose();
-        new MainFrame().setVisible(true);
+        new MainFrame(user.displayName, user.email).setVisible(true);
     }
 
     private void handleCreateAccount() {
@@ -412,16 +432,152 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        if (accounts.containsKey(email)) {
-            showStatus("An account with this email already exists.", ERROR);
+        try {
+            if (AppDatabase.userExists(email)) {
+                showStatus("An account with this email already exists.", ERROR);
+                return;
+            }
+
+            AppDatabase.OtpDispatchResult dispatchResult = AppDatabase.sendOtp(email);
+            if (!dispatchResult.success) {
+                showStatus(dispatchResult.message, ERROR);
+                return;
+            }
+
+            showStatus(dispatchResult.message, SUCCESS);
+            JOptionPane.showMessageDialog(
+                    this,
+                    dispatchResult.message,
+                    "OTP Information",
+                    JOptionPane.INFORMATION_MESSAGE);
+            String otpCode = JOptionPane.showInputDialog(
+                    this,
+                    "Enter the 6-digit OTP sent to " + email + ":",
+                    "Email Verification",
+                    JOptionPane.PLAIN_MESSAGE);
+
+            if (otpCode == null) {
+                showStatus("OTP verification cancelled.", ERROR);
+                return;
+            }
+
+            if (!AppDatabase.verifyOtp(email, otpCode.trim())) {
+                showStatus("Invalid or expired OTP. Please try again.", ERROR);
+                return;
+            }
+
+            if (!AppDatabase.createUser(name, email, password)) {
+                showStatus("Could not create account. Try again.", ERROR);
+                return;
+            }
+        } catch (Throwable exception) {
+            JOptionPane.showMessageDialog(this, "Create account failed. Check .env and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
+            showStatus("Create account failed. Check SMTP settings and rebuild.", ERROR);
             return;
         }
 
-        accounts.put(email, password);
         loginEmailField.setText(email);
         loginPasswordField.setText("");
         showStatus("Account created for " + name + ". You can now sign in.", SUCCESS);
         switchTab(TAB_LOGIN);
+    }
+
+    private void handleForgotPassword() {
+        String email = loginEmailField.getText().trim().toLowerCase();
+        if (email.isEmpty()) {
+            String enteredEmail = JOptionPane.showInputDialog(
+                    this,
+                    "Enter your account email:",
+                    "Forgot Password",
+                    JOptionPane.PLAIN_MESSAGE);
+            if (enteredEmail == null) {
+                showStatus("Password reset cancelled.", ERROR);
+                return;
+            }
+            email = enteredEmail.trim().toLowerCase();
+        }
+
+        if (email.isEmpty() || !email.contains("@") || !email.contains(".")) {
+            showStatus("Please enter a valid email address.", ERROR);
+            return;
+        }
+
+        try {
+            if (!AppDatabase.userExists(email)) {
+                showStatus("No account found for that email.", ERROR);
+                return;
+            }
+
+            AppDatabase.OtpDispatchResult dispatchResult = AppDatabase.sendOtp(email);
+            if (!dispatchResult.success) {
+                showStatus(dispatchResult.message, ERROR);
+                return;
+            }
+
+            showStatus(dispatchResult.message, SUCCESS);
+            JOptionPane.showMessageDialog(
+                    this,
+                    dispatchResult.message,
+                    "Password Reset OTP",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            String otpCode = JOptionPane.showInputDialog(
+                    this,
+                    "Enter the 6-digit OTP sent to " + email + ":",
+                    "Verify OTP",
+                    JOptionPane.PLAIN_MESSAGE);
+            if (otpCode == null) {
+                showStatus("Password reset cancelled.", ERROR);
+                return;
+            }
+
+            if (!AppDatabase.verifyOtp(email, otpCode.trim())) {
+                showStatus("Invalid or expired OTP. Please try again.", ERROR);
+                return;
+            }
+
+            JPasswordField newPasswordField = new JPasswordField();
+            JPasswordField confirmPasswordField = new JPasswordField();
+            JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+            panel.add(new JLabel("New Password"));
+            panel.add(newPasswordField);
+            panel.add(new JLabel("Confirm Password"));
+            panel.add(confirmPasswordField);
+
+            int result = JOptionPane.showConfirmDialog(
+                    this,
+                    panel,
+                    "Set New Password",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE);
+            if (result != JOptionPane.OK_OPTION) {
+                showStatus("Password reset cancelled.", ERROR);
+                return;
+            }
+
+            String newPassword = new String(newPasswordField.getPassword()).trim();
+            String confirmPassword = new String(confirmPasswordField.getPassword()).trim();
+            if (newPassword.length() < 6) {
+                showStatus("Password must be at least 6 characters.", ERROR);
+                return;
+            }
+            if (!newPassword.equals(confirmPassword)) {
+                showStatus("Password and confirm password do not match.", ERROR);
+                return;
+            }
+
+            if (!AppDatabase.updatePassword(email, newPassword)) {
+                showStatus("Could not reset password. Try again.", ERROR);
+                return;
+            }
+
+            loginEmailField.setText(email);
+            loginPasswordField.setText("");
+            showStatus("Password reset successful. You can now sign in.", SUCCESS);
+        } catch (Throwable exception) {
+            JOptionPane.showMessageDialog(this, "Password reset failed. Check .env and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
+            showStatus("Password reset failed. Check SMTP settings and rebuild.", ERROR);
+        }
     }
 
     private void showStatus(String message, Color color) {
@@ -515,3 +671,19 @@ public class LoginFrame extends JFrame {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
