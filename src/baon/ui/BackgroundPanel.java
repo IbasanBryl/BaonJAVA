@@ -1,4 +1,6 @@
-﻿import java.awt.Color;
+package baon.ui;
+
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -36,3 +38,4 @@ public class BackgroundPanel extends JPanel {
         g2.dispose();
     }
 }
+

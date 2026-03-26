@@ -1,3 +1,9 @@
+package baon.data;
+
+import baon.model.ExpenseEntry;
+import baon.model.IncomeEntry;
+import baon.model.SavingEntry;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -203,3 +209,5 @@ public final class AppDatabase {
         public double savingGoalTarget;
     }
 }
+
+

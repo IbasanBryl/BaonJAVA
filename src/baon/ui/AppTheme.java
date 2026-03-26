@@ -1,3 +1,5 @@
+package baon.ui;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
@@ -38,7 +40,7 @@ public final class AppTheme {
 
     private static Map<String, String> loadTheme() {
         HashMap<String, String> values = new HashMap<String, String>();
-        Path[] candidates = new Path[] { Paths.get("src", "theme.css"), Paths.get("theme.css") };
+        Path[] candidates = new Path[] { Paths.get("src", "baon", "ui", "theme.css"), Paths.get("src", "theme.css"), Paths.get("theme.css") };
 
         for (Path candidate : candidates) {
             if (!Files.exists(candidate)) {
@@ -119,3 +121,6 @@ public final class AppTheme {
         return Color.BLACK;
     }
 }
+
+
+

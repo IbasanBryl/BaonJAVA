@@ -1,4 +1,6 @@
-﻿public class IncomeEntry {
+package baon.model;
+
+public class IncomeEntry {
     public final double amount;
     public final String source;
     public final String date;
@@ -9,3 +11,4 @@
         this.date = date;
     }
 }
+

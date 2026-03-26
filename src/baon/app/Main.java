@@ -1,3 +1,9 @@
+package baon.app;
+
+import baon.backend.BackendServer;
+import baon.ui.AppTheme;
+import baon.ui.LoginFrame;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -15,6 +21,7 @@ public class Main {
             }
         }
 
+        BackendServer.start(8080);
         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 
@@ -30,3 +37,5 @@ public class Main {
         UIManager.put("TitlePane.unifiedBackground", Boolean.TRUE);
     }
 }
+
+

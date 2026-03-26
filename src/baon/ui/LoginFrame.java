@@ -1,3 +1,5 @@
+package baon.ui;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -441,3 +443,4 @@ public class LoginFrame extends JFrame {
         }
     }
 }
+

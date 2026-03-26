@@ -1,3 +1,10 @@
+package baon.ui;
+
+import baon.data.AppDatabase;
+import baon.model.ExpenseEntry;
+import baon.model.IncomeEntry;
+import baon.model.SavingEntry;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -10,8 +17,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.LayoutManager;
@@ -60,6 +65,7 @@ public class MainFrame extends JFrame {
     private static final String PAGE_BUDGET = "budget";
     private static final String PAGE_SAVING_GOAL = "saving_goal";
     private static final String PAGE_FORECAST = "forecast";
+    private static final int SAVINGS_HISTORY_MIN_PAGE_SIZE = 8;
 
     private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
     private static final Color PAGE_BACKGROUND = AppTheme.color("--main-page-background", "#F5EED9");
@@ -172,6 +178,7 @@ public class MainFrame extends JFrame {
     private final JLabel savingsEntriesValueLabel = new JLabel();
     private final JLabel savingsHistoryBadgeLabel = new JLabel();
     private final JPanel savingsHistoryContentPanel = new JPanel(new BorderLayout());
+    private final JPanel savingsHistoryPaginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
 
     private final JLabel forecastRiskBadgeLabel = new JLabel();
     private final JLabel forecastEstimatedRemainingValueLabel = new JLabel();
@@ -193,11 +200,14 @@ public class MainFrame extends JFrame {
 
     private double budgetLimit = 0.0;
     private double savingGoalTarget = 0.0;
+    private int savingsHistoryCurrentPage = 1;
+    private int savingsHistoryLastPageSize = SAVINGS_HISTORY_MIN_PAGE_SIZE;
     private String currentPage = PAGE_DASHBOARD;
 
     public MainFrame() {
         super("BaonBrain Financial Overview");
         configureFrame();
+        configureSavingsHistoryAutoPagination();
         loadStoredData();
         refreshAllSections();
         showPage(PAGE_DASHBOARD);
@@ -489,19 +499,9 @@ public class MainFrame extends JFrame {
         content.add(securityCard);
         content.add(Box.createVerticalStrut(18));
         content.add(actions);
-        ResponsivePagePanel centeredContent = new ResponsivePagePanel(new GridBagLayout());
+        JPanel centeredContent = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         centeredContent.setOpaque(false);
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.anchor = GridBagConstraints.NORTH;
-        constraints.weightx = 1.0;
-        constraints.fill = GridBagConstraints.NONE;
-        centeredContent.add(content, constraints);
-        constraints.gridy = 1;
-        constraints.weighty = 1.0;
-        constraints.fill = GridBagConstraints.BOTH;
-        centeredContent.add(Box.createGlue(), constraints);
+        centeredContent.add(content);
         JScrollPane scrollPane = new JScrollPane(centeredContent);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setOpaque(false);
@@ -512,27 +512,20 @@ public class MainFrame extends JFrame {
         scrollPane.getViewport().addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent event) {
-                int availableWidth = Math.max(320, scrollPane.getViewport().getWidth() - 40);
+                int availableWidth = Math.max(320, scrollPane.getViewport().getWidth() - 14);
                 int targetWidth = Math.min(760, availableWidth);
                 int targetHeight = content.getPreferredSize().height;
                 content.setPreferredSize(new Dimension(targetWidth, targetHeight));
-                content.setMinimumSize(new Dimension(targetWidth, targetHeight));
-                content.setMaximumSize(new Dimension(targetWidth, Integer.MAX_VALUE));
                 content.revalidate();
-                centeredContent.revalidate();
             }
         });
         root.add(scrollPane, BorderLayout.CENTER);
         dialog.setContentPane(root);
         SwingUtilities.invokeLater(() -> {
-            int availableWidth = Math.max(320, scrollPane.getViewport().getWidth() - 40);
+            int availableWidth = Math.max(320, scrollPane.getViewport().getWidth() - 14);
             int targetWidth = Math.min(760, availableWidth);
-            int targetHeight = content.getPreferredSize().height;
-            content.setPreferredSize(new Dimension(targetWidth, targetHeight));
-            content.setMinimumSize(new Dimension(targetWidth, targetHeight));
-            content.setMaximumSize(new Dimension(targetWidth, Integer.MAX_VALUE));
+            content.setPreferredSize(new Dimension(targetWidth, content.getPreferredSize().height));
             content.revalidate();
-            centeredContent.revalidate();
         });
         dialog.setVisible(true);
     }
@@ -1143,7 +1136,9 @@ public class MainFrame extends JFrame {
         panel.add(createCardHeader("Saving History", "Every savings entry you add will be listed here.",
                 savingsHistoryBadgeLabel), BorderLayout.NORTH);
         savingsHistoryContentPanel.setOpaque(false);
+        savingsHistoryPaginationPanel.setOpaque(false);
         panel.add(savingsHistoryContentPanel, BorderLayout.CENTER);
+        panel.add(savingsHistoryPaginationPanel, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -1648,23 +1643,160 @@ public class MainFrame extends JFrame {
         savingsSavedValueLabel.setText(currencyFormat.format(totalSaved));
         savingsRemainingValueLabel.setText(currencyFormat.format(remaining));
         savingsEntriesValueLabel.setText(String.valueOf(savingEntries.size()));
-        styleBadgeLabel(savingsHistoryBadgeLabel, savingEntries.size() + " entries", SURFACE_TINT, TEAL_DARK);
-
-        savingsTableModel.setRowCount(0);
-        for (SavingEntry entry : savingEntries) {
-            savingsTableModel.addRow(new Object[] { entry.date, currencyFormat.format(entry.amount) });
-        }
 
         savingsHistoryContentPanel.removeAll();
+        savingsHistoryPaginationPanel.removeAll();
         if (savingEntries.isEmpty()) {
             savingsHistoryContentPanel.add(createEmptyTableState(new String[] { "Date", "Amount" },
                     "No savings history yet",
                     "Add daily savings after setting a goal to build your history here."), BorderLayout.CENTER);
+            savingsHistoryCurrentPage = 1;
+            savingsHistoryLastPageSize = SAVINGS_HISTORY_MIN_PAGE_SIZE;
+            styleBadgeLabel(savingsHistoryBadgeLabel, "0 entries", SURFACE_TINT, TEAL_DARK);
         } else {
+            int pageSize = resolveSavingsHistoryPageSize();
+            savingsHistoryLastPageSize = pageSize;
+            int totalPages = (int) Math.ceil((double) savingEntries.size() / (double) pageSize);
+            savingsHistoryCurrentPage = Math.max(1, Math.min(savingsHistoryCurrentPage, totalPages));
+
+            int startIndex = (savingsHistoryCurrentPage - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, savingEntries.size());
+
+            savingsTableModel.setRowCount(0);
+            for (int i = startIndex; i < endIndex; i++) {
+                SavingEntry entry = savingEntries.get(i);
+                savingsTableModel.addRow(new Object[] { entry.date, currencyFormat.format(entry.amount) });
+            }
+
             savingsHistoryContentPanel.add(savingsTableScrollPane, BorderLayout.CENTER);
+            buildSavingsHistoryPagination(totalPages);
+            styleBadgeLabel(savingsHistoryBadgeLabel, "Showing " + (startIndex + 1) + "-" + endIndex + " of " + savingEntries.size(), SURFACE_TINT, TEAL_DARK);
         }
         savingsHistoryContentPanel.revalidate();
         savingsHistoryContentPanel.repaint();
+        savingsHistoryPaginationPanel.revalidate();
+        savingsHistoryPaginationPanel.repaint();
+    }
+
+    private int resolveSavingsHistoryPageSize() {
+        int rowHeight = Math.max(1, savingsTable.getRowHeight());
+        int viewportHeight = savingsTableScrollPane.getViewport().getHeight();
+        int headerHeight = savingsTable.getTableHeader() != null ? savingsTable.getTableHeader().getHeight() : 0;
+
+        if (viewportHeight <= 0) {
+            int panelHeight = savingsHistoryContentPanel.getHeight();
+            int usablePanelHeight = Math.max(0, panelHeight - headerHeight);
+            int fitFromPanel = usablePanelHeight / rowHeight;
+            if (fitFromPanel > 0) {
+                return Math.max(SAVINGS_HISTORY_MIN_PAGE_SIZE, fitFromPanel);
+            }
+
+            // Layout is not ready yet: use a stable minimum so pagination is correct on first render.
+            return SAVINGS_HISTORY_MIN_PAGE_SIZE;
+        }
+
+        int usableHeight = Math.max(0, viewportHeight - headerHeight);
+        int fitRows = usableHeight / rowHeight;
+        return Math.max(SAVINGS_HISTORY_MIN_PAGE_SIZE, fitRows);
+    }
+
+
+    private void configureSavingsHistoryAutoPagination() {
+        savingsTableScrollPane.getViewport().addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent event) {
+                if (savingEntries.isEmpty()) {
+                    return;
+                }
+
+                int resolvedPageSize = resolveSavingsHistoryPageSize();
+                if (resolvedPageSize != savingsHistoryLastPageSize) {
+                    refreshSavingSection();
+                }
+            }
+        });
+    }
+    private void buildSavingsHistoryPagination(int totalPages) {
+        JButton prevButton = createSavingsPaginationButton("Prev", false, savingsHistoryCurrentPage > 1);
+        prevButton.addActionListener(event -> {
+            if (savingsHistoryCurrentPage > 1) {
+                savingsHistoryCurrentPage--;
+                refreshSavingSection();
+            }
+        });
+        savingsHistoryPaginationPanel.add(prevButton);
+
+        for (Integer pageNumber : buildSavingsHistoryPageNumbers(totalPages)) {
+            boolean active = pageNumber.intValue() == savingsHistoryCurrentPage;
+            JButton pageButton = createSavingsPaginationButton(String.valueOf(pageNumber.intValue()), active, true);
+            pageButton.addActionListener(event -> {
+                savingsHistoryCurrentPage = pageNumber.intValue();
+                refreshSavingSection();
+            });
+            savingsHistoryPaginationPanel.add(pageButton);
+        }
+
+        JButton nextButton = createSavingsPaginationButton("Next", true, savingsHistoryCurrentPage < totalPages);
+        nextButton.addActionListener(event -> {
+            if (savingsHistoryCurrentPage < totalPages) {
+                savingsHistoryCurrentPage++;
+                refreshSavingSection();
+            }
+        });
+        savingsHistoryPaginationPanel.add(nextButton);
+    }
+    private ArrayList<Integer> buildSavingsHistoryPageNumbers(int totalPages) {
+        ArrayList<Integer> pages = new ArrayList<Integer>();
+        if (totalPages <= 6) {
+            for (int page = 1; page <= totalPages; page++) {
+                pages.add(Integer.valueOf(page));
+            }
+            return pages;
+        }
+
+        if (savingsHistoryCurrentPage <= 4) {
+            for (int page = 1; page <= 5; page++) {
+                pages.add(Integer.valueOf(page));
+            }
+        } else if (savingsHistoryCurrentPage >= totalPages - 3) {
+            pages.add(Integer.valueOf(1));
+            for (int page = totalPages - 4; page <= totalPages; page++) {
+                pages.add(Integer.valueOf(page));
+            }
+            return pages;
+        } else {
+            pages.add(Integer.valueOf(1));
+            for (int page = savingsHistoryCurrentPage - 1; page <= savingsHistoryCurrentPage + 2; page++) {
+                pages.add(Integer.valueOf(page));
+            }
+        }
+
+        pages.add(Integer.valueOf(totalPages));
+        return pages;
+    }
+
+    private JButton createSavingsPaginationButton(String text, boolean emphasize, boolean enabled) {
+        JButton button = new JButton(text);
+        button.setFocusable(false);
+        button.setEnabled(enabled);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        button.setForeground(emphasize ? Color.BLACK : new Color(245, 245, 245));
+        button.setBackground(emphasize ? GOLD : new Color(12, 14, 19));
+        button.setOpaque(true);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(emphasize ? GOLD : new Color(28, 33, 42), 14, 1),
+                new EmptyBorder(6, 12, 6, 12)));
+
+        int minWidth = text.length() <= 2 ? 40 : 72;
+        int computedWidth = text.length() * 8 + 22;
+        button.setPreferredSize(new Dimension(Math.max(minWidth, computedWidth), 32));
+
+        if (!enabled) {
+            button.setForeground(new Color(85, 90, 100));
+            button.setBackground(new Color(16, 18, 24));
+        }
+        return button;
     }
 
     private void refreshForecastSection() {
@@ -2300,3 +2432,7 @@ public class MainFrame extends JFrame {
         }
     }
 }
+
+
+
+
