@@ -1,6 +1,7 @@
 package baon.ui;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -10,13 +11,18 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,62 +30,71 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
-import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class LoginFrame extends JFrame {
     private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
-    private static final Color PAGE_BACKGROUND = AppTheme.color("--login-page-background", "#F3F4F6");
-    private static final Color FORM_BACKGROUND = AppTheme.color("--login-form-background", "#FFFFFF");
-    private static final Color FORM_BORDER = AppTheme.color("--login-form-border", "#D1D5DB");
-    private static final Color FORM_SHADOW = AppTheme.color("--login-form-shadow", "rgba(15, 23, 42, 22)");
-    private static final Color TEXT_PRIMARY = AppTheme.color("--login-text-primary", "#0F172A");
-    private static final Color TEXT_SECONDARY = AppTheme.color("--login-text-secondary", "#6B7280");
-    private static final Color FIELD_BACKGROUND = AppTheme.color("--login-field-background", "#FFFFFF");
-    private static final Color FIELD_BORDER = AppTheme.color("--login-field-border", "#D1D5DB");
-    private static final Color ACCENT = AppTheme.color("--login-accent", "#3B82F6");
-    private static final Color ACCENT_DARK = AppTheme.color("--login-accent-dark", "#2563EB");
-    private static final Color SUCCESS = AppTheme.color("--login-success", "#10B981");
-    private static final Color ERROR = AppTheme.color("--login-error", "#DC2626");
-    private static final Color HERO_EYEBROW = AppTheme.color("--login-hero-eyebrow", "#DBEAFE");
-    private static final Color HERO_BODY = AppTheme.color("--login-hero-body", "#EFF6FF");
-    private static final Color FEATURE_PILL_BACKGROUND = AppTheme.color("--login-feature-pill-background", "rgba(255, 255, 255, 34)");
-    private static final String HERO_TITLE_WIDTH = AppTheme.text("--login-hero-title-width", "17em");
-    private static final String HERO_BODY_WIDTH = AppTheme.text("--login-hero-body-width", "26em");
+    private static final Color PAGE_TOP = AppTheme.color("--login-page-top", "#E8E3D5");
+    private static final Color PAGE_BOTTOM = AppTheme.color("--login-page-bottom", "#F6EED7");
+    private static final Color CARD_BACKGROUND = AppTheme.color("--login-card-background", "#F8F7F3");
+    private static final Color CARD_BORDER = AppTheme.color("--login-card-border", "#D9CDB4");
+    private static final Color CARD_SHADOW = AppTheme.color("--login-card-shadow", "rgba(86, 68, 43, 28)");
+    private static final Color TEXT_PRIMARY = AppTheme.color("--login-text-primary", "#0F1B2D");
+    private static final Color TEXT_SECONDARY = AppTheme.color("--login-text-secondary", "#715F43");
+    private static final Color FIELD_BACKGROUND = AppTheme.color("--login-field-background", "#FBFBFA");
+    private static final Color FIELD_BORDER = AppTheme.color("--login-field-border", "#CDBEA1");
+    private static final Color TAB_ACTIVE = AppTheme.color("--login-tab-active", "#2C7781");
+    private static final Color TAB_ACTIVE_BORDER = AppTheme.color("--login-tab-active-border", "#2A6A73");
+    private static final Color TAB_INACTIVE = AppTheme.color("--login-tab-inactive", "#FFFFFF");
+    private static final Color TAB_INACTIVE_BORDER = AppTheme.color("--login-tab-inactive-border", "#CDBEA1");
+    private static final Color ACTION = AppTheme.color("--login-action", "#C77754");
+    private static final Color ACTION_BORDER = AppTheme.color("--login-action-border", "#B46A4B");
+    private static final Color ERROR = AppTheme.color("--login-error", "#B83D3D");
+    private static final Color SUCCESS = AppTheme.color("--login-success", "#2F8D55");
 
-    private final JTextField usernameField = new JTextField();
-    private final JPasswordField passwordField = new JPasswordField();
+    private static final String TAB_LOGIN = "login";
+    private static final String TAB_CREATE = "create";
+
+    private final JTextField loginEmailField = new JTextField();
+    private final JPasswordField loginPasswordField = new JPasswordField();
+
+    private final JTextField createNameField = new JTextField();
+    private final JTextField createEmailField = new JTextField();
+    private final JPasswordField createPasswordField = new JPasswordField();
+    private final JPasswordField createConfirmPasswordField = new JPasswordField();
+
     private final JLabel statusLabel = new JLabel(" ");
-    private final HeroPanel infoPanel = createInfoPanel();
-    private final FormCardPanel formPanel = createFormPanel();
+    private final CardLayout formLayout = new CardLayout();
+    private final JPanel formContentPanel = new JPanel(formLayout);
+    private JButton signInTabButton;
+    private JButton createAccountTabButton;
+
+    private final Map<String, String> accounts = new HashMap<String, String>();
 
     public LoginFrame() {
-        super("Finance Hub Login");
+        super("BaonBrain Login");
         configureFrame();
     }
 
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(720, 540));
-        setSize(1040, 640);
-        setResizable(true);
+        setMinimumSize(new Dimension(900, 620));
+        setSize(1240, 760);
         setLocationRelativeTo(null);
         setContentPane(createRoot());
+        accounts.put("student@email.com", "password123");
     }
 
     private JPanel createRoot() {
         GradientPanel root = new GradientPanel();
         root.setLayout(new BorderLayout());
-        root.setBorder(new EmptyBorder(26, 28, 26, 28));
 
-        ResponsiveShellPanel shell = new ResponsiveShellPanel(infoPanel, formPanel);
-
-        JScrollPane scrollPane = new JScrollPane(shell);
+        ResponsiveCenterPanel center = new ResponsiveCenterPanel(createLoginContent());
+        JScrollPane scrollPane = new JScrollPane(center);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
-        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -87,197 +102,272 @@ public class LoginFrame extends JFrame {
         return root;
     }
 
-    private HeroPanel createInfoPanel() {
-        HeroPanel panel = new HeroPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(38, 36, 36, 36));
-        panel.setAlignmentY(Component.TOP_ALIGNMENT);
+    private JPanel createLoginContent() {
+        JPanel wrap = new JPanel();
+        wrap.setOpaque(false);
+        wrap.setLayout(new BoxLayout(wrap, BoxLayout.Y_AXIS));
+        wrap.setBorder(new EmptyBorder(24, 20, 24, 20));
 
-        JLabel eyebrow = new JLabel("WELCOME BACK");
-        eyebrow.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
-        eyebrow.setForeground(HERO_EYEBROW);
-        eyebrow.setAlignmentX(LEFT_ALIGNMENT);
+        JLabel pageTitle = new JLabel("Login / Registration");
+        pageTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 56));
+        pageTitle.setForeground(TEXT_PRIMARY);
+        pageTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel(wrapHtmlBlock("Manage your finances with a clean desktop workflow.", HERO_TITLE_WIDTH));
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 31));
-        title.setForeground(Color.WHITE);
-        title.setAlignmentX(LEFT_ALIGNMENT);
+        JPanel cardWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        cardWrap.setOpaque(false);
+        cardWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cardWrap.add(createFormCard());
 
-        JLabel body = new JLabel(wrapHtmlBlock("Use the login form to access your dashboard. Track spending, review your budget, and keep everything in one calm desktop space.", HERO_BODY_WIDTH));
-        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
-        body.setForeground(HERO_BODY);
-        body.setAlignmentX(LEFT_ALIGNMENT);
-
-        panel.add(eyebrow);
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(18));
-        panel.add(body);
-        panel.add(Box.createVerticalGlue());
-        panel.add(createFeaturePill("Demo login: admin / password123"));
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(createFeaturePill("Validation checks blank and incorrect entries"));
-        return panel;
+        wrap.add(pageTitle);
+        wrap.add(Box.createVerticalStrut(20));
+        wrap.add(cardWrap);
+        wrap.add(Box.createVerticalGlue());
+        return wrap;
     }
 
-    private FormCardPanel createFormPanel() {
-        FormCardPanel panel = new FormCardPanel();
+    private JPanel createFormCard() {
+        ShadowCardPanel card = new ShadowCardPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(new EmptyBorder(28, 30, 24, 30));
+        card.setPreferredSize(new Dimension(960, 560));
+        card.setMaximumSize(new Dimension(980, Integer.MAX_VALUE));
+
+        JPanel tabs = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        tabs.setOpaque(false);
+        tabs.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        signInTabButton = createTab("Sign In", true);
+        signInTabButton.addActionListener(event -> switchTab(TAB_LOGIN));
+        createAccountTabButton = createTab("Create Account", false);
+        createAccountTabButton.addActionListener(event -> switchTab(TAB_CREATE));
+
+        tabs.add(signInTabButton);
+        tabs.add(createAccountTabButton);
+
+        formContentPanel.setOpaque(false);
+        formContentPanel.add(createLoginPanel(), TAB_LOGIN);
+        formContentPanel.add(createCreateAccountPanel(), TAB_CREATE);
+
+        statusLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
+        statusLabel.setForeground(TEXT_SECONDARY);
+        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        card.add(tabs);
+        card.add(Box.createVerticalStrut(20));
+        card.add(formContentPanel);
+        card.add(Box.createVerticalStrut(10));
+        card.add(statusLabel);
+
+        getRootPane().setDefaultButton(null);
+        switchTab(TAB_LOGIN);
+        return card;
+    }
+
+    private JPanel createLoginPanel() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(36, 36, 34, 36));
-        panel.setAlignmentY(Component.TOP_ALIGNMENT);
 
-        JLabel eyebrow = createFormChip("STUDENT BUDGET HUB");
-        JLabel title = new JLabel("Login");
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
+        JLabel title = new JLabel("Sign In");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
         title.setForeground(TEXT_PRIMARY);
-        title.setAlignmentX(LEFT_ALIGNMENT);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel subtitle = new JLabel("Enter your username and password");
-        subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+        JLabel subtitle = new JLabel("Access your BaonBrain account");
+        subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         subtitle.setForeground(TEXT_SECONDARY);
-        subtitle.setAlignmentX(LEFT_ALIGNMENT);
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel usernameLabel = createFieldLabel("Username");
-        styleTextField(usernameField, "Enter your username");
+        JLabel emailLabel = createFieldLabel("Email Address");
+        styleTextField(loginEmailField, "student@email.com");
 
         JLabel passwordLabel = createFieldLabel("Password");
-        stylePasswordField(passwordField, "Enter your password");
+        stylePasswordField(loginPasswordField, "Enter your password");
 
-        JButton loginButton = createLoginButton();
+        JPanel optionsRow = new JPanel(new BorderLayout());
+        optionsRow.setOpaque(false);
+        optionsRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        statusLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
-        statusLabel.setForeground(TEXT_SECONDARY);
-        statusLabel.setAlignmentX(LEFT_ALIGNMENT);
+        JCheckBox rememberMe = new JCheckBox("Remember me");
+        rememberMe.setOpaque(false);
+        rememberMe.setFocusable(false);
+        rememberMe.setFont(new Font(FONT_FAMILY, Font.PLAIN, 18));
+        rememberMe.setForeground(TEXT_SECONDARY);
+        rememberMe.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        panel.add(eyebrow);
-        panel.add(Box.createVerticalStrut(18));
+        JLabel forgotPassword = new JLabel("Forgot password?");
+        forgotPassword.setFont(new Font(FONT_FAMILY, Font.PLAIN, 18));
+        forgotPassword.setForeground(TAB_ACTIVE_BORDER);
+
+        optionsRow.add(rememberMe, BorderLayout.WEST);
+        optionsRow.add(forgotPassword, BorderLayout.EAST);
+
+        JButton loginButton = createPrimaryButton("[ Sign In ]");
+        loginButton.addActionListener(event -> handleLogin());
+
         panel.add(title);
-        panel.add(Box.createVerticalStrut(8));
+        panel.add(Box.createVerticalStrut(6));
         panel.add(subtitle);
-        panel.add(Box.createVerticalStrut(28));
-        panel.add(usernameLabel);
-        panel.add(Box.createVerticalStrut(8));
-        panel.add(usernameField);
         panel.add(Box.createVerticalStrut(18));
+        panel.add(emailLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(loginEmailField);
+        panel.add(Box.createVerticalStrut(14));
         panel.add(passwordLabel);
         panel.add(Box.createVerticalStrut(8));
-        panel.add(passwordField);
-        panel.add(Box.createVerticalStrut(24));
-        panel.add(loginButton);
+        panel.add(loginPasswordField);
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(optionsRow);
         panel.add(Box.createVerticalStrut(16));
-        panel.add(statusLabel);
-        panel.add(Box.createVerticalStrut(14));
-        panel.add(createFooterNote());
-        panel.add(Box.createVerticalGlue());
-
-        getRootPane().setDefaultButton(loginButton);
+        panel.add(loginButton);
         return panel;
     }
 
-    private JLabel createFormChip(String text) {
-        JLabel label = new JLabel(text, SwingConstants.CENTER);
-        label.setOpaque(true);
-        label.setBackground(new Color(59, 130, 246, 22));
-        label.setForeground(ACCENT_DARK);
-        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 11));
-        label.setBorder(new EmptyBorder(7, 10, 7, 10));
-        label.setAlignmentX(LEFT_ALIGNMENT);
-        return label;
+    private JPanel createCreateAccountPanel() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        JLabel title = new JLabel("Create Account");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 42));
+        title.setForeground(TEXT_PRIMARY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subtitle = new JLabel("Create credentials for your BaonBrain account");
+        subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 16));
+        subtitle.setForeground(TEXT_SECONDARY);
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel nameLabel = createFieldLabel("Full Name");
+        styleTextField(createNameField, "Juan Dela Cruz");
+
+        JLabel emailLabel = createFieldLabel("Email Address");
+        styleTextField(createEmailField, "you@email.com");
+
+        JLabel passwordLabel = createFieldLabel("Password");
+        stylePasswordField(createPasswordField, "Create a password");
+
+        JLabel confirmLabel = createFieldLabel("Confirm Password");
+        stylePasswordField(createConfirmPasswordField, "Repeat your password");
+
+        JButton createButton = createPrimaryButton("[ Create Account ]");
+        createButton.addActionListener(event -> handleCreateAccount());
+
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(6));
+        panel.add(subtitle);
+        panel.add(Box.createVerticalStrut(16));
+        panel.add(nameLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(createNameField);
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(emailLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(createEmailField);
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(passwordLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(createPasswordField);
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(confirmLabel);
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(createConfirmPasswordField);
+        panel.add(Box.createVerticalStrut(16));
+        panel.add(createButton);
+        return panel;
+    }
+
+    private void switchTab(String tabKey) {
+        formLayout.show(formContentPanel, tabKey);
+        boolean loginActive = TAB_LOGIN.equals(tabKey);
+        styleTabButton(signInTabButton, loginActive);
+        styleTabButton(createAccountTabButton, !loginActive);
+        statusLabel.setText(" ");
+    }
+
+    private JButton createTab(String text, boolean active) {
+        JButton tab = new JButton(text);
+        tab.setFocusable(false);
+        tab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        tab.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        styleTabButton(tab, active);
+        tab.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(active ? TAB_ACTIVE_BORDER : TAB_INACTIVE_BORDER),
+                new EmptyBorder(8, 16, 8, 16)));
+        return tab;
+    }
+
+    private void styleTabButton(JButton button, boolean active) {
+        button.setForeground(active ? Color.WHITE : TEXT_SECONDARY);
+        button.setBackground(active ? TAB_ACTIVE : TAB_INACTIVE);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(active ? TAB_ACTIVE_BORDER : TAB_INACTIVE_BORDER),
+                new EmptyBorder(8, 16, 8, 16)));
+    }
+
+    private JButton createPrimaryButton(String text) {
+        JButton button = new JButton(text);
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        button.setPreferredSize(new Dimension(0, 40));
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBackground(ACTION);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ACTION_BORDER),
+                new EmptyBorder(8, 16, 8, 16)));
+        button.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return button;
     }
 
     private JLabel createFieldLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
-        label.setForeground(TEXT_PRIMARY);
-        label.setAlignmentX(LEFT_ALIGNMENT);
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        label.setForeground(TEXT_SECONDARY);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
     }
 
     private void styleTextField(JTextField field, String placeholder) {
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-        field.setPreferredSize(new Dimension(0, 46));
-        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
-        field.setBackground(FIELD_BACKGROUND);
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        field.setPreferredSize(new Dimension(0, 36));
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
+        field.setBackground(new Color(227, 234, 246));
         field.setForeground(TEXT_PRIMARY);
-        field.setCaretColor(ACCENT);
+        field.setCaretColor(TAB_ACTIVE);
         field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(FIELD_BORDER),
-                new EmptyBorder(12, 14, 12, 14)));
+                new EmptyBorder(8, 14, 8, 14)));
         field.setToolTipText(placeholder);
-        field.setAlignmentX(LEFT_ALIGNMENT);
+        field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
     private void stylePasswordField(JPasswordField field, String placeholder) {
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-        field.setPreferredSize(new Dimension(0, 46));
-        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
-        field.setBackground(FIELD_BACKGROUND);
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        field.setPreferredSize(new Dimension(0, 36));
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
+        field.setBackground(new Color(227, 234, 246));
         field.setForeground(TEXT_PRIMARY);
-        field.setCaretColor(ACCENT);
+        field.setCaretColor(TAB_ACTIVE);
         field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(FIELD_BORDER),
-                new EmptyBorder(12, 14, 12, 14)));
+                new EmptyBorder(8, 14, 8, 14)));
         field.setToolTipText(placeholder);
-        field.setAlignmentX(LEFT_ALIGNMENT);
-    }
-
-    private JButton createLoginButton() {
-        JButton button = new JButton("Login");
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-        button.setPreferredSize(new Dimension(0, 48));
-        button.setFocusPainted(false);
-        button.setBorderPainted(true);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBackground(ACCENT);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
-        button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ACCENT_DARK),
-                new EmptyBorder(12, 16, 12, 16)));
-        button.setAlignmentX(LEFT_ALIGNMENT);
-        button.addActionListener(event -> handleLogin());
-        return button;
-    }
-
-    private JPanel createFeaturePill(String text) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        panel.setOpaque(false);
-        panel.setAlignmentX(LEFT_ALIGNMENT);
-
-        JLabel label = new JLabel(text);
-        label.setOpaque(true);
-        label.setBackground(FEATURE_PILL_BACKGROUND);
-        label.setForeground(Color.WHITE);
-        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        label.setBorder(new EmptyBorder(12, 14, 12, 14));
-
-        panel.add(label);
-        return panel;
-    }
-
-    private JLabel createFooterNote() {
-        JLabel note = new JLabel("Use the demo account to test validation and open the dashboard.");
-        note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
-        note.setForeground(TEXT_SECONDARY);
-        note.setAlignmentX(LEFT_ALIGNMENT);
-        return note;
-    }
-
-    private static String wrapHtmlBlock(String text, String width) {
-        return "<html><div style='width: " + width + ";'>" + text + "</div></html>";
+        field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
     private void handleLogin() {
-        String username = usernameField.getText().trim();
-        String password = new String(passwordField.getPassword()).trim();
+        String email = loginEmailField.getText().trim().toLowerCase();
+        String password = new String(loginPasswordField.getPassword()).trim();
 
-        if (username.isEmpty() && password.isEmpty()) {
-            showStatus("Username and password are required.", ERROR);
+        if (email.isEmpty() && password.isEmpty()) {
+            showStatus("Email and password are required.", ERROR);
             return;
         }
 
-        if (username.isEmpty()) {
-            showStatus("Please enter your username.", ERROR);
+        if (email.isEmpty()) {
+            showStatus("Please enter your email.", ERROR);
             return;
         }
 
@@ -286,14 +376,52 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        if (username.equals("admin") && password.equals("password123")) {
-            showStatus("Login successful. Opening dashboard...", SUCCESS);
-            dispose();
-            new MainFrame().setVisible(true);
+        if (!accounts.containsKey(email) || !password.equals(accounts.get(email))) {
+            showStatus("Invalid email or password.", ERROR);
             return;
         }
 
-        showStatus("Invalid username or password.", ERROR);
+        showStatus("Login successful. Opening dashboard...", SUCCESS);
+        dispose();
+        new MainFrame().setVisible(true);
+    }
+
+    private void handleCreateAccount() {
+        String name = createNameField.getText().trim();
+        String email = createEmailField.getText().trim().toLowerCase();
+        String password = new String(createPasswordField.getPassword()).trim();
+        String confirmPassword = new String(createConfirmPasswordField.getPassword()).trim();
+
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            showStatus("All create-account fields are required.", ERROR);
+            return;
+        }
+
+        if (!email.contains("@") || !email.contains(".")) {
+            showStatus("Please enter a valid email address.", ERROR);
+            return;
+        }
+
+        if (password.length() < 6) {
+            showStatus("Password must be at least 6 characters.", ERROR);
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            showStatus("Password and confirm password do not match.", ERROR);
+            return;
+        }
+
+        if (accounts.containsKey(email)) {
+            showStatus("An account with this email already exists.", ERROR);
+            return;
+        }
+
+        accounts.put(email, password);
+        loginEmailField.setText(email);
+        loginPasswordField.setText("");
+        showStatus("Account created for " + name + ". You can now sign in.", SUCCESS);
+        switchTab(TAB_LOGIN);
     }
 
     private void showStatus(String message, Color color) {
@@ -301,116 +429,64 @@ public class LoginFrame extends JFrame {
         statusLabel.setForeground(color);
     }
 
-    private static class GradientPanel extends JPanel {
+        private static class GradientPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics graphics) {
             super.paintComponent(graphics);
-
             Graphics2D g2 = (Graphics2D) graphics.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setPaint(new GradientPaint(0, 0, Color.WHITE, getWidth(), getHeight(), PAGE_BACKGROUND));
+            g2.setPaint(new GradientPaint(0, 0, PAGE_TOP, getWidth(), getHeight(), PAGE_BOTTOM));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+
+            float[] fractions = new float[] { 0.0f, 0.38f, 1.0f };
+            Color[] colors = new Color[] {
+                    new Color(255, 247, 227, 170),
+                    new Color(255, 243, 214, 95),
+                    new Color(255, 241, 210, 0)
+            };
+            float radius = Math.max(getWidth(), getHeight()) * 0.48f;
+            RadialGradientPaint glow = new RadialGradientPaint(getWidth() / 2.0f, 110.0f, radius, fractions, colors);
+            g2.setPaint(glow);
             g2.fillRect(0, 0, getWidth(), getHeight());
             g2.dispose();
         }
     }
-
-    private static class HeroPanel extends JPanel {
+        private static class ShadowCardPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics graphics) {
             super.paintComponent(graphics);
-
-            Graphics2D g2 = (Graphics2D) graphics.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setPaint(new GradientPaint(0, 0, ACCENT, getWidth(), getHeight(), SUCCESS));
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 32, 32);
-            g2.dispose();
-        }
-    }
-
-    private static class FormCardPanel extends JPanel {
-        @Override
-        protected void paintComponent(Graphics graphics) {
-            super.paintComponent(graphics);
-
             Graphics2D g2 = (Graphics2D) graphics.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             int width = getWidth() - 1;
-            int height = getHeight() - 7;
+            int height = getHeight() - 10;
 
-            g2.setColor(FORM_SHADOW);
-            g2.fillRoundRect(4, 7, width - 8, height, 28, 28);
+            g2.setColor(new Color(121, 94, 58, 38));
+            g2.fillRoundRect(8, 10, width - 16, height, 24, 24);
 
-            g2.setColor(FORM_BACKGROUND);
-            g2.fillRoundRect(0, 0, width, height, 28, 28);
+            g2.setColor(CARD_BACKGROUND);
+            g2.fillRoundRect(0, 0, width, height, 24, 24);
 
-            g2.setColor(FORM_BORDER);
-            g2.drawRoundRect(0, 0, width, height, 28, 28);
+            g2.setColor(CARD_BORDER);
+            g2.drawRoundRect(0, 0, width, height, 24, 24);
             g2.dispose();
         }
     }
+    private static class ResponsiveCenterPanel extends JPanel implements Scrollable {
+        private final JPanel content;
 
-    private static class ResponsiveShellPanel extends JPanel implements Scrollable {
-        private static final int STACK_BREAKPOINT = 920;
-        private static final int PANEL_GAP = 24;
-        private static final int HERO_MIN_WIDTH = 430;
-        private static final int FORM_WIDTH = 360;
-
-        private final JPanel heroPanel;
-        private final JPanel formPanel;
-
-        ResponsiveShellPanel(JPanel heroPanel, JPanel formPanel) {
-            this.heroPanel = heroPanel;
-            this.formPanel = formPanel;
+        ResponsiveCenterPanel(JPanel content) {
+            this.content = content;
             setOpaque(false);
-            setLayout(null);
-            add(heroPanel);
-            add(formPanel);
+            setLayout(new GridLayout(1, 1));
+            add(content);
         }
 
         @Override
         public Dimension getPreferredSize() {
-            int availableWidth = getParent() == null ? 1040 : Math.max(0, getParent().getWidth());
-            if (availableWidth <= 0) {
-                availableWidth = 1040;
-            }
-
-            if (availableWidth < STACK_BREAKPOINT) {
-                int width = Math.max(availableWidth, FORM_WIDTH);
-                int heroHeight = Math.max(330, heroPanel.getPreferredSize().height);
-                int formHeight = formPanel.getPreferredSize().height;
-                return new Dimension(width, heroHeight + PANEL_GAP + formHeight);
-            }
-
-            int width = Math.max(availableWidth, HERO_MIN_WIDTH + FORM_WIDTH + PANEL_GAP);
-            int heroWidth = Math.max(HERO_MIN_WIDTH, width - FORM_WIDTH - PANEL_GAP);
-            int heroHeight = scaledHeroHeight(heroWidth);
-            int formHeight = Math.max(formPanel.getPreferredSize().height, heroHeight);
-            return new Dimension(width, formHeight);
-        }
-
-        @Override
-        public void doLayout() {
-            int width = getWidth();
-
-            if (width < STACK_BREAKPOINT) {
-                int heroHeight = Math.max(330, heroPanel.getPreferredSize().height);
-                int formHeight = formPanel.getPreferredSize().height;
-                int totalHeight = heroHeight + PANEL_GAP + formHeight;
-                int startY = Math.max(0, (getHeight() - totalHeight) / 2);
-                heroPanel.setBounds(0, startY, width, heroHeight);
-                formPanel.setBounds(0, startY + heroHeight + PANEL_GAP, width, formHeight);
-                return;
-            }
-
-            int formWidth = Math.min(FORM_WIDTH, Math.max(332, (int) Math.round(width * 0.34)));
-            int heroWidth = Math.max(HERO_MIN_WIDTH, width - formWidth - PANEL_GAP);
-            int heroHeight = scaledHeroHeight(heroWidth);
-            int formHeight = Math.max(formPanel.getPreferredSize().height, heroHeight);
-            int startY = Math.max(0, (getHeight() - formHeight) / 2);
-
-            heroPanel.setBounds(0, startY, heroWidth, heroHeight);
-            formPanel.setBounds(heroWidth + PANEL_GAP, startY, formWidth, formHeight);
+            int width = getParent() == null ? 1240 : Math.max(980, getParent().getWidth());
+            int height = Math.max(640, content.getPreferredSize().height + 80);
+            return new Dimension(width, height);
         }
 
         @Override
@@ -437,10 +513,5 @@ public class LoginFrame extends JFrame {
         public boolean getScrollableTracksViewportHeight() {
             return getParent() != null && getPreferredSize().height <= getParent().getHeight();
         }
-
-        private int scaledHeroHeight(int width) {
-            return Math.max(360, Math.min(520, (int) Math.round(width * 0.62)));
-        }
     }
 }
-
