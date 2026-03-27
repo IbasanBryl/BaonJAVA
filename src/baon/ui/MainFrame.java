@@ -25,6 +25,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyEvent;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.IsoFields;
@@ -40,6 +41,8 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -52,8 +55,10 @@ import javax.swing.Scrollable;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -237,7 +242,7 @@ public class MainFrame extends JFrame {
 
         BackgroundPanel root = new BackgroundPanel(PAGE_BACKGROUND, ROOT_STRIPE, ROOT_ORB);
         root.setLayout(new BorderLayout(24, 0));
-        root.setBorder(new EmptyBorder(14, 14, 14, 14));
+        root.setBorder(new EmptyBorder(10, 10, 10, 10));
         root.add(createSidebar(), BorderLayout.WEST);
         root.add(createPageScrollPane(), BorderLayout.CENTER);
         setContentPane(root);
@@ -421,7 +426,7 @@ public class MainFrame extends JFrame {
             }
         };
         root.setLayout(new BorderLayout());
-        root.setBorder(new EmptyBorder(14, 14, 14, 14));
+        root.setBorder(new EmptyBorder(10, 10, 10, 10));
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -458,7 +463,7 @@ public class MainFrame extends JFrame {
         securityCard.setBackground(cardBackground);
         securityCard.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(cardBorder, 18, 1),
-                new EmptyBorder(18, 20, 18, 20)));
+                new EmptyBorder(14, 16, 14, 16)));
         securityCard.setAlignmentX(Component.LEFT_ALIGNMENT);
         JPanel securityText = new JPanel();
         securityText.setOpaque(false);
@@ -516,7 +521,7 @@ public class MainFrame extends JFrame {
         content.add(displayNameCard);
         content.add(Box.createVerticalStrut(14));
         content.add(securityCard);
-        content.add(Box.createVerticalStrut(18));
+        content.add(Box.createVerticalStrut(10));
         content.add(actions);
         JPanel centeredContent = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         centeredContent.setOpaque(false);
@@ -556,7 +561,7 @@ public class MainFrame extends JFrame {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(cardBorder, 18, 1),
-                new EmptyBorder(16, 18, 16, 18)));
+                new EmptyBorder(12, 14, 12, 14)));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel title = new JLabel(titleText);
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -567,9 +572,9 @@ public class MainFrame extends JFrame {
         note.setForeground(noteColor);
         note.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(title);
-        card.add(Box.createVerticalStrut(10));
+        card.add(Box.createVerticalStrut(8));
         card.add(field);
-        card.add(Box.createVerticalStrut(10));
+        card.add(Box.createVerticalStrut(8));
         card.add(note);
         return card;
     }
@@ -579,63 +584,185 @@ public class MainFrame extends JFrame {
         field.setBackground(fillColor);
         field.setForeground(textColor);
         field.setCaretColor(SIDEBAR_TEXT);
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-        field.setPreferredSize(new Dimension(0, 48));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        field.setPreferredSize(new Dimension(0, 42));
         field.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(borderColor, 22, 1),
-                new EmptyBorder(12, 16, 12, 16)));
+                new EmptyBorder(9, 14, 9, 14)));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
     private JButton createManageActionButton(String text, Color fillColor, Color borderColor, Color textColor) {
         JButton button = new JButton(text);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         button.setForeground(textColor);
         button.setBackground(fillColor);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(borderColor, 28, 1),
-                new EmptyBorder(12, 18, 12, 18)));
-        button.setPreferredSize(new Dimension(168, 46));
+                new EmptyBorder(9, 14, 9, 14)));
+        button.setPreferredSize(new Dimension(152, 40));
         return button;
     }
     private void showChangePasswordDialog(JDialog owner) {
+        final Color dialogTop = new Color(12, 27, 53);
+        final Color dialogBottom = new Color(33, 52, 82);
+        final Color cardBackground = new Color(18, 35, 63);
+        final Color cardBorder = new Color(56, 86, 130);
+        final Color fieldBackground = new Color(7, 23, 44);
+        final Color fieldBorder = new Color(76, 120, 181);
+        final Color textPrimary = new Color(231, 238, 250);
+        final Color textSecondary = new Color(194, 209, 236);
+
+        final boolean[] passwordUpdated = new boolean[] { false };
+
+        JDialog dialog = new JDialog(owner, "Change Password", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setResizable(false);
+
         JPasswordField newPasswordField = new JPasswordField();
         JPasswordField confirmPasswordField = new JPasswordField();
-        JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
-        panel.add(new JLabel("New Password"));
-        panel.add(newPasswordField);
-        panel.add(new JLabel("Confirm Password"));
-        panel.add(confirmPasswordField);
-        int result = JOptionPane.showConfirmDialog(owner, panel, "Change Password", JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
-        if (result != JOptionPane.OK_OPTION) {
-            return;
+        styleManageTextField(newPasswordField, true, fieldBackground, fieldBorder, textPrimary);
+        styleManageTextField(confirmPasswordField, true, fieldBackground, fieldBorder, textPrimary);
+
+        JPanel root = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+                Graphics2D g2 = (Graphics2D) graphics.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setPaint(new java.awt.GradientPaint(0, 0, dialogTop, getWidth(), getHeight(), dialogBottom));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+            }
+        };
+        root.setLayout(new BorderLayout());
+        root.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JPanel content = new JPanel();
+        content.setOpaque(true);
+        content.setBackground(cardBackground);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(cardBorder, 18, 1),
+                new EmptyBorder(14, 16, 14, 16)));
+
+        JLabel chip = new JLabel("SECURITY", SwingConstants.LEFT);
+        chip.setOpaque(true);
+        chip.setBackground(new Color(35, 54, 87));
+        chip.setForeground(new Color(175, 197, 236));
+        chip.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        chip.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(new Color(72, 103, 154), 20, 1),
+                new EmptyBorder(5, 12, 5, 12)));
+        chip.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel title = new JLabel("Change Password");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
+        title.setForeground(textPrimary);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel subtitle = new JLabel("<html>Update your password to keep your account protected.</html>");
+        subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+        subtitle.setForeground(textSecondary);
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel newPasswordCard = createManageFieldCard(
+                "New Password",
+                newPasswordField,
+                "Use a password only you can remember.",
+                cardBackground,
+                cardBorder,
+                textPrimary,
+                textSecondary);
+
+        JPanel confirmPasswordCard = createManageFieldCard(
+                "Confirm Password",
+                confirmPasswordField,
+                "Re-enter the same password to confirm.",
+                cardBackground,
+                cardBorder,
+                textPrimary,
+                textSecondary);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton cancelButton = createManageActionButton("Cancel", new Color(39, 90, 156),
+                new Color(66, 124, 200), textPrimary);
+        cancelButton.setPreferredSize(new Dimension(124, 38));
+        cancelButton.addActionListener(event -> dialog.dispose());
+
+        JButton updateButton = createManageActionButton("Update Password", new Color(123, 169, 233),
+                new Color(145, 191, 255), new Color(21, 43, 76));
+        updateButton.setPreferredSize(new Dimension(168, 38));
+        updateButton.addActionListener(event -> {
+            String password = new String(newPasswordField.getPassword()).trim();
+            String confirmPassword = new String(confirmPasswordField.getPassword()).trim();
+
+            if (password.isEmpty() || confirmPassword.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Both password fields are required.", "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(dialog, "Passwords do not match.", "Validation", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!AppDatabase.updatePassword(accountEmail, password)) {
+                JOptionPane.showMessageDialog(dialog, "Could not update password.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            passwordUpdated[0] = true;
+            dialog.dispose();
+        });
+
+        actions.add(cancelButton);
+        actions.add(updateButton);
+
+        content.add(chip);
+        content.add(Box.createVerticalStrut(10));
+        content.add(title);
+        content.add(Box.createVerticalStrut(8));
+        content.add(subtitle);
+        content.add(Box.createVerticalStrut(10));
+        content.add(newPasswordCard);
+        content.add(Box.createVerticalStrut(10));
+        content.add(confirmPasswordCard);
+        content.add(Box.createVerticalStrut(10));
+        content.add(actions);
+
+        root.add(content, BorderLayout.CENTER);
+        dialog.setContentPane(root);
+        dialog.getRootPane().setDefaultButton(updateButton);
+        dialog.getRootPane().registerKeyboardAction(
+                event -> dialog.dispose(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+        dialog.pack();
+        Dimension preferredSize = dialog.getPreferredSize();
+        dialog.setSize(Math.max(440, preferredSize.width), preferredSize.height);
+        dialog.setLocationRelativeTo(owner);
+        dialog.setVisible(true);
+
+        if (passwordUpdated[0]) {
+            JOptionPane.showMessageDialog(owner, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
-        String password = new String(newPasswordField.getPassword()).trim();
-        String confirmPassword = new String(confirmPasswordField.getPassword()).trim();
-        if (password.isEmpty() || confirmPassword.isEmpty()) {
-            JOptionPane.showMessageDialog(owner, "Both password fields are required.", "Validation", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (!password.equals(confirmPassword)) {
-            JOptionPane.showMessageDialog(owner, "Passwords do not match.", "Validation", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        if (!AppDatabase.updatePassword(accountEmail, password)) {
-            JOptionPane.showMessageDialog(owner, "Could not update password.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        JOptionPane.showMessageDialog(owner, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
     private void resetFinancialData() {
-        int response = JOptionPane.showConfirmDialog(
-                this,
-                "Reset all income, expenses, savings, budget, and goal data?",
+        boolean shouldReset = showActionConfirmationDialog(
                 "Reset Data",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
-        if (response != JOptionPane.YES_OPTION) {
+                "Reset all financial records?",
+                "This will clear income, expenses, savings, budget, and goal entries. This action cannot be undone.",
+                "Reset Data",
+                new Color(191, 87, 74),
+                new Color(157, 64, 53),
+                Color.WHITE,
+                new Color(252, 236, 218),
+                new Color(228, 186, 130),
+                "OptionPane.warningIcon");
+        if (!shouldReset) {
             return;
         }
         incomeEntries.clear();
@@ -647,16 +774,131 @@ public class MainFrame extends JFrame {
         showPage(PAGE_DASHBOARD);
     }
     private void logOut() {
-        int response = JOptionPane.showConfirmDialog(
-                this,
-                "Log out and return to the login screen?",
+        boolean shouldLogOut = showActionConfirmationDialog(
                 "Log out",
-                JOptionPane.YES_NO_OPTION);
-        if (response != JOptionPane.YES_OPTION) {
+                "Leave your current session?",
+                "You will return to the login screen and can sign back in at any time.",
+                "Log out",
+                TEAL,
+                TEAL_DARK,
+                Color.WHITE,
+                SURFACE_BLUE,
+                CARD_BLUE_BORDER,
+                "OptionPane.questionIcon");
+        if (!shouldLogOut) {
             return;
         }
         dispose();
         new LoginFrame().setVisible(true);
+    }
+
+    private boolean showActionConfirmationDialog(String title, String headingText, String bodyText,
+            String confirmLabel, Color confirmFill, Color confirmBorder, Color confirmText,
+            Color iconFill, Color iconBorder, String iconKey) {
+        final boolean[] confirmed = new boolean[] { false };
+
+        JDialog dialog = new JDialog(this, title, true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setResizable(false);
+
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(PAGE_BACKGROUND_SOFT);
+        root.setBorder(new EmptyBorder(8, 8, 8, 8));
+
+        JPanel card = new JPanel(new BorderLayout(0, 12));
+        card.setBackground(SURFACE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(SURFACE_BORDER, 18, 1),
+                new EmptyBorder(12, 12, 10, 12)));
+
+        JPanel contentRow = new JPanel(new BorderLayout(10, 0));
+        contentRow.setOpaque(false);
+
+        JPanel iconShell = new JPanel(new BorderLayout());
+        iconShell.setOpaque(true);
+        iconShell.setBackground(iconFill);
+        iconShell.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(iconBorder, 26, 1),
+                new EmptyBorder(7, 7, 7, 7)));
+        iconShell.setPreferredSize(new Dimension(44, 44));
+
+        JLabel iconLabel = new JLabel();
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+        Icon icon = UIManager.getIcon(iconKey);
+        if (icon != null) {
+            iconLabel.setIcon(icon);
+        } else {
+            iconLabel.setText("!");
+            iconLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 24));
+            iconLabel.setForeground(TEXT_PRIMARY);
+        }
+        iconShell.add(iconLabel, BorderLayout.CENTER);
+
+        JPanel textPanel = new JPanel();
+        textPanel.setOpaque(false);
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+
+        JLabel heading = new JLabel(headingText);
+        heading.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
+        heading.setForeground(TEXT_PRIMARY);
+        heading.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel body = new JLabel("<html><body style='width: 260px'>" + escapeHtml(bodyText) + "</body></html>");
+        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        body.setForeground(TEXT_SECONDARY);
+        body.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        textPanel.add(heading);
+        textPanel.add(Box.createVerticalStrut(6));
+        textPanel.add(body);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT, SURFACE_BORDER, TEXT_PRIMARY);
+        cancelButton.setPreferredSize(new Dimension(108, 38));
+        cancelButton.addActionListener(event -> dialog.dispose());
+
+        JButton confirmButton = createManageActionButton(confirmLabel, confirmFill, confirmBorder, confirmText);
+        confirmButton.setPreferredSize(new Dimension(124, 38));
+        confirmButton.addActionListener(event -> {
+            confirmed[0] = true;
+            dialog.dispose();
+        });
+
+        actions.add(cancelButton);
+        actions.add(confirmButton);
+
+        contentRow.add(iconShell, BorderLayout.WEST);
+        contentRow.add(textPanel, BorderLayout.CENTER);
+
+        card.add(contentRow, BorderLayout.CENTER);
+        card.add(actions, BorderLayout.SOUTH);
+        root.add(card, BorderLayout.CENTER);
+
+        dialog.setContentPane(root);
+        dialog.getRootPane().setDefaultButton(cancelButton);
+        dialog.getRootPane().registerKeyboardAction(
+                event -> dialog.dispose(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
+        dialog.pack();
+        Dimension preferredSize = dialog.getPreferredSize();
+        dialog.setSize(Math.max(440, preferredSize.width), preferredSize.height);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        return confirmed[0];
+    }
+
+    private static String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
     private JButton createSidebarButton(String text, String pageKey) {
         JButton button = new JButton(text);
@@ -1107,11 +1349,11 @@ public class MainFrame extends JFrame {
         content.add(savingsGoalTitleLabel);
         content.add(Box.createVerticalStrut(10));
         content.add(savingsGoalBodyLabel);
-        content.add(Box.createVerticalStrut(18));
+        content.add(Box.createVerticalStrut(10));
         content.add(percentWrap);
-        content.add(Box.createVerticalStrut(12));
+        content.add(Box.createVerticalStrut(10));
         content.add(savingsGoalProgressBar);
-        content.add(Box.createVerticalStrut(18));
+        content.add(Box.createVerticalStrut(10));
 
         JLabel footnote = new JLabel("Set a target amount to start tracking progress.");
         footnote.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -2036,7 +2278,7 @@ public class MainFrame extends JFrame {
         button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 16));
         button.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(active ? SIDEBAR_ACTIVE_BORDER : SIDEBAR_BORDER),
-                new EmptyBorder(12, 16, 12, 16)));
+                new EmptyBorder(9, 14, 9, 14)));
     }
 
     private void showPage(String pageKey) {

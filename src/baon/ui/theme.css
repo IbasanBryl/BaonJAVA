@@ -7,21 +7,23 @@
     --ui-progress-arc: 16;
     --ui-scrollbar-width: 12;
 
-    --login-page-top: #E8E3D5;
-    --login-page-bottom: #F6EED7;
-    --login-card-background: #F8F7F3;
-    --login-card-border: #D9CDB4;
-    --login-card-shadow: rgba(86, 68, 43, 28);
-    --login-text-primary: #0F1B2D;
-    --login-text-secondary: #715F43;
-    --login-field-background: #FBFBFA;
-    --login-field-border: #CDBEA1;
-    --login-tab-active: #2C7781;
-    --login-tab-active-border: #2A6A73;
-    --login-tab-inactive: #FFFFFF;
-    --login-tab-inactive-border: #CDBEA1;
-    --login-action: #C77754;
-    --login-action-border: #B46A4B;
+    --login-page-top: #E3DAC8;
+    --login-page-bottom: #D9D2BF;
+    --login-card-background: #F6F4EF;
+    --login-card-border: #D6C8AE;
+    --login-card-shadow: rgba(98, 82, 56, 34);
+    --login-text-primary: #0E1B2F;
+    --login-text-secondary: #6A5335;
+    --login-field-background: #DFE7F4;
+    --login-field-border: #C8B48F;
+    --login-tab-active: #1F6F79;
+    --login-tab-active-border: #1B5E67;
+    --login-tab-inactive: #F8F5EE;
+    --login-tab-inactive-border: #C8B48F;
+    --login-action: #C77653;
+    --login-action-hover: #B86847;
+    --login-action-border: #B36749;
+    --login-link: #0B5673;
     --login-success: #2F8D55;
     --login-error: #B83D3D;
 
@@ -69,3 +71,4 @@
     --main-filled-badge-background: rgba(255, 255, 255, 30);
     --main-filled-body-text: rgb(245, 248, 248);
 }
+
