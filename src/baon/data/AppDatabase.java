@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,14 @@ public final class AppDatabase {
                     + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
                     + ")");
 
+            statement.execute("CREATE TABLE IF NOT EXISTS category_budgets ("
+                    + "user_id INTEGER NOT NULL,"
+                    + "category TEXT NOT NULL,"
+                    + "amount REAL NOT NULL,"
+                    + "PRIMARY KEY(user_id, category),"
+                    + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
+                    + ")");
+
             statement.execute("CREATE TABLE IF NOT EXISTS income_entries ("
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "user_id INTEGER NOT NULL,"
@@ -78,6 +87,7 @@ public final class AppDatabase {
                     + "user_id INTEGER NOT NULL,"
                     + "amount REAL NOT NULL,"
                     + "category TEXT NOT NULL,"
+                    + "item TEXT NOT NULL DEFAULT '',"
                     + "entry_date TEXT NOT NULL,"
                     + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
                     + ")");
@@ -102,6 +112,7 @@ public final class AppDatabase {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_otp_codes_email ON otp_codes(email)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_income_entries_user ON income_entries(user_id)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_expense_entries_user ON expense_entries(user_id)");
+            ensureExpenseEntryItemColumn(connection);
             statement.execute("CREATE INDEX IF NOT EXISTS idx_saving_entries_user ON saving_entries(user_id)");
             initialized = true;
         } catch (SQLException | IOException exception) {
@@ -135,6 +146,10 @@ public final class AppDatabase {
             loadIncomeEntries(connection, userId.intValue(), state);
             loadExpenseEntries(connection, userId.intValue(), state);
             loadSavingEntries(connection, userId.intValue(), state);
+            loadCategoryBudgets(connection, userId.intValue(), state);
+            if (!state.categoryBudgetLimits.isEmpty()) {
+                state.budgetLimit = calculateBudgetTotal(state.categoryBudgetLimits);
+            }
             return state;
         } catch (SQLException | IOException exception) {
             return new DatabaseState();
@@ -164,10 +179,15 @@ public final class AppDatabase {
                 return;
             }
 
+            if (!state.categoryBudgetLimits.isEmpty()) {
+                state.budgetLimit = calculateBudgetTotal(state.categoryBudgetLimits);
+            }
+
             overwriteSettings(connection, userId.intValue(), state);
             overwriteIncomeEntries(connection, userId.intValue(), state.incomeEntries);
             overwriteExpenseEntries(connection, userId.intValue(), state.expenseEntries);
             overwriteSavingEntries(connection, userId.intValue(), state.savingEntries);
+            overwriteCategoryBudgets(connection, userId.intValue(), state.categoryBudgetLimits);
             connection.commit();
         } catch (SQLException | IOException exception) {
             // Keep UI responsive even if persistence fails.
@@ -357,6 +377,28 @@ public final class AppDatabase {
         }
     }
 
+    private static void ensureExpenseEntryItemColumn(Connection connection) throws SQLException {
+        boolean hasItemColumn = false;
+        String sql = "PRAGMA table_info(expense_entries)";
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                if ("item".equalsIgnoreCase(resultSet.getString("name"))) {
+                    hasItemColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasItemColumn) {
+            return;
+        }
+
+        try (Statement alter = connection.createStatement()) {
+            alter.execute("ALTER TABLE expense_entries ADD COLUMN item TEXT NOT NULL DEFAULT ''");
+        }
+    }
+
     private static void loadSettings(Connection connection, int userId, DatabaseState state) throws SQLException {
         String sql = "SELECT budget_limit, saving_goal_target FROM user_settings WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -386,7 +428,7 @@ public final class AppDatabase {
     }
 
     private static void loadExpenseEntries(Connection connection, int userId, DatabaseState state) throws SQLException {
-        String sql = "SELECT amount, category, entry_date FROM expense_entries WHERE user_id = ? ORDER BY id ASC";
+        String sql = "SELECT amount, category, item, entry_date FROM expense_entries WHERE user_id = ? ORDER BY id ASC";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -394,6 +436,7 @@ public final class AppDatabase {
                     state.expenseEntries.add(new ExpenseEntry(
                             resultSet.getDouble("amount"),
                             resultSet.getString("category"),
+                            resultSet.getString("item"),
                             resultSet.getString("entry_date")));
                 }
             }
@@ -462,13 +505,14 @@ public final class AppDatabase {
             delete.executeUpdate();
         }
 
-        String insertSql = "INSERT INTO expense_entries (user_id, amount, category, entry_date) VALUES (?, ?, ?, ?)";
+        String insertSql = "INSERT INTO expense_entries (user_id, amount, category, item, entry_date) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
             for (ExpenseEntry entry : entries) {
                 insert.setInt(1, userId);
                 insert.setDouble(2, entry.amount);
                 insert.setString(3, entry.category);
-                insert.setString(4, entry.date);
+                insert.setString(4, entry.item == null ? "" : entry.item);
+                insert.setString(5, entry.date);
                 insert.addBatch();
             }
             insert.executeBatch();
@@ -492,6 +536,55 @@ public final class AppDatabase {
             }
             insert.executeBatch();
         }
+    }
+    private static void loadCategoryBudgets(Connection connection, int userId, DatabaseState state) throws SQLException {
+        String sql = "SELECT category, amount FROM category_budgets WHERE user_id = ? ORDER BY category ASC";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    state.categoryBudgetLimits.put(
+                            resultSet.getString("category"),
+                            Double.valueOf(resultSet.getDouble("amount")));
+                }
+            }
+        }
+    }
+
+    private static void overwriteCategoryBudgets(Connection connection, int userId, LinkedHashMap<String, Double> budgets)
+            throws SQLException {
+        try (PreparedStatement delete = connection.prepareStatement("DELETE FROM category_budgets WHERE user_id = ?")) {
+            delete.setInt(1, userId);
+            delete.executeUpdate();
+        }
+
+        if (budgets == null || budgets.isEmpty()) {
+            return;
+        }
+
+        String insertSql = "INSERT INTO category_budgets (user_id, category, amount) VALUES (?, ?, ?)";
+        try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
+            for (Map.Entry<String, Double> entry : budgets.entrySet()) {
+                insert.setInt(1, userId);
+                insert.setString(2, entry.getKey());
+                insert.setDouble(3, entry.getValue().doubleValue());
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+    }
+
+    private static double calculateBudgetTotal(LinkedHashMap<String, Double> budgets) {
+        double total = 0.0;
+        if (budgets == null) {
+            return total;
+        }
+        for (Double value : budgets.values()) {
+            if (value != null) {
+                total += value.doubleValue();
+            }
+        }
+        return total;
     }
 
     private static void createUser(Connection connection, String displayName, String email, String passwordHash)
@@ -735,6 +828,7 @@ public final class AppDatabase {
         public final ArrayList<IncomeEntry> incomeEntries = new ArrayList<IncomeEntry>();
         public final ArrayList<ExpenseEntry> expenseEntries = new ArrayList<ExpenseEntry>();
         public final ArrayList<SavingEntry> savingEntries = new ArrayList<SavingEntry>();
+        public final LinkedHashMap<String, Double> categoryBudgetLimits = new LinkedHashMap<String, Double>();
         public double budgetLimit;
         public double savingGoalTarget;
     }
@@ -769,5 +863,7 @@ public final class AppDatabase {
         }
     }
 }
+
+
 
 
