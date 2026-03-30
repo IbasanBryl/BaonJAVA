@@ -325,7 +325,7 @@ public class MainFrame extends JFrame {
         menuBadge.setHorizontalAlignment(SwingConstants.CENTER);
         menuBadge.setPreferredSize(new Dimension(38, 38));
         menuBadge.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(MENU_BADGE_BORDER),
+                new RoundedLineBorder(MENU_BADGE_BORDER, 16, 1),
                 new EmptyBorder(2, 0, 4, 0)));
         menuBadge.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         JPopupMenu accountMenu = createAccountMenu();
@@ -409,14 +409,14 @@ public class MainFrame extends JFrame {
         return item;
     }
     private void showManageAccountDialog() {
-        final Color dialogTop = new Color(12, 27, 53);
-        final Color dialogBottom = new Color(33, 52, 82);
-        final Color cardBackground = new Color(18, 35, 63);
-        final Color cardBorder = new Color(56, 86, 130);
-        final Color fieldBackground = new Color(7, 23, 44);
-        final Color fieldBorder = new Color(76, 120, 181);
-        final Color textPrimary = new Color(231, 238, 250);
-        final Color textSecondary = new Color(194, 209, 236);
+        final Color dialogBackground = PAGE_BACKGROUND_SOFT;
+
+        final Color cardBackground = SURFACE;
+        final Color cardBorder = SURFACE_BORDER;
+        final Color fieldBackground = SURFACE;
+        final Color fieldBorder = SURFACE_BORDER;
+        final Color textPrimary = TEXT_PRIMARY;
+        final Color textSecondary = TEXT_SECONDARY;
         JDialog dialog = new JDialog(this, "Manage Account", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setSize(860, 760);
@@ -428,7 +428,7 @@ public class MainFrame extends JFrame {
                 super.paintComponent(graphics);
                 Graphics2D g2 = (Graphics2D) graphics.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setPaint(new java.awt.GradientPaint(0, 0, dialogTop, getWidth(), getHeight(), dialogBottom));
+                g2.setPaint(dialogBackground);
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.dispose();
             }
@@ -441,11 +441,11 @@ public class MainFrame extends JFrame {
         content.setBorder(new EmptyBorder(8, 0, 8, 0));
         JLabel chip = new JLabel("PROFILE SETTINGS", SwingConstants.CENTER);
         chip.setOpaque(true);
-        chip.setBackground(new Color(35, 54, 87));
-        chip.setForeground(new Color(175, 197, 236));
+        chip.setBackground(SURFACE_BLUE);
+        chip.setForeground(TEAL_DARK);
         chip.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
         chip.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(new Color(72, 103, 154), 20, 1),
+                new RoundedLineBorder(CARD_BLUE_BORDER, 20, 1),
                 new EmptyBorder(5, 14, 5, 14)));
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel title = new JLabel("Manage Account");
@@ -478,14 +478,14 @@ public class MainFrame extends JFrame {
         securityText.setLayout(new BoxLayout(securityText, BoxLayout.Y_AXIS));
         JLabel securityTitle = new JLabel("SECURITY");
         securityTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
-        securityTitle.setForeground(new Color(188, 210, 246));
+        securityTitle.setForeground(TEAL_DARK);
         securityTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel securityBody = new JLabel("<html>Change your password anytime to keep your account protected.</html>");
         securityBody.setFont(new Font(FONT_FAMILY, Font.PLAIN, 16));
         securityBody.setForeground(textPrimary);
         securityBody.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JButton changePasswordButton = createManageActionButton("Change Password", new Color(53, 84, 132),
-                new Color(97, 139, 203), textPrimary);
+        JButton changePasswordButton = createManageActionButton("Change Password", TEAL,
+                TEAL_DARK, Color.WHITE);
         changePasswordButton.setPreferredSize(new Dimension(168, 46));
         changePasswordButton.addActionListener(event -> showChangePasswordDialog(dialog));
         securityText.add(securityTitle);
@@ -495,11 +495,11 @@ public class MainFrame extends JFrame {
         securityCard.add(changePasswordButton, BorderLayout.EAST);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 0));
         actions.setOpaque(false);
-        JButton cancelButton = createManageActionButton("Cancel", new Color(39, 90, 156),
-                new Color(66, 124, 200), textPrimary);
+        JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT,
+                SURFACE_BORDER, TEXT_PRIMARY);
         cancelButton.addActionListener(event -> dialog.dispose());
-        JButton saveButton = createManageActionButton("Save Changes", new Color(123, 169, 233),
-                new Color(145, 191, 255), new Color(21, 43, 76));
+        JButton saveButton = createManageActionButton("Save Changes", TEAL,
+                TEAL_DARK, Color.WHITE);
         saveButton.addActionListener(event -> {
             String displayName = displayNameField.getText().trim();
             if (displayName.isEmpty()) {
@@ -531,34 +531,26 @@ public class MainFrame extends JFrame {
         content.add(securityCard);
         content.add(Box.createVerticalStrut(10));
         content.add(actions);
-        JPanel centeredContent = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        centeredContent.setOpaque(false);
-        centeredContent.add(content);
-        JScrollPane scrollPane = new JScrollPane(centeredContent);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().addComponentListener(new ComponentAdapter() {
+        JPanel root = new JPanel(new GridBagLayout()) {
             @Override
-            public void componentResized(ComponentEvent event) {
-                int availableWidth = Math.max(320, scrollPane.getViewport().getWidth() - 14);
-                int targetWidth = Math.min(760, availableWidth);
-                int targetHeight = content.getPreferredSize().height;
-                content.setPreferredSize(new Dimension(targetWidth, targetHeight));
-                content.revalidate();
+            protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+                Graphics2D g2 = (Graphics2D) graphics.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setPaint(dialogBackground);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
             }
-        });
-        root.add(scrollPane, BorderLayout.CENTER);
+        };
+        root.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints rootConstraints = new GridBagConstraints();
+        rootConstraints.gridx = 0;
+        rootConstraints.gridy = 0;
+        rootConstraints.weightx = 1.0;
+        rootConstraints.weighty = 1.0;
+        rootConstraints.anchor = GridBagConstraints.CENTER;
+        root.add(content, rootConstraints);
         dialog.setContentPane(root);
-        SwingUtilities.invokeLater(() -> {
-            int availableWidth = Math.max(320, scrollPane.getViewport().getWidth() - 14);
-            int targetWidth = Math.min(760, availableWidth);
-            content.setPreferredSize(new Dimension(targetWidth, content.getPreferredSize().height));
-            content.revalidate();
-        });
         dialog.setVisible(true);
     }
     private JPanel createManageFieldCard(String titleText, JTextField field, String noteText,
@@ -613,14 +605,14 @@ public class MainFrame extends JFrame {
         return button;
     }
     private void showChangePasswordDialog(JDialog owner) {
-        final Color dialogTop = new Color(12, 27, 53);
-        final Color dialogBottom = new Color(33, 52, 82);
-        final Color cardBackground = new Color(18, 35, 63);
-        final Color cardBorder = new Color(56, 86, 130);
-        final Color fieldBackground = new Color(7, 23, 44);
-        final Color fieldBorder = new Color(76, 120, 181);
-        final Color textPrimary = new Color(231, 238, 250);
-        final Color textSecondary = new Color(194, 209, 236);
+        final Color dialogBackground = PAGE_BACKGROUND_SOFT;
+
+        final Color cardBackground = SURFACE;
+        final Color cardBorder = SURFACE_BORDER;
+        final Color fieldBackground = SURFACE;
+        final Color fieldBorder = SURFACE_BORDER;
+        final Color textPrimary = TEXT_PRIMARY;
+        final Color textSecondary = TEXT_SECONDARY;
 
         final boolean[] passwordUpdated = new boolean[] { false };
 
@@ -639,7 +631,7 @@ public class MainFrame extends JFrame {
                 super.paintComponent(graphics);
                 Graphics2D g2 = (Graphics2D) graphics.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setPaint(new java.awt.GradientPaint(0, 0, dialogTop, getWidth(), getHeight(), dialogBottom));
+                g2.setPaint(dialogBackground);
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.dispose();
             }
@@ -657,11 +649,11 @@ public class MainFrame extends JFrame {
 
         JLabel chip = new JLabel("SECURITY", SwingConstants.LEFT);
         chip.setOpaque(true);
-        chip.setBackground(new Color(35, 54, 87));
-        chip.setForeground(new Color(175, 197, 236));
+        chip.setBackground(SURFACE_BLUE);
+        chip.setForeground(TEAL_DARK);
         chip.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
         chip.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(new Color(72, 103, 154), 20, 1),
+                new RoundedLineBorder(CARD_BLUE_BORDER, 20, 1),
                 new EmptyBorder(5, 12, 5, 12)));
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -696,13 +688,13 @@ public class MainFrame extends JFrame {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
 
-        JButton cancelButton = createManageActionButton("Cancel", new Color(39, 90, 156),
-                new Color(66, 124, 200), textPrimary);
+        JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT,
+                SURFACE_BORDER, TEXT_PRIMARY);
         cancelButton.setPreferredSize(new Dimension(124, 38));
         cancelButton.addActionListener(event -> dialog.dispose());
 
-        JButton updateButton = createManageActionButton("Update Password", new Color(123, 169, 233),
-                new Color(145, 191, 255), new Color(21, 43, 76));
+        JButton updateButton = createManageActionButton("Update Password", TEAL,
+                TEAL_DARK, Color.WHITE);
         updateButton.setPreferredSize(new Dimension(168, 38));
         updateButton.addActionListener(event -> {
             String password = new String(newPasswordField.getPassword()).trim();
@@ -1567,8 +1559,9 @@ public class MainFrame extends JFrame {
         button.setForeground(Color.WHITE);
         button.setBackground(TEAL);
         button.setOpaque(true);
+        button.setContentAreaFilled(true);
         button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(TEAL_DARK),
+                new RoundedLineBorder(TEAL_DARK, 24, 1),
                 new EmptyBorder(10, 18, 10, 18)));
         return button;
     }
@@ -1949,7 +1942,7 @@ public class MainFrame extends JFrame {
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent event) {
-                button.setBackground(new Color(72, 145, 147));
+                button.setBackground(new Color(102, 176, 124));
             }
 
             @Override
@@ -2616,8 +2609,10 @@ public class MainFrame extends JFrame {
         button.setBackground(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON);
         button.setForeground(SIDEBAR_TEXT);
         button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 16));
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
         button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(active ? SIDEBAR_ACTIVE_BORDER : SIDEBAR_BORDER),
+                new RoundedLineBorder(active ? SIDEBAR_ACTIVE_BORDER : SIDEBAR_BORDER, 18, 1),
                 new EmptyBorder(9, 14, 9, 14)));
     }
 
@@ -3016,7 +3011,7 @@ public class MainFrame extends JFrame {
             Graphics2D g2 = (Graphics2D) graphics.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setFont(getFont());
-            g2.setColor(new Color(129, 147, 180));
+            g2.setColor(TEXT_SECONDARY);
             Insets insets = getInsets();
             int baseline = (getHeight() + g2.getFontMetrics().getAscent() - g2.getFontMetrics().getDescent()) / 2;
             g2.drawString(prompt, insets.left + 2, baseline);
@@ -3235,22 +3230,3 @@ public class MainFrame extends JFrame {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
