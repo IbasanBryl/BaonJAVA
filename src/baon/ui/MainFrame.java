@@ -387,9 +387,9 @@ public class MainFrame extends JFrame {
         JPopupMenu menu = new JPopupMenu();
         menu.setBackground(SIDEBAR_BACKGROUND);
         menu.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(SIDEBAR_BORDER, 12, 1),
-                new EmptyBorder(6, 6, 6, 6)));
-        menu.setLayout(new GridLayout(0, 1, 0, 6));
+                new RoundedLineBorder(SIDEBAR_BUTTON, 18, 1),
+                new EmptyBorder(8, 8, 8, 8)));
+        menu.setLayout(new GridLayout(0, 1, 0, 8));
         JMenuItem manageAccountItem = createAccountMenuItem("Manage account");
         manageAccountItem.addActionListener(event -> showManageAccountDialog());
         JMenuItem resetItem = createAccountMenuItem("Reset");
@@ -407,10 +407,10 @@ public class MainFrame extends JFrame {
         item.setForeground(SIDEBAR_TEXT);
         item.setBackground(SIDEBAR_BUTTON);
         item.setOpaque(true);
-        item.setPreferredSize(new Dimension(168, 36));
+        item.setPreferredSize(new Dimension(182, 42));
         item.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(SIDEBAR_BORDER, 9, 1),
-                new EmptyBorder(6, 12, 6, 12)));
+                new RoundedLineBorder(SIDEBAR_BUTTON, 18, 1),
+                new EmptyBorder(8, 16, 8, 16)));
         item.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         item.setHorizontalAlignment(SwingConstants.LEFT);
         item.setFocusPainted(false);
@@ -610,7 +610,7 @@ public class MainFrame extends JFrame {
         field.setPreferredSize(new Dimension(0, 42));
         field.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(borderColor, 22, 1),
-                new EmptyBorder(9, 14, 9, 14)));
+                new EmptyBorder(10, 18, 10, 18)));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
     private JButton createManageActionButton(String text, Color fillColor, Color borderColor, Color textColor) {
@@ -622,7 +622,7 @@ public class MainFrame extends JFrame {
         button.setBackground(fillColor);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(borderColor, 28, 1),
-                new EmptyBorder(9, 14, 9, 14)));
+                new EmptyBorder(10, 18, 10, 18)));
         button.setPreferredSize(new Dimension(152, 40));
         return button;
     }
@@ -988,7 +988,7 @@ public class MainFrame extends JFrame {
 
         constraints.gridy = 2;
         constraints.insets = new Insets(18, 0, 0, 0);
-        page.add(createPrimarySecondaryRow(createWeeklySpendingCard(), createCategoryOverviewCard(), 320), constraints);
+        page.add(createPrimarySecondaryRow(createWeeklySpendingCard(), createCategoryOverviewCard(), 380), constraints);
 
         constraints.gridy = 3;
         constraints.weighty = 1.0;
@@ -1179,7 +1179,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createWeeklySpendingCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel header = createCardHeader("Weekly Spending", "See how your spending moves through the week.",
@@ -1192,7 +1192,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createCategoryOverviewCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel header = createCardHeader("By Category", "Your biggest spending groups at a glance.",
@@ -1228,7 +1228,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createIncomeRecordsCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(createCardHeader("Income Records",
                 "Your income history appears here once you start adding entries.", incomeRecordBadgeLabel),
@@ -1268,7 +1268,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createExpenseRecordsCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(createCardHeader("Recent Expenses",
                 "Your most recent expense entries will appear here.", expenseRecordBadgeLabel), BorderLayout.NORTH);
@@ -1317,7 +1317,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createBudgetProgressCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(createCardHeader("Monthly Budget Progress",
                 "Each category will show how much you have spent against its limit.", budgetCategoryBadgeLabel),
@@ -1449,7 +1449,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createSavingHistoryCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(createCardHeader("Saving History", "Every savings entry you add will be listed here.",
                 savingsHistoryBadgeLabel), BorderLayout.NORTH);
@@ -1504,7 +1504,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createForecastBreakdownCard() {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 16));
+        SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, SURFACE_BORDER, 34);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(createCardHeader("Forecast Breakdown",
                 "See which categories are likely to shape your month-end spending.", null), BorderLayout.NORTH);
@@ -1592,9 +1592,10 @@ public class MainFrame extends JFrame {
         button.setBackground(TEAL);
         button.setOpaque(true);
         button.setContentAreaFilled(true);
+        button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(TEAL_DARK, 24, 1),
-                new EmptyBorder(10, 18, 10, 18)));
+                new RoundedLineBorder(TEAL, 32, 1),
+                new EmptyBorder(10, 24, 10, 24)));
         return button;
     }
 
@@ -2419,7 +2420,7 @@ public class MainFrame extends JFrame {
         button.setOpaque(true);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(emphasize ? GOLD : new Color(28, 33, 42), 14, 1),
-                new EmptyBorder(6, 12, 6, 12)));
+                new EmptyBorder(8, 16, 8, 16)));
 
         int minWidth = text.length() <= 2 ? 40 : 72;
         int computedWidth = text.length() * 8 + 22;
@@ -2449,7 +2450,7 @@ public class MainFrame extends JFrame {
 
         forecastBreakdownContentPanel.removeAll();
         if (expenseEntries.isEmpty()) {
-            forecastBreakdownContentPanel.add(createDonutEmptyPanel("No category data yet"), BorderLayout.CENTER);
+            forecastBreakdownContentPanel.add(createForecastBreakdownEmptyPanel(), BorderLayout.CENTER);
         } else {
             forecastBreakdownContentPanel.add(createCategoryListPanel(buildExpenseGroups()), BorderLayout.CENTER);
         }
@@ -2538,8 +2539,8 @@ public class MainFrame extends JFrame {
         double topAmount = calculateExpenseGroupTotal(topEntry.getValue());
         double topShare = totalSpent <= 0.0 ? 0.0 : (topAmount / totalSpent) * 100.0;
 
-        SurfacePanel spotlight = createSurface(new BorderLayout(0, 10), SURFACE_BLUE, CARD_BLUE_BORDER, 18);
-        spotlight.setBorder(new EmptyBorder(14, 14, 14, 14));
+        SurfacePanel spotlight = createSurface(new BorderLayout(0, 12), SURFACE_BLUE, CARD_BLUE_BORDER, 30);
+        spotlight.setBorder(new EmptyBorder(14, 16, 14, 16));
 
         JPanel spotlightTop = new JPanel(new BorderLayout(10, 0));
         spotlightTop.setOpaque(false);
@@ -2553,12 +2554,12 @@ public class MainFrame extends JFrame {
         spotlightTop.add(spotlightShare, BorderLayout.EAST);
 
         JLabel spotlightTitle = new JLabel(topEntry.getKey());
-        spotlightTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 24));
+        spotlightTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         spotlightTitle.setForeground(TEXT_PRIMARY);
 
         JLabel spotlightBody = new JLabel(toWrappedHtml(
                 currencyFormat.format(topAmount) + " spent so far. " + buildCategoryBudgetSummary(topEntry.getKey(), topAmount),
-                240));
+                210));
         spotlightBody.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         spotlightBody.setForeground(TEXT_SECONDARY);
 
@@ -2599,11 +2600,11 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
-    private JPanel createCategoryRow(String titleText, double amount, double totalSpent, Double categoryBudgetLimit) {
-        SurfacePanel row = createSurface(new BorderLayout(0, 10), SURFACE, CATEGORY_DEFAULT_BORDER, 16);
-        row.setBorder(new EmptyBorder(12, 12, 12, 12));
+    private JPanel createCategoryRow(String titleText, double amount, double totalSpent, Double categoryBudgetLimit, int wrapWidth) {
+        SurfacePanel row = createSurface(new BorderLayout(0, 10), SURFACE, CATEGORY_DEFAULT_BORDER, 26);
+        row.setBorder(new EmptyBorder(11, 14, 11, 14));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 116));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 122));
 
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
@@ -2616,7 +2617,7 @@ public class MainFrame extends JFrame {
         value.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         value.setForeground(TEXT_PRIMARY);
 
-        JLabel detail = new JLabel(toWrappedHtml(buildCategoryRowDetail(amount, totalSpent, categoryBudgetLimit), 250));
+        JLabel detail = new JLabel(toWrappedHtml(buildCategoryRowDetail(amount, totalSpent, categoryBudgetLimit), wrapWidth));
         detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         detail.setForeground(TEXT_SECONDARY);
         detail.setVerticalAlignment(SwingConstants.TOP);
@@ -2645,6 +2646,44 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    private JPanel createForecastBreakdownEmptyPanel() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel visualRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        visualRow.setOpaque(false);
+        visualRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        DonutPlaceholderPanel donut = new DonutPlaceholderPanel("", SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY);
+        donut.setPreferredSize(new Dimension(170, 170));
+        donut.setMinimumSize(new Dimension(170, 170));
+        donut.setMaximumSize(new Dimension(170, 170));
+
+        SurfacePanel statusChip = createSurface(new BorderLayout(), SURFACE, CARD_GOLD_BORDER, 44);
+        statusChip.setPreferredSize(new Dimension(92, 92));
+        statusChip.setMinimumSize(new Dimension(92, 92));
+        statusChip.setMaximumSize(new Dimension(92, 92));
+
+        JLabel chipLabel = new JLabel("No data yet", SwingConstants.CENTER);
+        chipLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
+        chipLabel.setForeground(TEXT_SECONDARY);
+        statusChip.add(chipLabel, BorderLayout.CENTER);
+
+        visualRow.add(donut);
+        visualRow.add(statusChip);
+
+        JLabel label = new JLabel("No category data yet");
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        label.setForeground(TEXT_PRIMARY);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        panel.add(visualRow);
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(label);
+        return panel;
+    }
     private JPanel createDonutEmptyPanel(String text) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -2774,9 +2813,10 @@ public class MainFrame extends JFrame {
         button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 16));
         button.setOpaque(true);
         button.setContentAreaFilled(true);
+        button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(active ? SIDEBAR_ACTIVE_BORDER : SIDEBAR_BORDER, 18, 1),
-                new EmptyBorder(9, 14, 9, 14)));
+                new RoundedLineBorder(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON, 30, 1),
+                new EmptyBorder(10, 18, 10, 18)));
     }
 
     private void showPage(String pageKey) {
@@ -3207,22 +3247,35 @@ public class MainFrame extends JFrame {
                 + " spent against " + currencyFormat.format(totalIncome) + " income.";
     }
 
+    private int computeCategoryWrapWidth() {
+        int available = categoryOverviewContentPanel.getWidth();
+        if (available <= 0) {
+            return 210;
+        }
+        int horizontalPadding = 72;
+        return Math.max(180, Math.min(320, available - horizontalPadding));
+    }
     private String buildCategoryBudgetSummary(String category, double amount) {
         Double limit = categoryBudgetLimits.get(category);
         if (limit == null || limit.doubleValue() <= 0.0) {
-            return "No category budget is set yet, so this view is ranking it by spend only.";
+            return "No category budget yet.";
         }
         double remaining = limit.doubleValue() - amount;
         if (remaining >= 0.0) {
-            return currencyFormat.format(remaining) + " remains in this category budget.";
+            return currencyFormat.format(remaining) + " left in budget.";
         }
-        return currencyFormat.format(Math.abs(remaining)) + " over the category budget already.";
+        return currencyFormat.format(Math.abs(remaining)) + " over budget.";
     }
 
     private String buildCategoryRowDetail(double amount, double totalSpent, Double categoryBudgetLimit) {
         String detail = formatPercent(totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0) + " of total";
         if (categoryBudgetLimit != null && categoryBudgetLimit.doubleValue() > 0.0) {
-            detail += " | " + formatPercent((amount / categoryBudgetLimit.doubleValue()) * 100.0) + " of budget";
+            double remaining = categoryBudgetLimit.doubleValue() - amount;
+            if (remaining >= 0.0) {
+                detail += " | " + formatPercent((amount / categoryBudgetLimit.doubleValue()) * 100.0) + " of budget";
+            } else {
+                detail += " | " + currencyFormat.format(Math.abs(remaining)) + " over";
+            }
         } else {
             detail += " | no budget set";
         }
@@ -3519,7 +3572,7 @@ public class MainFrame extends JFrame {
 
     private static class ResponsiveSplitPanel extends JPanel {
         private static final int GAP = 18;
-        private static final int STACK_BREAKPOINT = 1180;
+        private static final int STACK_BREAKPOINT = 1320;
 
         private final JPanel primaryPanel;
         private final JPanel secondaryPanel;
@@ -3528,7 +3581,7 @@ public class MainFrame extends JFrame {
         ResponsiveSplitPanel(JPanel primaryPanel, JPanel secondaryPanel, int secondaryWidth) {
             this.primaryPanel = primaryPanel;
             this.secondaryPanel = secondaryPanel;
-            this.secondaryWidth = Math.max(300, secondaryWidth);
+            this.secondaryWidth = Math.max(260, secondaryWidth);
             setOpaque(false);
             setLayout(null);
             setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -3543,11 +3596,11 @@ public class MainFrame extends JFrame {
             int secondaryHeight = secondaryPanel.getPreferredSize().height;
 
             if (availableWidth < STACK_BREAKPOINT) {
-                int width = Math.max(availableWidth, secondaryWidth);
+                int width = Math.max(availableWidth, 0);
                 return new Dimension(width, primaryHeight + GAP + secondaryHeight);
             }
 
-            int width = Math.max(availableWidth, secondaryWidth + 340 + GAP);
+            int width = Math.max(availableWidth, secondaryWidth + 300 + GAP);
             return new Dimension(width, Math.max(primaryHeight, secondaryHeight));
         }
 
@@ -3568,8 +3621,8 @@ public class MainFrame extends JFrame {
                 return;
             }
 
-            int resolvedSecondaryWidth = Math.min(this.secondaryWidth, Math.max(300, (int) Math.round(width * 0.34)));
-            int resolvedPrimaryWidth = Math.max(320, width - resolvedSecondaryWidth - GAP);
+            int resolvedSecondaryWidth = Math.min(this.secondaryWidth, Math.max(260, (int) Math.round(width * 0.32)));
+            int resolvedPrimaryWidth = Math.max(300, width - resolvedSecondaryWidth - GAP);
             int sharedHeight = Math.max(primaryHeight, secondaryHeight);
 
             primaryPanel.setBounds(0, 0, resolvedPrimaryWidth, sharedHeight);
@@ -3622,3 +3675,11 @@ public class MainFrame extends JFrame {
         }
     }
 }
+
+
+
+
+
+
+
+
