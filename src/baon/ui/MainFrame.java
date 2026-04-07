@@ -2524,7 +2524,7 @@ public class MainFrame extends JFrame {
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
+        int wrapWidth = computeCategoryWrapWidth();
         if (groupedExpenses.isEmpty()) {
             JLabel label = new JLabel("No category data yet", SwingConstants.CENTER);
             label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -2539,42 +2539,8 @@ public class MainFrame extends JFrame {
         double topAmount = calculateExpenseGroupTotal(topEntry.getValue());
         double topShare = totalSpent <= 0.0 ? 0.0 : (topAmount / totalSpent) * 100.0;
 
-        SurfacePanel spotlight = createSurface(new BorderLayout(0, 12), SURFACE_BLUE, CARD_BLUE_BORDER, 30);
-        spotlight.setBorder(new EmptyBorder(14, 16, 14, 16));
-
-        JPanel spotlightTop = new JPanel(new BorderLayout(10, 0));
-        spotlightTop.setOpaque(false);
-        JLabel spotlightBadge = createBadgeLabel("TOP CATEGORY", PAGE_BACKGROUND_SOFT, TEXT_SECONDARY);
-        spotlightBadge.setMaximumSize(spotlightBadge.getPreferredSize());
-        spotlightTop.add(spotlightBadge, BorderLayout.WEST);
-
-        JLabel spotlightShare = new JLabel(formatPercent(topShare), SwingConstants.RIGHT);
-        spotlightShare.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
-        spotlightShare.setForeground(TEAL_DARK);
-        spotlightTop.add(spotlightShare, BorderLayout.EAST);
-
-        JLabel spotlightTitle = new JLabel(topEntry.getKey());
-        spotlightTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
-        spotlightTitle.setForeground(TEXT_PRIMARY);
-
-        JLabel spotlightBody = new JLabel(toWrappedHtml(
-                currencyFormat.format(topAmount) + " spent so far. " + buildCategoryBudgetSummary(topEntry.getKey(), topAmount),
-                210));
-        spotlightBody.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        spotlightBody.setForeground(TEXT_SECONDARY);
-
-        JPanel spotlightStack = new JPanel();
-        spotlightStack.setOpaque(false);
-        spotlightStack.setLayout(new BoxLayout(spotlightStack, BoxLayout.Y_AXIS));
-        spotlightStack.add(spotlightTop);
-        spotlightStack.add(Box.createVerticalStrut(12));
-        spotlightStack.add(spotlightTitle);
-        spotlightStack.add(Box.createVerticalStrut(8));
-        spotlightStack.add(spotlightBody);
-
-        spotlight.add(spotlightStack, BorderLayout.CENTER);
-        panel.add(spotlight);
-        panel.add(Box.createVerticalStrut(14));
+        panel.add(createCategoryDonutSummary(topEntry.getKey(), topAmount, topShare));
+        panel.add(Box.createVerticalStrut(8));
 
         JPanel list = new JPanel();
         list.setOpaque(false);
@@ -2584,7 +2550,7 @@ public class MainFrame extends JFrame {
         int shown = 0;
         for (Map.Entry<String, ArrayList<ExpenseEntry>> entry : groupedExpenses.entrySet()) {
             list.add(createCategoryRow(entry.getKey(), calculateExpenseGroupTotal(entry.getValue()), totalSpent,
-                    categoryBudgetLimits.get(entry.getKey())));
+                    categoryBudgetLimits.get(entry.getKey()), wrapWidth));
             list.add(Box.createVerticalStrut(8));
             shown++;
             if (shown >= 4) {
@@ -2633,6 +2599,49 @@ public class MainFrame extends JFrame {
         row.add(detail, BorderLayout.CENTER);
         row.add(progressBar, BorderLayout.SOUTH);
         return row;
+    }
+
+    private JPanel createCategoryDonutSummary(String topCategory, double topAmount, double topShare) {
+        SurfacePanel panel = createSurface(new BorderLayout(14, 0), PAGE_BACKGROUND_SOFT, CARD_CREAM_BORDER, 26);
+        panel.setBorder(new EmptyBorder(12, 14, 12, 14));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 188));
+
+        DonutPlaceholderPanel donut = new DonutPlaceholderPanel(formatPercent(topShare), SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY);
+        donut.setPreferredSize(new Dimension(142, 142));
+        donut.setMinimumSize(new Dimension(142, 142));
+        donut.setMaximumSize(new Dimension(142, 142));
+
+        JPanel body = new JPanel();
+        body.setOpaque(false);
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+        JLabel title = new JLabel("Top category share");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
+        title.setForeground(TEXT_PRIMARY);
+
+        JLabel category = new JLabel(topCategory);
+        category.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
+        category.setForeground(TEAL_DARK);
+
+        JLabel detail = new JLabel(toWrappedHtml(
+                currencyFormat.format(topAmount) + " spent so far | " + formatPercent(topShare) + " of total expenses.",
+                250));
+        detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        detail.setForeground(TEXT_SECONDARY);
+
+        body.add(Box.createVerticalGlue());
+        body.add(title);
+        body.add(Box.createVerticalStrut(6));
+        body.add(category);
+        body.add(Box.createVerticalStrut(6));
+        body.add(detail);
+        body.add(Box.createVerticalGlue());
+
+        panel.add(donut, BorderLayout.WEST);
+        panel.add(body, BorderLayout.CENTER);
+        return panel;
     }
     private JPanel createHintStrip(String text) {
         SurfacePanel panel = createSurface(new BorderLayout(), PAGE_BACKGROUND_SOFT, SURFACE_BORDER, 16);
@@ -3675,8 +3684,6 @@ public class MainFrame extends JFrame {
         }
     }
 }
-
-
 
 
 
