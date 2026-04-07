@@ -17,6 +17,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -32,6 +33,7 @@ import java.awt.event.ActionEvent;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.IsoFields;
+import java.time.format.DateTimeParseException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,6 +79,7 @@ public class MainFrame extends JFrame {
     private static final String PAGE_BUDGET = "budget";
     private static final String PAGE_SAVING_GOAL = "saving_goal";
     private static final String PAGE_FORECAST = "forecast";
+    private static final int DASHBOARD_METRIC_CARD_MIN_HEIGHT = 278;
     private static final int SAVINGS_HISTORY_MIN_PAGE_SIZE = 8;
     private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };
     private static final String[] INCOME_SOURCE_OPTIONS = new String[] { "Allowance", "Salary", "Scholarship", "Gift", "Side Hustle", "Other" };
@@ -145,13 +148,13 @@ public class MainFrame extends JFrame {
     private String accountDisplayName;
     private final String accountEmail;
 
-    private final JLabel dashboardIncomeValueLabel = new JLabel();
+    private final JLabel dashboardIncomeValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardIncomeBodyLabel = new JLabel();
-    private final JLabel dashboardExpenseValueLabel = new JLabel();
+    private final JLabel dashboardExpenseValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardExpenseBodyLabel = new JLabel();
-    private final JLabel dashboardRemainingValueLabel = new JLabel();
+    private final JLabel dashboardRemainingValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardRemainingBodyLabel = new JLabel();
-    private final JLabel dashboardForecastValueLabel = new JLabel();
+    private final JLabel dashboardForecastValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardForecastBodyLabel = new JLabel();
 
     private final JLabel weeklySpendingBadgeLabel = new JLabel();
@@ -920,6 +923,11 @@ public class MainFrame extends JFrame {
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
     }
+
+    private static String toWrappedHtml(String text, int width) {
+        return "<html><body style='width: " + width + "px'>" + escapeHtml(text) + "</body></html>";
+    }
+
     private JButton createSidebarButton(String text, String pageKey) {
         JButton button = new JButton(text);
         button.setHorizontalAlignment(SwingConstants.LEFT);
@@ -983,10 +991,6 @@ public class MainFrame extends JFrame {
         page.add(createPrimarySecondaryRow(createWeeklySpendingCard(), createCategoryOverviewCard(), 320), constraints);
 
         constraints.gridy = 3;
-        constraints.insets = new Insets(18, 0, 0, 0);
-        page.add(createDashboardNoticeStack(), constraints);
-
-        constraints.gridy = 4;
         constraints.weighty = 1.0;
         constraints.fill = GridBagConstraints.BOTH;
         page.add(Box.createVerticalGlue(), constraints);
@@ -1145,26 +1149,32 @@ public class MainFrame extends JFrame {
         JLabel title = new JLabel(titleText);
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         title.setForeground(filled ? Color.WHITE : TEXT_PRIMARY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
         valueLabel.setForeground(filled ? Color.WHITE : TEXT_PRIMARY);
+        valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         bodyLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         bodyLabel.setForeground(filled ? FILLED_BODY_TEXT : TEXT_SECONDARY);
+        bodyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bodyLabel.setVerticalAlignment(SwingConstants.TOP);
 
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setBorder(new EmptyBorder(2, 0, 0, 0));
         stack.add(tag);
         stack.add(Box.createVerticalStrut(14));
         stack.add(title);
         stack.add(Box.createVerticalStrut(10));
         stack.add(valueLabel);
-        stack.add(Box.createVerticalStrut(12));
+        stack.add(Box.createVerticalStrut(18));
         stack.add(bodyLabel);
         stack.add(Box.createVerticalGlue());
 
         panel.add(stack, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(0, DASHBOARD_METRIC_CARD_MIN_HEIGHT));
         return panel;
     }
 
@@ -2103,23 +2113,31 @@ public class MainFrame extends JFrame {
         double topCategoryShare = totalExpenses <= 0.0 ? 0.0 : (topCategoryTotal / totalExpenses) * 100.0;
 
         dashboardIncomeValueLabel.setText(currencyFormat.format(totalIncome));
-        dashboardIncomeBodyLabel.setText(incomeEntries.isEmpty()
-                ? "Add allowance or income entries to start your snapshot."
-                : "Everything you have added as allowance or income.");
+        dashboardIncomeBodyLabel.setText(toWrappedHtml(
+                incomeEntries.isEmpty()
+                        ? "Add allowance or income entries to start your snapshot."
+                        : "Everything you have added as allowance or income.",
+                200));
         dashboardExpenseValueLabel.setText(currencyFormat.format(totalExpenses));
-        dashboardExpenseBodyLabel.setText(expenseEntries.isEmpty()
-                ? "Log your expenses to reveal category and pace insights."
-                : "All recorded expenses across your categories.");
+        dashboardExpenseBodyLabel.setText(toWrappedHtml(
+                expenseEntries.isEmpty()
+                        ? "Log your expenses to reveal category and pace insights."
+                        : "All recorded expenses across your categories.",
+                200));
         dashboardRemainingValueLabel.setText(currencyFormat.format(remainingBalance));
         dashboardRemainingValueLabel.setForeground(remainingBalance >= 0.0 ? TEXT_PRIMARY : RED);
-        dashboardRemainingBodyLabel.setText(remainingBalance >= 0.0
-                ? "What is left after your recorded spending."
-                : "You have spent more than the income tracked so far.");
+        dashboardRemainingBodyLabel.setText(toWrappedHtml(
+                remainingBalance >= 0.0
+                        ? "What is left after your recorded spending."
+                        : "You have spent more than the income tracked so far.",
+                200));
         dashboardRemainingBodyLabel.setForeground(remainingBalance >= 0.0 ? TEXT_SECONDARY : RED);
         dashboardForecastValueLabel.setText(currencyFormat.format(projectedRemaining));
-        dashboardForecastBodyLabel.setText(projectedRemaining >= 0.0
-                ? "Estimated left if you keep spending at the same pace."
-                : "Current pace may push your balance below zero this month.");
+        dashboardForecastBodyLabel.setText(toWrappedHtml(
+                projectedRemaining >= 0.0
+                        ? "Estimated left if you keep spending at the same pace."
+                        : "Current pace may push your balance below zero this month.",
+                200));
 
         styleBadgeLabel(weeklySpendingBadgeLabel,
                 expenseEntries.isEmpty() ? "Waiting for data" : buildActiveDaysLabel(countActiveDays(buildLatestWeekSpendingValues())),
@@ -2136,11 +2154,6 @@ public class MainFrame extends JFrame {
         } else {
             categoryOverviewContentPanel.add(createCategoryListPanel(groupedExpenses), BorderLayout.CENTER);
         }
-
-        dashboardBudgetNoticeLabel.setText(budgetLimit > 0.0
-                ? buildBudgetNoticeText(totalExpenses)
-                : "Set category budgets so the overview can compare spending against a plan, not just a total.");
-        dashboardInsightNoticeLabel.setText(buildDashboardInsightText(totalIncome, totalExpenses, latestWeekTotal, topCategory));
 
         weeklySpendingContentPanel.revalidate();
         weeklySpendingContentPanel.repaint();
@@ -2528,21 +2541,24 @@ public class MainFrame extends JFrame {
         SurfacePanel spotlight = createSurface(new BorderLayout(0, 10), SURFACE_BLUE, CARD_BLUE_BORDER, 18);
         spotlight.setBorder(new EmptyBorder(14, 14, 14, 14));
 
-        JPanel spotlightTop = new JPanel(new BorderLayout());
+        JPanel spotlightTop = new JPanel(new BorderLayout(10, 0));
         spotlightTop.setOpaque(false);
-        spotlightTop.add(createBadgeLabel("TOP CATEGORY", PAGE_BACKGROUND_SOFT, TEXT_SECONDARY), BorderLayout.WEST);
+        JLabel spotlightBadge = createBadgeLabel("TOP CATEGORY", PAGE_BACKGROUND_SOFT, TEXT_SECONDARY);
+        spotlightBadge.setMaximumSize(spotlightBadge.getPreferredSize());
+        spotlightTop.add(spotlightBadge, BorderLayout.WEST);
 
         JLabel spotlightShare = new JLabel(formatPercent(topShare), SwingConstants.RIGHT);
-        spotlightShare.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
+        spotlightShare.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         spotlightShare.setForeground(TEAL_DARK);
         spotlightTop.add(spotlightShare, BorderLayout.EAST);
 
         JLabel spotlightTitle = new JLabel(topEntry.getKey());
-        spotlightTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
+        spotlightTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 24));
         spotlightTitle.setForeground(TEXT_PRIMARY);
 
-        JLabel spotlightBody = new JLabel("<html>" + currencyFormat.format(topAmount)
-                + " spent so far. " + buildCategoryBudgetSummary(topEntry.getKey(), topAmount) + "</html>");
+        JLabel spotlightBody = new JLabel(toWrappedHtml(
+                currencyFormat.format(topAmount) + " spent so far. " + buildCategoryBudgetSummary(topEntry.getKey(), topAmount),
+                240));
         spotlightBody.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         spotlightBody.setForeground(TEXT_SECONDARY);
 
@@ -2587,7 +2603,7 @@ public class MainFrame extends JFrame {
         SurfacePanel row = createSurface(new BorderLayout(0, 10), SURFACE, CATEGORY_DEFAULT_BORDER, 16);
         row.setBorder(new EmptyBorder(12, 12, 12, 12));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 92));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 116));
 
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
@@ -2600,9 +2616,10 @@ public class MainFrame extends JFrame {
         value.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         value.setForeground(TEXT_PRIMARY);
 
-        JLabel detail = new JLabel(buildCategoryRowDetail(amount, totalSpent, categoryBudgetLimit));
+        JLabel detail = new JLabel(toWrappedHtml(buildCategoryRowDetail(amount, totalSpent, categoryBudgetLimit), 250));
         detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         detail.setForeground(TEXT_SECONDARY);
+        detail.setVerticalAlignment(SwingConstants.TOP);
 
         JProgressBar progressBar = new JProgressBar(0, 100);
         styleProgressBar(progressBar);
@@ -3041,7 +3058,10 @@ public class MainFrame extends JFrame {
 
         LocalDate latest = null;
         for (ExpenseEntry entry : expenseEntries) {
-            LocalDate current = LocalDate.parse(entry.date);
+            LocalDate current = parseDateOrNull(entry.date);
+            if (current == null) {
+                continue;
+            }
             if (latest == null || current.isAfter(latest)) {
                 latest = current;
             }
@@ -3059,13 +3079,27 @@ public class MainFrame extends JFrame {
         int latestWeek = latestDate.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
         int latestWeekYear = latestDate.get(IsoFields.WEEK_BASED_YEAR);
         for (ExpenseEntry entry : expenseEntries) {
-            LocalDate date = LocalDate.parse(entry.date);
+            LocalDate date = parseDateOrNull(entry.date);
+            if (date == null) {
+                continue;
+            }
             if (date.get(IsoFields.WEEK_BASED_YEAR) == latestWeekYear
                     && date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == latestWeek) {
                 values[date.getDayOfWeek().getValue() - 1] += entry.amount;
             }
         }
         return values;
+    }
+
+    private LocalDate parseDateOrNull(String rawDate) {
+        if (rawDate == null || rawDate.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(rawDate.trim());
+        } catch (DateTimeParseException exception) {
+            return null;
+        }
     }
 
     private double sumValues(double[] values) {
@@ -3125,6 +3159,17 @@ public class MainFrame extends JFrame {
         return String.format("%.0f%%", value);
     }
 
+    private String formatCompactPeso(double value) {
+        double safeValue = Math.max(0.0, value);
+        if (safeValue >= 1000000.0) {
+            return String.format("P%.1fM", safeValue / 1000000.0);
+        }
+        if (safeValue >= 1000.0) {
+            return String.format("P%.1fK", safeValue / 1000.0);
+        }
+        return String.format("P%,.0f", safeValue);
+    }
+
     private String buildActiveDaysLabel(int activeDays) {
         if (activeDays == 1) {
             return "1 active day";
@@ -3175,11 +3220,11 @@ public class MainFrame extends JFrame {
     }
 
     private String buildCategoryRowDetail(double amount, double totalSpent, Double categoryBudgetLimit) {
-        String detail = formatPercent(totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0) + " of total spending";
+        String detail = formatPercent(totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0) + " of total";
         if (categoryBudgetLimit != null && categoryBudgetLimit.doubleValue() > 0.0) {
             detail += " | " + formatPercent((amount / categoryBudgetLimit.doubleValue()) * 100.0) + " of budget";
         } else {
-            detail += " | no category budget";
+            detail += " | no budget set";
         }
         return detail;
     }
@@ -3221,15 +3266,34 @@ public class MainFrame extends JFrame {
             int chartHeight = chartBottom - chartTop;
             int chartWidth = chartRight - chartLeft;
             Color gridColor = new Color(229, 217, 194);
-            Color barColor = TEAL;
-            Color barShadow = new Color(71, 139, 141, 80);
+
+            String[] days = new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+            double[] values = buildLatestWeekSpendingValues();
+            double maxValue = 0.0;
+            for (double value : values) {
+                maxValue = Math.max(maxValue, value);
+            }
+            double scaleMax = maxValue <= 0.0 ? 1.0 : maxValue;
+            int busiestIndex = -1;
+            for (int index = 0; index < values.length; index++) {
+                if (values[index] == maxValue && maxValue > 0.0) {
+                    busiestIndex = index;
+                    break;
+                }
+            }
+
+            int slotWidth = chartWidth / 7;
+            int barWidth = Math.max(18, (int) Math.round(slotWidth * 0.42));
+            int barMaxHeight = Math.max(18, chartHeight - 34);
 
             g2.setColor(gridColor);
+            g2.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
             for (int row = 0; row < 3; row++) {
                 int y = chartTop + (row * (chartHeight / 2));
                 g2.drawLine(chartLeft, y, chartRight, y);
 
-                String label = "P0";
+                double axisValue = row == 0 ? maxValue : (row == 1 ? maxValue / 2.0 : 0.0);
+                String label = formatCompactPeso(axisValue);
                 int labelWidth = g2.getFontMetrics().stringWidth(label) + 14;
                 int labelHeight = 20;
                 int labelX = 10;
@@ -3243,31 +3307,18 @@ public class MainFrame extends JFrame {
                 g2.setColor(gridColor);
             }
 
-            String[] days = new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
-            double[] values = buildLatestWeekSpendingValues();
-            double maxValue = 0.0;
-            for (double value : values) {
-                maxValue = Math.max(maxValue, value);
-            }
-            if (maxValue <= 0.0) {
-                maxValue = 1.0;
-            }
-
-            int slotWidth = chartWidth / 7;
-            int barWidth = Math.max(18, (int) Math.round(slotWidth * 0.42));
-            int barMaxHeight = Math.max(18, chartHeight - 34);
-
-            g2.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
             for (int index = 0; index < 7; index++) {
                 int centerX = chartLeft + (slotWidth * index) + (slotWidth / 2);
-                int barHeight = (int) Math.round((values[index] / maxValue) * barMaxHeight);
+                int barHeight = (int) Math.round((values[index] / scaleMax) * barMaxHeight);
                 int barX = centerX - (barWidth / 2);
                 int barY = chartBottom - barHeight;
 
                 if (values[index] > 0.0) {
-                    g2.setColor(barShadow);
+                    Color activeBarColor = index == busiestIndex ? GOLD : TEAL;
+                    Color activeShadow = index == busiestIndex ? new Color(243, 178, 79, 95) : new Color(71, 139, 141, 80);
+                    g2.setColor(activeShadow);
                     g2.fillRoundRect(barX + 3, barY + 3, barWidth, barHeight, 14, 14);
-                    g2.setColor(barColor);
+                    g2.setColor(activeBarColor);
                     g2.fillRoundRect(barX, barY, barWidth, barHeight, 14, 14);
                 } else {
                     g2.setColor(new Color(71, 139, 141, 32));
@@ -3317,6 +3368,48 @@ public class MainFrame extends JFrame {
             g2.dispose();
         }
     }
+
+    private static class AutoScalingMetricLabel extends JLabel {
+        private static final int MAX_FONT_SIZE = 46;
+        private static final int MIN_FONT_SIZE = 20;
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            SwingUtilities.invokeLater(this::updateFontToFit);
+        }
+
+        @Override
+        public void setBounds(int x, int y, int width, int height) {
+            super.setBounds(x, y, width, height);
+            updateFontToFit();
+        }
+
+        private void updateFontToFit() {
+            String text = getText();
+            Font fittedFont = new Font(FONT_FAMILY, Font.BOLD, MAX_FONT_SIZE);
+            if (text == null || text.isEmpty() || getWidth() <= 0) {
+                setFont(fittedFont);
+                return;
+            }
+
+            int availableWidth = Math.max(1, getWidth() - 24);
+            int size = MAX_FONT_SIZE;
+            while (size > MIN_FONT_SIZE) {
+                fittedFont = new Font(FONT_FAMILY, Font.BOLD, size);
+                FontMetrics metrics = getFontMetrics(fittedFont);
+                if (metrics.stringWidth(text) <= availableWidth) {
+                    break;
+                }
+                size--;
+            }
+
+            if (!fittedFont.equals(getFont())) {
+                setFont(fittedFont);
+            }
+        }
+    }
+
     private static class ResponsivePagePanel extends JPanel implements Scrollable {
         ResponsivePagePanel(LayoutManager layout) {
             super(layout);

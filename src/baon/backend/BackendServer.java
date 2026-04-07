@@ -1,5 +1,6 @@
 package baon.backend;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -92,8 +93,14 @@ public final class BackendServer {
     }
 
     private static String readBody(InputStream stream) throws IOException {
-        byte[] bytes = stream.readAllBytes();
-        return new String(bytes, StandardCharsets.UTF_8);
+        try (InputStream input = stream; ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            byte[] chunk = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = input.read(chunk)) != -1) {
+                buffer.write(chunk, 0, bytesRead);
+            }
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        }
     }
 
     private static String loadDatabaseJson() throws IOException {
