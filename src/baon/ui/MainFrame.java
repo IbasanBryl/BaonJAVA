@@ -34,6 +34,8 @@ import java.time.YearMonth;
 import java.time.temporal.IsoFields;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -76,8 +78,9 @@ public class MainFrame extends JFrame {
     private static final String PAGE_SAVING_GOAL = "saving_goal";
     private static final String PAGE_FORECAST = "forecast";
     private static final int SAVINGS_HISTORY_MIN_PAGE_SIZE = 8;
-    private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };    
-
+    private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };
+    private static final String[] INCOME_SOURCE_OPTIONS = new String[] { "Allowance", "Salary", "Scholarship", "Gift", "Side Hustle", "Other" };
+    private static final String[] SAVINGS_CATEGORY_OPTIONS = new String[] { "Emergency", "School", "Travel", "Gadgets", "Other" };
     private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
     private static final Color PAGE_BACKGROUND = AppTheme.color("--main-page-background", "#F5EED9");
     private static final Color PAGE_BACKGROUND_SOFT = AppTheme.color("--main-page-background-soft", "#FBF7EC");
@@ -150,9 +153,15 @@ public class MainFrame extends JFrame {
     private final JLabel dashboardRemainingBodyLabel = new JLabel();
     private final JLabel dashboardForecastValueLabel = new JLabel();
     private final JLabel dashboardForecastBodyLabel = new JLabel();
+
     private final JLabel weeklySpendingBadgeLabel = new JLabel();
     private final JPanel weeklySpendingContentPanel = new JPanel(new BorderLayout());
     private final WeeklyTrendPanel weeklyTrendPanel = new WeeklyTrendPanel();
+    private final JLabel weeklyTotalValueLabel = new JLabel();
+    private final JLabel weeklyAverageDayValueLabel = new JLabel();
+    private final JLabel weeklyBusyDayValueLabel = new JLabel();
+    private final JLabel weeklyActiveDaysValueLabel = new JLabel();
+    private final JLabel categoryOverviewBadgeLabel = new JLabel();
     private final JPanel categoryOverviewContentPanel = new JPanel(new BorderLayout());
     private final JLabel dashboardBudgetNoticeLabel = new JLabel();
     private final JLabel dashboardInsightNoticeLabel = new JLabel();
@@ -202,7 +211,7 @@ public class MainFrame extends JFrame {
 
     private final DefaultTableModel incomeTableModel = createTableModel(new String[] { "Source", "Date", "Amount" });
     private final DefaultTableModel expenseTableModel = createTableModel(new String[] { "Category", "Item", "Date", "Amount" });
-    private final DefaultTableModel savingsTableModel = createTableModel(new String[] { "Date", "Amount" });
+    private final DefaultTableModel savingsTableModel = createTableModel(new String[] { "Category", "Date", "Amount" });
     private final JTable incomeTable = new JTable(incomeTableModel);
     private final JTable expenseTable = new JTable(expenseTableModel);
     private final JTable savingsTable = new JTable(savingsTableModel);
@@ -410,19 +419,21 @@ public class MainFrame extends JFrame {
     }
     private void showManageAccountDialog() {
         final Color dialogBackground = PAGE_BACKGROUND_SOFT;
-
         final Color cardBackground = SURFACE;
         final Color cardBorder = SURFACE_BORDER;
         final Color fieldBackground = SURFACE;
         final Color fieldBorder = SURFACE_BORDER;
         final Color textPrimary = TEXT_PRIMARY;
         final Color textSecondary = TEXT_SECONDARY;
+
         JDialog dialog = new JDialog(this, "Manage Account", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setResizable(false);
         dialog.setSize(860, 760);
         dialog.setMinimumSize(new Dimension(600, 560));
         dialog.setLocationRelativeTo(this);
-        JPanel root = new JPanel() {
+
+        JPanel root = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics graphics) {
                 super.paintComponent(graphics);
@@ -433,12 +444,16 @@ public class MainFrame extends JFrame {
                 g2.dispose();
             }
         };
-        root.setLayout(new BorderLayout());
-        root.setBorder(new EmptyBorder(10, 10, 10, 10));
+        root.setBorder(new EmptyBorder(12, 12, 12, 12));
+
+        SurfacePanel card = createSurface(new BorderLayout(0, 18), cardBackground, cardBorder, 22);
+        card.setBorder(new EmptyBorder(18, 18, 18, 18));
+
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setBorder(new EmptyBorder(8, 0, 8, 0));
+        content.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel chip = new JLabel("PROFILE SETTINGS", SwingConstants.CENTER);
         chip.setOpaque(true);
         chip.setBackground(SURFACE_BLUE);
@@ -448,58 +463,67 @@ public class MainFrame extends JFrame {
                 new RoundedLineBorder(CARD_BLUE_BORDER, 20, 1),
                 new EmptyBorder(5, 14, 5, 14)));
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel title = new JLabel("Manage Account");
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
         title.setForeground(textPrimary);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel subtitle = new JLabel("<html>Update how your account appears in the dashboard and keep your sign-in details organized.</html>");
         subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 16));
         subtitle.setForeground(textSecondary);
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JTextField emailField = new JTextField(accountEmail);
         styleManageTextField(emailField, false, fieldBackground, fieldBorder, textSecondary);
         JPanel emailCard = createManageFieldCard("Email Address", emailField,
                 "This is your sign-in email and cannot be changed here.",
                 cardBackground, cardBorder, textPrimary, textSecondary);
+
         JTextField displayNameField = new JTextField(accountDisplayName);
         styleManageTextField(displayNameField, true, fieldBackground, fieldBorder, textPrimary);
         JPanel displayNameCard = createManageFieldCard("Display Name", displayNameField,
                 "This name appears in your dashboard header and sidebar.",
                 cardBackground, cardBorder, textPrimary, textSecondary);
-        JPanel securityCard = new JPanel(new BorderLayout(16, 0));
-        securityCard.setOpaque(true);
-        securityCard.setBackground(cardBackground);
-        securityCard.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(cardBorder, 18, 1),
-                new EmptyBorder(14, 16, 14, 16)));
-        securityCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        SurfacePanel securityCard = createSurface(new BorderLayout(16, 0), cardBackground, cardBorder, 18);
+        securityCard.setBorder(new EmptyBorder(14, 16, 14, 16));
+
         JPanel securityText = new JPanel();
         securityText.setOpaque(false);
         securityText.setLayout(new BoxLayout(securityText, BoxLayout.Y_AXIS));
+
         JLabel securityTitle = new JLabel("SECURITY");
         securityTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         securityTitle.setForeground(TEAL_DARK);
         securityTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel securityBody = new JLabel("<html>Change your password anytime to keep your account protected.</html>");
         securityBody.setFont(new Font(FONT_FAMILY, Font.PLAIN, 16));
         securityBody.setForeground(textPrimary);
         securityBody.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JButton changePasswordButton = createManageActionButton("Change Password", TEAL,
-                TEAL_DARK, Color.WHITE);
+
+        JButton changePasswordButton = createManageActionButton("Change Password", TEAL, TEAL_DARK, Color.WHITE);
         changePasswordButton.setPreferredSize(new Dimension(168, 46));
         changePasswordButton.addActionListener(event -> showChangePasswordDialog(dialog));
+
         securityText.add(securityTitle);
         securityText.add(Box.createVerticalStrut(10));
         securityText.add(securityBody);
         securityCard.add(securityText, BorderLayout.CENTER);
         securityCard.add(changePasswordButton, BorderLayout.EAST);
+
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 0));
         actions.setOpaque(false);
+
         JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT,
                 SURFACE_BORDER, TEXT_PRIMARY);
+        cancelButton.setPreferredSize(new Dimension(124, 40));
         cancelButton.addActionListener(event -> dialog.dispose());
+
         JButton saveButton = createManageActionButton("Save Changes", TEAL,
                 TEAL_DARK, Color.WHITE);
+        saveButton.setPreferredSize(new Dimension(152, 40));
         saveButton.addActionListener(event -> {
             String displayName = displayNameField.getText().trim();
             if (displayName.isEmpty()) {
@@ -516,8 +540,10 @@ public class MainFrame extends JFrame {
             }
             dialog.dispose();
         });
+
         actions.add(cancelButton);
         actions.add(saveButton);
+
         content.add(chip);
         content.add(Box.createVerticalStrut(20));
         content.add(title);
@@ -531,28 +557,21 @@ public class MainFrame extends JFrame {
         content.add(securityCard);
         content.add(Box.createVerticalStrut(10));
         content.add(actions);
-        JPanel root = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics graphics) {
-                super.paintComponent(graphics);
-                Graphics2D g2 = (Graphics2D) graphics.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setPaint(dialogBackground);
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
-            }
-        };
-        root.setBorder(new EmptyBorder(10, 10, 10, 10));
-        GridBagConstraints rootConstraints = new GridBagConstraints();
-        rootConstraints.gridx = 0;
-        rootConstraints.gridy = 0;
-        rootConstraints.weightx = 1.0;
-        rootConstraints.weighty = 1.0;
-        rootConstraints.anchor = GridBagConstraints.CENTER;
-        root.add(content, rootConstraints);
+
+        card.add(content, BorderLayout.CENTER);
+
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.weightx = 1.0;
+        constraints.weighty = 1.0;
+        constraints.anchor = GridBagConstraints.CENTER;
+        root.add(card, constraints);
+
         dialog.setContentPane(root);
         dialog.setVisible(true);
     }
+
     private JPanel createManageFieldCard(String titleText, JTextField field, String noteText,
             Color cardBackground, Color cardBorder, Color titleColor, Color noteColor) {
         JPanel card = new JPanel();
@@ -952,9 +971,11 @@ public class MainFrame extends JFrame {
 
         constraints.gridy = 0;
         constraints.insets = new Insets(0, 0, 18, 0);
-        page.add(createPageHeader(null, null), constraints);
+        page.add(createPageHeader("Dashboard",
+                "See your latest balance, spending pace, and budget pressure in one place."), constraints);
 
         constraints.gridy = 1;
+        constraints.insets = new Insets(18, 0, 0, 0);
         page.add(createDashboardMetricRow(), constraints);
 
         constraints.gridy = 2;
@@ -975,13 +996,13 @@ public class MainFrame extends JFrame {
     private JPanel createDashboardMetricRow() {
         ResponsiveGridPanel panel = new ResponsiveGridPanel(220, 16);
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(createDashboardMetricCard("INCOME TRACKED", "Total Allowance", dashboardIncomeValueLabel,
+        panel.add(createDashboardMetricCard("INCOME TRACKED", "Total Income", dashboardIncomeValueLabel,
                 dashboardIncomeBodyLabel, SURFACE, SURFACE_BORDER, false));
-        panel.add(createDashboardMetricCard("OUTGOING CASH", "Total Spent", dashboardExpenseValueLabel,
+        panel.add(createDashboardMetricCard("OUTGOING CASH", "Spent So Far", dashboardExpenseValueLabel,
                 dashboardExpenseBodyLabel, SURFACE, SURFACE_BORDER, false));
-        panel.add(createDashboardMetricCard("AVAILABLE NOW", "Remaining", dashboardRemainingValueLabel,
+        panel.add(createDashboardMetricCard("AVAILABLE NOW", "Left To Spend", dashboardRemainingValueLabel,
                 dashboardRemainingBodyLabel, SURFACE, SURFACE_BORDER, false));
-        panel.add(createDashboardMetricCard("SMART ESTIMATE", "AI Forecast", dashboardForecastValueLabel,
+        panel.add(createDashboardMetricCard("MONTH-END VIEW", "Projected Left", dashboardForecastValueLabel,
                 dashboardForecastBodyLabel, TEAL, TEAL_DARK, true));
         return panel;
     }
@@ -1164,7 +1185,8 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 16));
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel header = createCardHeader("By Category", "Your biggest spending groups at a glance.", null);
+        JPanel header = createCardHeader("By Category", "Your biggest spending groups at a glance.",
+                categoryOverviewBadgeLabel);
         categoryOverviewContentPanel.setOpaque(false);
 
         panel.add(header, BorderLayout.NORTH);
@@ -1597,23 +1619,24 @@ public class MainFrame extends JFrame {
 
     private void showIncomeDialog() {
         JTextField amountField = new JTextField();
-        JTextField sourceField = new JTextField();
+        JComboBox<String> sourceBox = new JComboBox<String>(INCOME_SOURCE_OPTIONS);
         JTextField dateField = new JTextField(LocalDate.now().toString());
 
+        sourceBox.setEditable(true);
         styleDialogTextField(amountField);
-        styleDialogTextField(sourceField);
+        styleDialogComboBox(sourceBox);
         styleDialogTextField(dateField);
 
-        JPanel form = createDialogForm(new String[] { "Amount", "Source", "Date" },
-                new Component[] { amountField, sourceField, dateField });
+        JPanel form = createDialogForm(new String[] { "Amount", "Source Category", "Date" },
+                new Component[] { amountField, sourceBox, dateField });
         showStyledInputDialog("Add Income",
-                "Record allowance, salary, or side income with a cleaner, roomier form.",
+                "Record allowance, salary, or side income and choose its source category up front.",
                 form,
-                amountField,
-                new Dimension(460, 360),
+                sourceBox,
+                new Dimension(460, 380),
                 dialog -> {
                     Double amount = parseAmount(amountField.getText());
-                    String source = sourceField.getText().trim();
+                    String source = String.valueOf(sourceBox.getEditor().getItem()).trim();
                     String date = dateField.getText().trim();
 
                     if (amount == null || amount.doubleValue() <= 0) {
@@ -1621,7 +1644,7 @@ public class MainFrame extends JFrame {
                         return;
                     }
                     if (source.isEmpty()) {
-                        showValidationMessage(dialog, "Enter an income source before saving.");
+                        showValidationMessage(dialog, "Choose or type an income source before saving.");
                         return;
                     }
                     if (!isValidDate(date)) {
@@ -1636,31 +1659,31 @@ public class MainFrame extends JFrame {
     }
 
     private void showExpenseDialog() {
-        PromptTextField categoryField = new PromptTextField("Type any category");
+        JComboBox<String> categoryBox = new JComboBox<String>(BUDGET_CATEGORY_OPTIONS);
         PromptTextField itemField = new PromptTextField("Type any item");
         JTextField amountField = new JTextField();
         JTextField dateField = new JTextField(LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy")));
 
-        styleDialogTextField(categoryField);
+        styleDialogComboBox(categoryBox);
         styleDialogTextField(itemField);
         styleDialogTextField(amountField);
         styleDialogTextField(dateField);
 
         JPanel form = createDialogForm(new String[] { "Category", "Item", "Amount", "Date" },
-                new Component[] { categoryField, itemField, amountField, dateField });
+                new Component[] { categoryBox, itemField, amountField, dateField });
         showStyledInputDialog("Add Expense",
                 "Track spending with a clean, lighter form that matches the budget dialog.",
                 form,
-                categoryField,
+                categoryBox,
                 new Dimension(520, 430),
                 dialog -> {
                     Double amount = parseAmount(amountField.getText());
-                    String category = categoryField.getText().trim();
+                    String category = String.valueOf(categoryBox.getSelectedItem()).trim();
                     String item = itemField.getText().trim();
                     String date = normalizeExpenseDate(dateField.getText().trim());
 
                     if (category.isEmpty()) {
-                        showValidationMessage(dialog, "Enter a category before saving.");
+                        showValidationMessage(dialog, "Choose a category before saving.");
                         return;
                     }
                     if (item.isEmpty()) {
@@ -1681,7 +1704,6 @@ public class MainFrame extends JFrame {
                     showPage(PAGE_EXPENSES);
                 });
     }
-
     private String normalizeExpenseDate(String value) {
         if (value == null) {
             return null;
@@ -1766,21 +1788,31 @@ public class MainFrame extends JFrame {
     }
 
     private void showDailySavingsDialog() {
+        JComboBox<String> categoryBox = new JComboBox<String>(SAVINGS_CATEGORY_OPTIONS);
         JTextField amountField = new JTextField();
         JTextField dateField = new JTextField(LocalDate.now().toString());
+
+        categoryBox.setEditable(true);
+        styleDialogComboBox(categoryBox);
         styleDialogTextField(amountField);
         styleDialogTextField(dateField);
 
-        JPanel form = createDialogForm(new String[] { "Amount", "Date" }, new Component[] { amountField, dateField });
+        JPanel form = createDialogForm(new String[] { "Category", "Amount", "Date" },
+                new Component[] { categoryBox, amountField, dateField });
         showStyledInputDialog("Add Daily Savings",
-                "Log a savings deposit and keep your goal progress current.",
+                "Log a savings deposit, choose its category, and keep your goal progress current.",
                 form,
-                amountField,
-                new Dimension(440, 330),
+                categoryBox,
+                new Dimension(460, 380),
                 dialog -> {
                     Double amount = parseAmount(amountField.getText());
+                    String category = String.valueOf(categoryBox.getEditor().getItem()).trim();
                     String date = dateField.getText().trim();
 
+                    if (category.isEmpty()) {
+                        showValidationMessage(dialog, "Choose or type a savings category before saving.");
+                        return;
+                    }
                     if (amount == null || amount.doubleValue() <= 0) {
                         showValidationMessage(dialog, "Enter a valid savings amount greater than 0.");
                         return;
@@ -1790,7 +1822,7 @@ public class MainFrame extends JFrame {
                         return;
                     }
 
-                    savingEntries.add(new SavingEntry(amount.doubleValue(), date));
+                    savingEntries.add(new SavingEntry(amount.doubleValue(), category, date));
                     handleFinancialDataChanged();
                     dialog.dispose();
                     showPage(PAGE_SAVING_GOAL);
@@ -1924,6 +1956,18 @@ public class MainFrame extends JFrame {
                 new RoundedLineBorder(SURFACE_BORDER, 18, 1),
                 new EmptyBorder(2, 10, 2, 10)));
         comboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        if (comboBox.isEditable()) {
+            Component editorComponent = comboBox.getEditor().getEditorComponent();
+            if (editorComponent instanceof JTextField) {
+                JTextField editor = (JTextField) editorComponent;
+                editor.setBorder(new EmptyBorder(0, 0, 0, 0));
+                editor.setBackground(SURFACE);
+                editor.setForeground(TEXT_PRIMARY);
+                editor.setCaretColor(TEAL);
+                editor.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+            }
+        }
     }
 
     private JButton createDialogPrimaryButton(String text) {
@@ -2052,35 +2096,51 @@ public class MainFrame extends JFrame {
         double remainingBalance = totalIncome - totalExpenses;
         double projectedRemaining = remainingBalance - predictFutureExpenses(3);
 
+        double latestWeekTotal = calculateLatestWeekSpending();
+        LinkedHashMap<String, ArrayList<ExpenseEntry>> groupedExpenses = buildExpenseGroups();
+        String topCategory = findTopExpenseCategory();
+        double topCategoryTotal = "-".equals(topCategory) ? 0.0 : calculateExpenseTotalForCategory(topCategory);
+        double topCategoryShare = totalExpenses <= 0.0 ? 0.0 : (topCategoryTotal / totalExpenses) * 100.0;
+
         dashboardIncomeValueLabel.setText(currencyFormat.format(totalIncome));
-        dashboardIncomeBodyLabel.setText("Everything you have added as allowance or income.");
+        dashboardIncomeBodyLabel.setText(incomeEntries.isEmpty()
+                ? "Add allowance or income entries to start your snapshot."
+                : "Everything you have added as allowance or income.");
         dashboardExpenseValueLabel.setText(currencyFormat.format(totalExpenses));
-        dashboardExpenseBodyLabel.setText("All recorded expenses across your categories.");
+        dashboardExpenseBodyLabel.setText(expenseEntries.isEmpty()
+                ? "Log your expenses to reveal category and pace insights."
+                : "All recorded expenses across your categories.");
         dashboardRemainingValueLabel.setText(currencyFormat.format(remainingBalance));
-        dashboardRemainingBodyLabel.setText("What is left after your recorded spending.");
+        dashboardRemainingValueLabel.setForeground(remainingBalance >= 0.0 ? TEXT_PRIMARY : RED);
+        dashboardRemainingBodyLabel.setText(remainingBalance >= 0.0
+                ? "What is left after your recorded spending."
+                : "You have spent more than the income tracked so far.");
+        dashboardRemainingBodyLabel.setForeground(remainingBalance >= 0.0 ? TEXT_SECONDARY : RED);
         dashboardForecastValueLabel.setText(currencyFormat.format(projectedRemaining));
-        dashboardForecastBodyLabel.setText("Projected balance based on your current pace.");
+        dashboardForecastBodyLabel.setText(projectedRemaining >= 0.0
+                ? "Estimated left if you keep spending at the same pace."
+                : "Current pace may push your balance below zero this month.");
 
         styleBadgeLabel(weeklySpendingBadgeLabel,
-                expenseEntries.isEmpty() ? "Waiting for data" : "Tracking weekly spend",
+                expenseEntries.isEmpty() ? "Waiting for data" : buildActiveDaysLabel(countActiveDays(buildLatestWeekSpendingValues())),
                 SURFACE_TINT, TEAL_DARK);
         weeklySpendingContentPanel.removeAll();
         weeklySpendingContentPanel.add(createWeeklySummaryPanel(), BorderLayout.CENTER);
 
+        styleBadgeLabel(categoryOverviewBadgeLabel,
+                groupedExpenses.isEmpty() ? "No categories" : "Top share " + formatPercent(topCategoryShare),
+                SURFACE_TINT, TEAL_DARK);
         categoryOverviewContentPanel.removeAll();
         if (expenseEntries.isEmpty()) {
             categoryOverviewContentPanel.add(createDonutEmptyPanel("No category data yet"), BorderLayout.CENTER);
         } else {
-            categoryOverviewContentPanel.add(createCategoryListPanel(buildExpenseGroups()), BorderLayout.CENTER);
+            categoryOverviewContentPanel.add(createCategoryListPanel(groupedExpenses), BorderLayout.CENTER);
         }
 
-        dashboardBudgetNoticeLabel.setText(budgetLimit > 0
-                ? "Your current budget is " + currencyFormat.format(budgetLimit) + " with "
-                        + currencyFormat.format(Math.max(0.0, budgetLimit - totalExpenses)) + " left to use."
-                : "Add a budget to get category alerts and overspending warnings.");
-        dashboardInsightNoticeLabel.setText(incomeEntries.isEmpty() && expenseEntries.isEmpty()
-                ? "Add income and expenses to unlock smarter overview insights."
-                : "Your overview cards are now reflecting the latest income, expenses, and forecast pace.");
+        dashboardBudgetNoticeLabel.setText(budgetLimit > 0.0
+                ? buildBudgetNoticeText(totalExpenses)
+                : "Set category budgets so the overview can compare spending against a plan, not just a total.");
+        dashboardInsightNoticeLabel.setText(buildDashboardInsightText(totalIncome, totalExpenses, latestWeekTotal, topCategory));
 
         weeklySpendingContentPanel.revalidate();
         weeklySpendingContentPanel.repaint();
@@ -2207,7 +2267,7 @@ public class MainFrame extends JFrame {
         savingsHistoryContentPanel.removeAll();
         savingsHistoryPaginationPanel.removeAll();
         if (savingEntries.isEmpty()) {
-            savingsHistoryContentPanel.add(createEmptyTableState(new String[] { "Date", "Amount" },
+            savingsHistoryContentPanel.add(createEmptyTableState(new String[] { "Category", "Date", "Amount" },
                     "No savings history yet",
                     "Add daily savings after setting a goal to build your history here."), BorderLayout.CENTER);
             savingsHistoryCurrentPage = 1;
@@ -2225,7 +2285,7 @@ public class MainFrame extends JFrame {
             savingsTableModel.setRowCount(0);
             for (int i = startIndex; i < endIndex; i++) {
                 SavingEntry entry = savingEntries.get(i);
-                savingsTableModel.addRow(new Object[] { entry.date, currencyFormat.format(entry.amount) });
+                savingsTableModel.addRow(new Object[] { entry.category, entry.date, currencyFormat.format(entry.amount) });
             }
 
             savingsHistoryContentPanel.add(savingsTableScrollPane, BorderLayout.CENTER);
@@ -2390,15 +2450,36 @@ public class MainFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel("Latest weekly pace: " + currencyFormat.format(calculateLatestWeekSpending()));
+        double[] weeklyValues = buildLatestWeekSpendingValues();
+        double latestWeekTotal = sumValues(weeklyValues);
+        double busiestDayAmount = findHighestValue(weeklyValues);
+        int activeDays = countActiveDays(weeklyValues);
+
+        weeklyTotalValueLabel.setText(currencyFormat.format(latestWeekTotal));
+        weeklyAverageDayValueLabel.setText(currencyFormat.format(calculateAverageActiveDaySpend(weeklyValues)));
+        weeklyBusyDayValueLabel.setText(findBusiestSpendingDay(weeklyValues));
+        weeklyActiveDaysValueLabel.setText(activeDays + "/7");
+
+        JLabel title = new JLabel(expenseEntries.isEmpty()
+                ? "Your weekly pattern will appear here once you start logging expenses."
+                : "Latest recorded week: " + currencyFormat.format(latestWeekTotal));
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel body = new JLabel("Average spending per expense is " + currencyFormat.format(calculateAverageSpending()) + ".");
+        JLabel body = new JLabel(expenseEntries.isEmpty()
+                ? "Add dated expenses to reveal which days drain your baon fastest."
+                : "You spent on " + buildActiveDaysLabel(activeDays).toLowerCase() + ", and "
+                        + findBusiestSpendingDay(weeklyValues) + " was the busiest day.");
         body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(TEXT_SECONDARY);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        ResponsiveGridPanel stats = new ResponsiveGridPanel(140, 10);
+        stats.add(createMiniStatTile("Week Total", weeklyTotalValueLabel));
+        stats.add(createMiniStatTile("Active-Day Avg", weeklyAverageDayValueLabel));
+        stats.add(createMiniStatTile("Busiest Day", weeklyBusyDayValueLabel));
+        stats.add(createMiniStatTile("Days Used", weeklyActiveDaysValueLabel));
 
         weeklyTrendPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         weeklyTrendPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 210));
@@ -2407,11 +2488,20 @@ public class MainFrame extends JFrame {
         panel.add(Box.createVerticalStrut(10));
         panel.add(body);
         panel.add(Box.createVerticalStrut(14));
+        panel.add(stats);
+        panel.add(Box.createVerticalStrut(14));
         panel.add(weeklyTrendPanel);
         panel.add(Box.createVerticalStrut(12));
-        panel.add(createHintStrip("Your weekly trend is based on the dates of your recent expense entries."));
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(createMutedNote("Add a few expenses and your weekly pattern will appear here."));
+        panel.add(createHintStrip(expenseEntries.isEmpty()
+                ? "The chart will use your latest recorded week once you have expense entries."
+                : "Highest single day this week: " + currencyFormat.format(busiestDayAmount) + "."));
+        if (expenseEntries.isEmpty()) {
+            panel.add(Box.createVerticalStrut(12));
+            panel.add(createMutedNote("A few entries across different days will make this trend much more useful."));
+        } else if (activeDays <= 2) {
+            panel.add(Box.createVerticalStrut(12));
+            panel.add(createMutedNote("Only a couple of spending days are logged in the latest week, so this pattern may still shift quickly."));
+        }
         return panel;
     }
 
@@ -2420,14 +2510,6 @@ public class MainFrame extends JFrame {
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JPanel donutRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        donutRow.setOpaque(false);
-        DonutPlaceholderPanel donut = new DonutPlaceholderPanel(
-                groupedExpenses.isEmpty() ? "No data\nyet" : "Top\nspend", SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY);
-        donutRow.add(donut);
-        panel.add(donutRow);
-        panel.add(Box.createVerticalStrut(16));
 
         if (groupedExpenses.isEmpty()) {
             JLabel label = new JLabel("No category data yet", SwingConstants.CENTER);
@@ -2438,24 +2520,77 @@ public class MainFrame extends JFrame {
             return panel;
         }
 
+        double totalSpent = calculateTotalExpenses();
+        Map.Entry<String, ArrayList<ExpenseEntry>> topEntry = groupedExpenses.entrySet().iterator().next();
+        double topAmount = calculateExpenseGroupTotal(topEntry.getValue());
+        double topShare = totalSpent <= 0.0 ? 0.0 : (topAmount / totalSpent) * 100.0;
+
+        SurfacePanel spotlight = createSurface(new BorderLayout(0, 10), SURFACE_BLUE, CARD_BLUE_BORDER, 18);
+        spotlight.setBorder(new EmptyBorder(14, 14, 14, 14));
+
+        JPanel spotlightTop = new JPanel(new BorderLayout());
+        spotlightTop.setOpaque(false);
+        spotlightTop.add(createBadgeLabel("TOP CATEGORY", PAGE_BACKGROUND_SOFT, TEXT_SECONDARY), BorderLayout.WEST);
+
+        JLabel spotlightShare = new JLabel(formatPercent(topShare), SwingConstants.RIGHT);
+        spotlightShare.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
+        spotlightShare.setForeground(TEAL_DARK);
+        spotlightTop.add(spotlightShare, BorderLayout.EAST);
+
+        JLabel spotlightTitle = new JLabel(topEntry.getKey());
+        spotlightTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
+        spotlightTitle.setForeground(TEXT_PRIMARY);
+
+        JLabel spotlightBody = new JLabel("<html>" + currencyFormat.format(topAmount)
+                + " spent so far. " + buildCategoryBudgetSummary(topEntry.getKey(), topAmount) + "</html>");
+        spotlightBody.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        spotlightBody.setForeground(TEXT_SECONDARY);
+
+        JPanel spotlightStack = new JPanel();
+        spotlightStack.setOpaque(false);
+        spotlightStack.setLayout(new BoxLayout(spotlightStack, BoxLayout.Y_AXIS));
+        spotlightStack.add(spotlightTop);
+        spotlightStack.add(Box.createVerticalStrut(12));
+        spotlightStack.add(spotlightTitle);
+        spotlightStack.add(Box.createVerticalStrut(8));
+        spotlightStack.add(spotlightBody);
+
+        spotlight.add(spotlightStack, BorderLayout.CENTER);
+        panel.add(spotlight);
+        panel.add(Box.createVerticalStrut(14));
+
         JPanel list = new JPanel();
         list.setOpaque(false);
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        int shown = 0;
         for (Map.Entry<String, ArrayList<ExpenseEntry>> entry : groupedExpenses.entrySet()) {
-            list.add(createCategoryRow(entry.getKey(), calculateExpenseGroupTotal(entry.getValue())));
+            list.add(createCategoryRow(entry.getKey(), calculateExpenseGroupTotal(entry.getValue()), totalSpent,
+                    categoryBudgetLimits.get(entry.getKey())));
             list.add(Box.createVerticalStrut(8));
+            shown++;
+            if (shown >= 4) {
+                break;
+            }
         }
 
         panel.add(list);
+        if (groupedExpenses.size() > shown) {
+            panel.add(Box.createVerticalStrut(4));
+            panel.add(createMutedNote("Showing the biggest categories first so the overview stays focused."));
+        }
         return panel;
     }
 
-    private JPanel createCategoryRow(String titleText, double amount) {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setOpaque(false);
+    private JPanel createCategoryRow(String titleText, double amount, double totalSpent, Double categoryBudgetLimit) {
+        SurfacePanel row = createSurface(new BorderLayout(0, 10), SURFACE, CATEGORY_DEFAULT_BORDER, 16);
+        row.setBorder(new EmptyBorder(12, 12, 12, 12));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 92));
+
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
 
         JLabel title = new JLabel(titleText);
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
@@ -2465,11 +2600,22 @@ public class MainFrame extends JFrame {
         value.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         value.setForeground(TEXT_PRIMARY);
 
-        row.add(title, BorderLayout.WEST);
-        row.add(value, BorderLayout.EAST);
+        JLabel detail = new JLabel(buildCategoryRowDetail(amount, totalSpent, categoryBudgetLimit));
+        detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
+        detail.setForeground(TEXT_SECONDARY);
+
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        styleProgressBar(progressBar);
+        progressBar.setValue((int) Math.min(100, Math.round(totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0)));
+        progressBar.setForeground(resolveCategoryProgressColor(amount, totalSpent, categoryBudgetLimit));
+
+        top.add(title, BorderLayout.WEST);
+        top.add(value, BorderLayout.EAST);
+        row.add(top, BorderLayout.NORTH);
+        row.add(detail, BorderLayout.CENTER);
+        row.add(progressBar, BorderLayout.SOUTH);
         return row;
     }
-
     private JPanel createHintStrip(String text) {
         SurfacePanel panel = createSurface(new BorderLayout(), PAGE_BACKGROUND_SOFT, SURFACE_BORDER, 16);
         panel.setBorder(new EmptyBorder(12, 14, 12, 14));
@@ -2732,24 +2878,8 @@ public class MainFrame extends JFrame {
     }
 
     private double calculateLatestWeekSpending() {
-        if (expenseEntries.isEmpty()) {
-            return 0.0;
-        }
-
-        LocalDate latestDate = LocalDate.parse(expenseEntries.get(expenseEntries.size() - 1).date);
-        int week = latestDate.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        int year = latestDate.getYear();
-        double total = 0.0;
-
-        for (ExpenseEntry entry : expenseEntries) {
-            LocalDate date = LocalDate.parse(entry.date);
-            if (date.getYear() == year && date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == week) {
-                total += entry.amount;
-            }
-        }
-        return total;
+        return sumValues(buildLatestWeekSpendingValues());
     }
-
     private double predictFutureExpenses(int upcomingEntries) {
         return calculateAverageSpending() * upcomingEntries;
     }
@@ -2821,9 +2951,28 @@ public class MainFrame extends JFrame {
             }
             list.add(entry);
         }
-        return groups;
-    }
 
+        ArrayList<Map.Entry<String, ArrayList<ExpenseEntry>>> sortedEntries =
+                new ArrayList<Map.Entry<String, ArrayList<ExpenseEntry>>>(groups.entrySet());
+        Collections.sort(sortedEntries, new Comparator<Map.Entry<String, ArrayList<ExpenseEntry>>>() {
+            @Override
+            public int compare(Map.Entry<String, ArrayList<ExpenseEntry>> left,
+                    Map.Entry<String, ArrayList<ExpenseEntry>> right) {
+                int amountComparison = Double.compare(calculateExpenseGroupTotal(right.getValue()),
+                        calculateExpenseGroupTotal(left.getValue()));
+                if (amountComparison != 0) {
+                    return amountComparison;
+                }
+                return left.getKey().compareToIgnoreCase(right.getKey());
+            }
+        });
+
+        LinkedHashMap<String, ArrayList<ExpenseEntry>> sortedGroups = new LinkedHashMap<String, ArrayList<ExpenseEntry>>();
+        for (Map.Entry<String, ArrayList<ExpenseEntry>> entry : sortedEntries) {
+            sortedGroups.put(entry.getKey(), entry.getValue());
+        }
+        return sortedGroups;
+    }
     private double calculateExpenseGroupTotal(ArrayList<ExpenseEntry> entries) {
         double total = 0.0;
         for (ExpenseEntry entry : entries) {
@@ -2885,6 +3034,170 @@ public class MainFrame extends JFrame {
         budgetLimit = calculateBudgetTotal();
     }
 
+    private LocalDate findLatestExpenseDate() {
+        if (expenseEntries.isEmpty()) {
+            return null;
+        }
+
+        LocalDate latest = null;
+        for (ExpenseEntry entry : expenseEntries) {
+            LocalDate current = LocalDate.parse(entry.date);
+            if (latest == null || current.isAfter(latest)) {
+                latest = current;
+            }
+        }
+        return latest;
+    }
+
+    private double[] buildLatestWeekSpendingValues() {
+        double[] values = new double[7];
+        LocalDate latestDate = findLatestExpenseDate();
+        if (latestDate == null) {
+            return values;
+        }
+
+        int latestWeek = latestDate.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        int latestWeekYear = latestDate.get(IsoFields.WEEK_BASED_YEAR);
+        for (ExpenseEntry entry : expenseEntries) {
+            LocalDate date = LocalDate.parse(entry.date);
+            if (date.get(IsoFields.WEEK_BASED_YEAR) == latestWeekYear
+                    && date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == latestWeek) {
+                values[date.getDayOfWeek().getValue() - 1] += entry.amount;
+            }
+        }
+        return values;
+    }
+
+    private double sumValues(double[] values) {
+        double total = 0.0;
+        for (double value : values) {
+            total += value;
+        }
+        return total;
+    }
+
+    private int countActiveDays(double[] values) {
+        int count = 0;
+        for (double value : values) {
+            if (value > 0.0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private double calculateAverageActiveDaySpend(double[] values) {
+        int activeDays = countActiveDays(values);
+        return activeDays == 0 ? 0.0 : sumValues(values) / activeDays;
+    }
+
+    private double findHighestValue(double[] values) {
+        double highest = 0.0;
+        for (double value : values) {
+            highest = Math.max(highest, value);
+        }
+        return highest;
+    }
+
+    private String findBusiestSpendingDay(double[] values) {
+        int busiestIndex = -1;
+        double busiestValue = 0.0;
+        for (int index = 0; index < values.length; index++) {
+            if (values[index] > busiestValue) {
+                busiestValue = values[index];
+                busiestIndex = index;
+            }
+        }
+        if (busiestIndex < 0) {
+            return "-";
+        }
+        return new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }[busiestIndex];
+    }
+
+    private double calculateBudgetUsagePercent(double totalExpenses) {
+        if (budgetLimit <= 0.0) {
+            return 0.0;
+        }
+        return (totalExpenses / budgetLimit) * 100.0;
+    }
+
+    private String formatPercent(double value) {
+        return String.format("%.0f%%", value);
+    }
+
+    private String buildActiveDaysLabel(int activeDays) {
+        if (activeDays == 1) {
+            return "1 active day";
+        }
+        return activeDays + " active days";
+    }
+
+    private String buildMostPressuredCategoryText() {
+        String category = findMostPressuredBudgetCategory();
+        return "-".equals(category) ? "Your highest-pressure category" : category;
+    }
+
+    private String buildBudgetNoticeText(double totalExpenses) {
+        double remaining = budgetLimit - totalExpenses;
+        if (remaining < 0.0) {
+            return "Budget alert: you are " + currencyFormat.format(Math.abs(remaining))
+                    + " over budget, and " + buildMostPressuredCategoryText() + " needs attention first.";
+        }
+        return "Budget status: " + currencyFormat.format(remaining)
+                + " is still available, and " + buildMostPressuredCategoryText() + " is closest to its limit.";
+    }
+
+    private String buildDashboardInsightText(double totalIncome, double totalExpenses, double latestWeekTotal, String topCategory) {
+        if (incomeEntries.isEmpty() && expenseEntries.isEmpty()) {
+            return "Add income and expense entries to unlock clearer trend and category insights.";
+        }
+        if (expenseEntries.isEmpty()) {
+            return "Income is tracked, but you need expenses before the overview can show pace and category pressure.";
+        }
+        if (incomeEntries.isEmpty()) {
+            return "Expenses are tracked, but adding income will make the remaining balance and forecast more meaningful.";
+        }
+        return "Latest week: " + currencyFormat.format(latestWeekTotal)
+                + ". " + topCategory + " leads a total of " + currencyFormat.format(totalExpenses)
+                + " spent against " + currencyFormat.format(totalIncome) + " income.";
+    }
+
+    private String buildCategoryBudgetSummary(String category, double amount) {
+        Double limit = categoryBudgetLimits.get(category);
+        if (limit == null || limit.doubleValue() <= 0.0) {
+            return "No category budget is set yet, so this view is ranking it by spend only.";
+        }
+        double remaining = limit.doubleValue() - amount;
+        if (remaining >= 0.0) {
+            return currencyFormat.format(remaining) + " remains in this category budget.";
+        }
+        return currencyFormat.format(Math.abs(remaining)) + " over the category budget already.";
+    }
+
+    private String buildCategoryRowDetail(double amount, double totalSpent, Double categoryBudgetLimit) {
+        String detail = formatPercent(totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0) + " of total spending";
+        if (categoryBudgetLimit != null && categoryBudgetLimit.doubleValue() > 0.0) {
+            detail += " | " + formatPercent((amount / categoryBudgetLimit.doubleValue()) * 100.0) + " of budget";
+        } else {
+            detail += " | no category budget";
+        }
+        return detail;
+    }
+
+    private Color resolveCategoryProgressColor(double amount, double totalSpent, Double categoryBudgetLimit) {
+        if (categoryBudgetLimit != null && categoryBudgetLimit.doubleValue() > 0.0) {
+            double budgetPercent = (amount / categoryBudgetLimit.doubleValue()) * 100.0;
+            if (budgetPercent >= 100.0) {
+                return RED;
+            }
+            if (budgetPercent >= 85.0) {
+                return ORANGE;
+            }
+        }
+        double share = totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0;
+        return share >= 40.0 ? GOLD : TEAL;
+    }
+
     private class WeeklyTrendPanel extends JPanel {
         WeeklyTrendPanel() {
             setOpaque(false);
@@ -2931,21 +3244,7 @@ public class MainFrame extends JFrame {
             }
 
             String[] days = new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
-            double[] values = new double[7];
-            if (!expenseEntries.isEmpty()) {
-                LocalDate latestDate = LocalDate.parse(expenseEntries.get(expenseEntries.size() - 1).date);
-                int latestWeek = latestDate.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-                int latestYear = latestDate.getYear();
-                for (ExpenseEntry entry : expenseEntries) {
-                    LocalDate entryDate = LocalDate.parse(entry.date);
-                    if (entryDate.getYear() == latestYear
-                            && entryDate.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == latestWeek) {
-                        int dayIndex = entryDate.getDayOfWeek().getValue() - 1;
-                        values[dayIndex] += entry.amount;
-                    }
-                }
-            }
-
+            double[] values = buildLatestWeekSpendingValues();
             double maxValue = 0.0;
             for (double value : values) {
                 maxValue = Math.max(maxValue, value);

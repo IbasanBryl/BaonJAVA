@@ -96,6 +96,7 @@ public final class AppDatabase {
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "user_id INTEGER NOT NULL,"
                     + "amount REAL NOT NULL,"
+                    + "category TEXT NOT NULL DEFAULT 'Other',"
                     + "entry_date TEXT NOT NULL,"
                     + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
                     + ")");
@@ -113,6 +114,7 @@ public final class AppDatabase {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_income_entries_user ON income_entries(user_id)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_expense_entries_user ON expense_entries(user_id)");
             ensureExpenseEntryItemColumn(connection);
+            ensureSavingEntryCategoryColumn(connection);
             statement.execute("CREATE INDEX IF NOT EXISTS idx_saving_entries_user ON saving_entries(user_id)");
             initialized = true;
         } catch (SQLException | IOException exception) {
@@ -399,6 +401,28 @@ public final class AppDatabase {
         }
     }
 
+    private static void ensureSavingEntryCategoryColumn(Connection connection) throws SQLException {
+        boolean hasCategoryColumn = false;
+        String sql = "PRAGMA table_info(saving_entries)";
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                if ("category".equalsIgnoreCase(resultSet.getString("name"))) {
+                    hasCategoryColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasCategoryColumn) {
+            return;
+        }
+
+        try (Statement alter = connection.createStatement()) {
+            alter.execute("ALTER TABLE saving_entries ADD COLUMN category TEXT NOT NULL DEFAULT 'Other'");
+        }
+    }
+
     private static void loadSettings(Connection connection, int userId, DatabaseState state) throws SQLException {
         String sql = "SELECT budget_limit, saving_goal_target FROM user_settings WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -444,13 +468,14 @@ public final class AppDatabase {
     }
 
     private static void loadSavingEntries(Connection connection, int userId, DatabaseState state) throws SQLException {
-        String sql = "SELECT amount, entry_date FROM saving_entries WHERE user_id = ? ORDER BY id ASC";
+        String sql = "SELECT amount, category, entry_date FROM saving_entries WHERE user_id = ? ORDER BY id ASC";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     state.savingEntries.add(new SavingEntry(
                             resultSet.getDouble("amount"),
+                            resultSet.getString("category"),
                             resultSet.getString("entry_date")));
                 }
             }
@@ -526,12 +551,13 @@ public final class AppDatabase {
             delete.executeUpdate();
         }
 
-        String insertSql = "INSERT INTO saving_entries (user_id, amount, entry_date) VALUES (?, ?, ?)";
+        String insertSql = "INSERT INTO saving_entries (user_id, amount, category, entry_date) VALUES (?, ?, ?, ?)";
         try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
             for (SavingEntry entry : entries) {
                 insert.setInt(1, userId);
                 insert.setDouble(2, entry.amount);
-                insert.setString(3, entry.date);
+                insert.setString(3, entry.category);
+                insert.setString(4, entry.date);
                 insert.addBatch();
             }
             insert.executeBatch();
