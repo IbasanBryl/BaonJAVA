@@ -58,7 +58,7 @@ public class LoginFrame extends JFrame {
     private static final int LOGIN_CARD_PREFERRED_WIDTH = 720;
     private static final int LOGIN_CARD_MAX_WIDTH = 760;
     private static final int LOGIN_CARD_MIN_WIDTH = 420;
-    private static final int LOGIN_CARD_MIN_HEIGHT = 470;
+    private static final int LOGIN_CARD_MIN_HEIGHT = 430;
     private static final int LOGIN_CONTENT_MIN_WIDTH = 360;
     private static final int LOGIN_CONTENT_MIN_HEIGHT = 560;
     private static final int FORM_WIDTH = 460;
@@ -117,13 +117,13 @@ public class LoginFrame extends JFrame {
         JPanel wrap = new JPanel();
         wrap.setOpaque(false);
         wrap.setLayout(new BoxLayout(wrap, BoxLayout.Y_AXIS));
-        wrap.setBorder(new EmptyBorder(16, 28, 18, 28));
+        wrap.setBorder(new EmptyBorder(18, 28, 18, 28));
 
         JPanel hero = new JPanel();
         hero.setOpaque(false);
         hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
         hero.setAlignmentX(Component.CENTER_ALIGNMENT);
-        hero.setMaximumSize(new Dimension(700, Integer.MAX_VALUE));
+        hero.setMaximumSize(new Dimension(760, Integer.MAX_VALUE));
 
         JLabel eyebrow = new JLabel("STUDENT BUDGET COMPANION");
         eyebrow.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
@@ -132,7 +132,7 @@ public class LoginFrame extends JFrame {
         eyebrow.setBorder(new EmptyBorder(0, 0, 6, 0));
 
         JLabel pageTitle = new JLabel("BaonBrain");
-        pageTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 64));
+        pageTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 68));
         pageTitle.setForeground(TEXT_PRIMARY);
         pageTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -142,35 +142,65 @@ public class LoginFrame extends JFrame {
         pageSubtitle.setForeground(TEXT_SECONDARY);
         pageSubtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        JPanel heroPills = createHeroPills();
+
         JPanel cardWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         cardWrap.setOpaque(false);
         cardWrap.setAlignmentX(Component.CENTER_ALIGNMENT);
         cardWrap.add(createFormCard());
 
-        wrap.add(Box.createVerticalGlue());
         hero.add(eyebrow);
         hero.add(pageTitle);
         hero.add(Box.createVerticalStrut(8));
         hero.add(pageSubtitle);
-        wrap.add(hero);
+        hero.add(Box.createVerticalStrut(14));
+        hero.add(heroPills);
+        hero.setMaximumSize(new Dimension(760, hero.getPreferredSize().height));
         wrap.add(Box.createVerticalStrut(14));
+        wrap.add(hero);
+        wrap.add(Box.createVerticalStrut(12));
         wrap.add(cardWrap);
-        wrap.add(Box.createVerticalGlue());
+        wrap.add(Box.createVerticalStrut(8));
         return wrap;
+    }
+
+    private JPanel createHeroPills() {
+        JPanel pills = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        pills.setOpaque(false);
+        pills.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pills.add(createHeroPill("Track Expenses"));
+        pills.add(createHeroPill("Set Budgets"));
+        pills.add(createHeroPill("Forecast Ahead"));
+        return pills;
+    }
+
+    private JLabel createHeroPill(String text) {
+        JLabel pill = new JLabel(text);
+        pill.setOpaque(true);
+        pill.setBackground(new Color(255, 255, 255, 120));
+        pill.setForeground(TEXT_SECONDARY);
+        pill.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        pill.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(226, 204, 164), 1, true),
+                new EmptyBorder(5, 10, 5, 10)));
+        return pill;
     }
 
     private JPanel createFormCard() {
         ResponsiveFormCardPanel card = new ResponsiveFormCardPanel();
         card.setLayout(new BorderLayout());
-        card.setBorder(new EmptyBorder(18, 18, 14, 18));
+        card.setBorder(new EmptyBorder(20, 20, 16, 20));
 
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-        JPanel tabs = new JPanel(new GridLayout(1, 2, 8, 0));
-        tabs.setOpaque(false);
-        tabs.setBorder(new EmptyBorder(0, 0, 12, 0));
+        JPanel tabs = new JPanel(new GridLayout(1, 2, 6, 0));
+        tabs.setOpaque(true);
+        tabs.setBackground(FIELD_BACKGROUND);
+        tabs.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(FIELD_BORDER, 1, true),
+                new EmptyBorder(4, 4, 4, 4)));
 
         signInTabButton = createTab("Sign In", true);
         signInTabButton.addActionListener(event -> switchTab(TAB_LOGIN));
@@ -200,10 +230,11 @@ public class LoginFrame extends JFrame {
         statusLabel.setBorder(new EmptyBorder(8, 4, 0, 4));
 
         content.add(tabs);
+        content.add(Box.createVerticalStrut(10));
         content.add(formTitleLabel);
         content.add(Box.createVerticalStrut(6));
         content.add(formDescriptionLabel);
-        content.add(Box.createVerticalStrut(12));
+        content.add(Box.createVerticalStrut(10));
         content.add(formContentPanel);
 
         card.add(content, BorderLayout.CENTER);
@@ -375,7 +406,7 @@ public class LoginFrame extends JFrame {
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, active ? 17 : 16));
         button.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(active ? TAB_ACTIVE_BORDER : TAB_INACTIVE_BORDER, 1, true),
-                new EmptyBorder(14, 18, 14, 18)));
+                new EmptyBorder(12, 18, 12, 18)));
     }
 
     private JButton createPrimaryButton(String text) {
@@ -801,9 +832,6 @@ public class LoginFrame extends JFrame {
             g2.setColor(CARD_BACKGROUND);
             g2.fillRoundRect(0, 0, width, height, radius, radius);
 
-            g2.setColor(ACCENT_SOFT);
-            g2.fillRoundRect(20, 20, width - 40, 94, radius - 6, radius - 6);
-
             g2.setColor(CARD_BORDER);
             g2.drawRoundRect(0, 0, width, height, radius, radius);
             g2.dispose();
@@ -861,6 +889,8 @@ public class LoginFrame extends JFrame {
         }
     }
 }
+
+
 
 
 
