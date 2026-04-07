@@ -17,6 +17,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -75,6 +76,7 @@ public class MainFrame extends JFrame {
     private static final String PAGE_BUDGET = "budget";
     private static final String PAGE_SAVING_GOAL = "saving_goal";
     private static final String PAGE_FORECAST = "forecast";
+    private static final int DASHBOARD_METRIC_CARD_MIN_HEIGHT = 278;
     private static final int SAVINGS_HISTORY_MIN_PAGE_SIZE = 8;
     private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };    
 
@@ -142,13 +144,13 @@ public class MainFrame extends JFrame {
     private String accountDisplayName;
     private final String accountEmail;
 
-    private final JLabel dashboardIncomeValueLabel = new JLabel();
+    private final JLabel dashboardIncomeValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardIncomeBodyLabel = new JLabel();
-    private final JLabel dashboardExpenseValueLabel = new JLabel();
+    private final JLabel dashboardExpenseValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardExpenseBodyLabel = new JLabel();
-    private final JLabel dashboardRemainingValueLabel = new JLabel();
+    private final JLabel dashboardRemainingValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardRemainingBodyLabel = new JLabel();
-    private final JLabel dashboardForecastValueLabel = new JLabel();
+    private final JLabel dashboardForecastValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardForecastBodyLabel = new JLabel();
     private final JLabel weeklySpendingBadgeLabel = new JLabel();
     private final JPanel weeklySpendingContentPanel = new JPanel(new BorderLayout());
@@ -901,6 +903,11 @@ public class MainFrame extends JFrame {
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
     }
+
+    private static String toWrappedHtml(String text, int width) {
+        return "<html><body style='width: " + width + "px'>" + escapeHtml(text) + "</body></html>";
+    }
+
     private JButton createSidebarButton(String text, String pageKey) {
         JButton button = new JButton(text);
         button.setHorizontalAlignment(SwingConstants.LEFT);
@@ -1124,26 +1131,32 @@ public class MainFrame extends JFrame {
         JLabel title = new JLabel(titleText);
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         title.setForeground(filled ? Color.WHITE : TEXT_PRIMARY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
         valueLabel.setForeground(filled ? Color.WHITE : TEXT_PRIMARY);
+        valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         bodyLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         bodyLabel.setForeground(filled ? FILLED_BODY_TEXT : TEXT_SECONDARY);
+        bodyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bodyLabel.setVerticalAlignment(SwingConstants.TOP);
 
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setBorder(new EmptyBorder(2, 0, 0, 0));
         stack.add(tag);
         stack.add(Box.createVerticalStrut(14));
         stack.add(title);
         stack.add(Box.createVerticalStrut(10));
         stack.add(valueLabel);
-        stack.add(Box.createVerticalStrut(12));
+        stack.add(Box.createVerticalStrut(18));
         stack.add(bodyLabel);
         stack.add(Box.createVerticalGlue());
 
         panel.add(stack, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(0, DASHBOARD_METRIC_CARD_MIN_HEIGHT));
         return panel;
     }
 
@@ -2053,13 +2066,13 @@ public class MainFrame extends JFrame {
         double projectedRemaining = remainingBalance - predictFutureExpenses(3);
 
         dashboardIncomeValueLabel.setText(currencyFormat.format(totalIncome));
-        dashboardIncomeBodyLabel.setText("Everything you have added as allowance or income.");
+        dashboardIncomeBodyLabel.setText(toWrappedHtml("Everything you have added as allowance or income.", 200));
         dashboardExpenseValueLabel.setText(currencyFormat.format(totalExpenses));
-        dashboardExpenseBodyLabel.setText("All recorded expenses across your categories.");
+        dashboardExpenseBodyLabel.setText(toWrappedHtml("All recorded expenses across your categories.", 200));
         dashboardRemainingValueLabel.setText(currencyFormat.format(remainingBalance));
-        dashboardRemainingBodyLabel.setText("What is left after your recorded spending.");
+        dashboardRemainingBodyLabel.setText(toWrappedHtml("What is left after your recorded spending.", 200));
         dashboardForecastValueLabel.setText(currencyFormat.format(projectedRemaining));
-        dashboardForecastBodyLabel.setText("Projected balance based on your current pace.");
+        dashboardForecastBodyLabel.setText(toWrappedHtml("Projected balance based on your current pace.", 200));
 
         styleBadgeLabel(weeklySpendingBadgeLabel,
                 expenseEntries.isEmpty() ? "Waiting for data" : "Tracking weekly spend",
@@ -3018,6 +3031,48 @@ public class MainFrame extends JFrame {
             g2.dispose();
         }
     }
+
+    private static class AutoScalingMetricLabel extends JLabel {
+        private static final int MAX_FONT_SIZE = 46;
+        private static final int MIN_FONT_SIZE = 20;
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            SwingUtilities.invokeLater(this::updateFontToFit);
+        }
+
+        @Override
+        public void setBounds(int x, int y, int width, int height) {
+            super.setBounds(x, y, width, height);
+            updateFontToFit();
+        }
+
+        private void updateFontToFit() {
+            String text = getText();
+            Font fittedFont = new Font(FONT_FAMILY, Font.BOLD, MAX_FONT_SIZE);
+            if (text == null || text.isEmpty() || getWidth() <= 0) {
+                setFont(fittedFont);
+                return;
+            }
+
+            int availableWidth = Math.max(1, getWidth() - 24);
+            int size = MAX_FONT_SIZE;
+            while (size > MIN_FONT_SIZE) {
+                fittedFont = new Font(FONT_FAMILY, Font.BOLD, size);
+                FontMetrics metrics = getFontMetrics(fittedFont);
+                if (metrics.stringWidth(text) <= availableWidth) {
+                    break;
+                }
+                size--;
+            }
+
+            if (!fittedFont.equals(getFont())) {
+                setFont(fittedFont);
+            }
+        }
+    }
+
     private static class ResponsivePagePanel extends JPanel implements Scrollable {
         ResponsivePagePanel(LayoutManager layout) {
             super(layout);

@@ -16,7 +16,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RadialGradientPaint;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -30,9 +29,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.Scrollable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -58,12 +54,14 @@ public class LoginFrame extends JFrame {
     private static final Color LINK = AppTheme.color("--login-link", "#3A61BD");
     private static final Color ERROR = AppTheme.color("--login-error", "#B83D3D");
     private static final Color SUCCESS = AppTheme.color("--login-success", "#2F8D55");
-    private static final int LOGIN_CARD_PREFERRED_WIDTH = 600;
-    private static final int LOGIN_CARD_MAX_WIDTH = 620;
+    private static final Color ACCENT_SOFT = new Color(ACTION.getRed(), ACTION.getGreen(), ACTION.getBlue(), 28);
+    private static final int LOGIN_CARD_PREFERRED_WIDTH = 720;
+    private static final int LOGIN_CARD_MAX_WIDTH = 760;
     private static final int LOGIN_CARD_MIN_WIDTH = 420;
-    private static final int LOGIN_CARD_MIN_HEIGHT = 430;
+    private static final int LOGIN_CARD_MIN_HEIGHT = 470;
     private static final int LOGIN_CONTENT_MIN_WIDTH = 360;
-    private static final int LOGIN_CONTENT_MIN_HEIGHT = 520;
+    private static final int LOGIN_CONTENT_MIN_HEIGHT = 560;
+    private static final int FORM_WIDTH = 460;
 
     private static final String TAB_LOGIN = "login";
     private static final String TAB_CREATE = "create";
@@ -79,6 +77,8 @@ public class LoginFrame extends JFrame {
     private final JLabel statusLabel = new JLabel(" ");
     private final CardLayout formLayout = new CardLayout();
     private final JPanel formContentPanel = new JPanel(formLayout);
+    private final JLabel formTitleLabel = new JLabel();
+    private final JLabel formDescriptionLabel = new JLabel();
     private JButton signInTabButton;
     private JButton createAccountTabButton;
     private JButton loginButton;
@@ -108,17 +108,8 @@ public class LoginFrame extends JFrame {
 
     private JPanel createRoot() {
         GradientPanel root = new GradientPanel();
-        root.setLayout(new BorderLayout());
-
-        ResponsiveCenterPanel center = new ResponsiveCenterPanel(createLoginContent());
-        JScrollPane scrollPane = new JScrollPane(center);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        root.add(scrollPane, BorderLayout.CENTER);
+        root.setLayout(new GridLayout(1, 1));
+        root.add(new ResponsiveCenterPanel(createLoginContent()));
         return root;
     }
 
@@ -126,15 +117,28 @@ public class LoginFrame extends JFrame {
         JPanel wrap = new JPanel();
         wrap.setOpaque(false);
         wrap.setLayout(new BoxLayout(wrap, BoxLayout.Y_AXIS));
-        wrap.setBorder(new EmptyBorder(20, 28, 20, 28));
+        wrap.setBorder(new EmptyBorder(16, 28, 18, 28));
+
+        JPanel hero = new JPanel();
+        hero.setOpaque(false);
+        hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
+        hero.setAlignmentX(Component.CENTER_ALIGNMENT);
+        hero.setMaximumSize(new Dimension(700, Integer.MAX_VALUE));
+
+        JLabel eyebrow = new JLabel("STUDENT BUDGET COMPANION");
+        eyebrow.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        eyebrow.setForeground(TEXT_SECONDARY);
+        eyebrow.setAlignmentX(Component.CENTER_ALIGNMENT);
+        eyebrow.setBorder(new EmptyBorder(0, 0, 6, 0));
 
         JLabel pageTitle = new JLabel("BaonBrain");
-        pageTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 52));
+        pageTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 64));
         pageTitle.setForeground(TEXT_PRIMARY);
         pageTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel pageSubtitle = new JLabel("Sign in to your account or create a new one.");
-        pageSubtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
+        JLabel pageSubtitle = new JLabel(
+                "<html><div style='text-align:center; width:520px'>Track your allowance, stay ahead of spending, and keep your daily baon decisions clear and stress-free.</div></html>");
+        pageSubtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 18));
         pageSubtitle.setForeground(TEXT_SECONDARY);
         pageSubtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -144,10 +148,12 @@ public class LoginFrame extends JFrame {
         cardWrap.add(createFormCard());
 
         wrap.add(Box.createVerticalGlue());
-        wrap.add(pageTitle);
-        wrap.add(Box.createVerticalStrut(10));
-        wrap.add(pageSubtitle);
-        wrap.add(Box.createVerticalStrut(18));
+        hero.add(eyebrow);
+        hero.add(pageTitle);
+        hero.add(Box.createVerticalStrut(8));
+        hero.add(pageSubtitle);
+        wrap.add(hero);
+        wrap.add(Box.createVerticalStrut(14));
         wrap.add(cardWrap);
         wrap.add(Box.createVerticalGlue());
         return wrap;
@@ -156,11 +162,15 @@ public class LoginFrame extends JFrame {
     private JPanel createFormCard() {
         ResponsiveFormCardPanel card = new ResponsiveFormCardPanel();
         card.setLayout(new BorderLayout());
-        card.setBorder(new EmptyBorder(16, 16, 12, 16));
+        card.setBorder(new EmptyBorder(18, 18, 14, 18));
+
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JPanel tabs = new JPanel(new GridLayout(1, 2, 8, 0));
         tabs.setOpaque(false);
-        tabs.setBorder(new EmptyBorder(0, 0, 8, 0));
+        tabs.setBorder(new EmptyBorder(0, 0, 12, 0));
 
         signInTabButton = createTab("Sign In", true);
         signInTabButton.addActionListener(event -> switchTab(TAB_LOGIN));
@@ -170,17 +180,33 @@ public class LoginFrame extends JFrame {
         tabs.add(signInTabButton);
         tabs.add(createAccountTabButton);
 
+        formTitleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 28));
+        formTitleLabel.setForeground(TEXT_PRIMARY);
+        formTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        formTitleLabel.setHorizontalAlignment(JLabel.CENTER);
+
+        formDescriptionLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+        formDescriptionLabel.setForeground(TEXT_SECONDARY);
+        formDescriptionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        formDescriptionLabel.setHorizontalAlignment(JLabel.CENTER);
+
         formContentPanel.setOpaque(false);
-        formContentPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
+        formContentPanel.setBorder(new EmptyBorder(6, 0, 0, 0));
         formContentPanel.add(createLoginPanel(), TAB_LOGIN);
         formContentPanel.add(createCreateAccountPanel(), TAB_CREATE);
 
         statusLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         statusLabel.setForeground(TEXT_SECONDARY);
-        statusLabel.setBorder(new EmptyBorder(6, 2, 0, 2));
+        statusLabel.setBorder(new EmptyBorder(8, 4, 0, 4));
 
-        card.add(tabs, BorderLayout.NORTH);
-        card.add(formContentPanel, BorderLayout.CENTER);
+        content.add(tabs);
+        content.add(formTitleLabel);
+        content.add(Box.createVerticalStrut(6));
+        content.add(formDescriptionLabel);
+        content.add(Box.createVerticalStrut(12));
+        content.add(formContentPanel);
+
+        card.add(content, BorderLayout.CENTER);
         card.add(statusLabel, BorderLayout.SOUTH);
 
         switchTab(TAB_LOGIN);
@@ -198,38 +224,36 @@ public class LoginFrame extends JFrame {
         column.setOpaque(false);
         column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 
-        int formWidth = 320;
-
         JLabel emailLabel = createFieldLabel("Email");
         styleTextField(loginEmailField, "Enter your email");
-        loginEmailField.setMaximumSize(new Dimension(formWidth, 40));
-        loginEmailField.setPreferredSize(new Dimension(formWidth, 40));
+        loginEmailField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        loginEmailField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JLabel passwordLabel = createFieldLabel("Password");
         stylePasswordField(loginPasswordField, "Enter your password");
-        loginPasswordField.setMaximumSize(new Dimension(formWidth, 40));
-        loginPasswordField.setPreferredSize(new Dimension(formWidth, 40));
+        loginPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        loginPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JPanel forgotRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         forgotRow.setOpaque(false);
         forgotRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        forgotRow.setMaximumSize(new Dimension(formWidth, 24));
-        forgotRow.setPreferredSize(new Dimension(formWidth, 24));
+        forgotRow.setMaximumSize(new Dimension(FORM_WIDTH, 24));
+        forgotRow.setPreferredSize(new Dimension(FORM_WIDTH, 24));
         JButton forgotPasswordButton = createLinkButton("Forgot password?");
         forgotPasswordButton.addActionListener(event -> handleForgotPassword());
         forgotRow.add(forgotPasswordButton);
 
-        loginButton = createPrimaryButton("Sign In  ->");
+        loginButton = createPrimaryButton("Sign In to Dashboard");
         loginButton.addActionListener(event -> handleLogin());
-        loginButton.setMaximumSize(new Dimension(formWidth, 42));
-        loginButton.setPreferredSize(new Dimension(formWidth, 42));
+        loginButton.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        loginButton.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         column.add(emailLabel);
-        column.add(Box.createVerticalStrut(7));
+        column.add(Box.createVerticalStrut(6));
         column.add(loginEmailField);
         column.add(Box.createVerticalStrut(12));
         column.add(passwordLabel);
-        column.add(Box.createVerticalStrut(7));
+        column.add(Box.createVerticalStrut(6));
         column.add(loginPasswordField);
         column.add(Box.createVerticalStrut(8));
         column.add(forgotRow);
@@ -239,14 +263,14 @@ public class LoginFrame extends JFrame {
 
         JPanel signupRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
         signupRow.setOpaque(false);
-        signupRow.setMaximumSize(new Dimension(formWidth, 22));
-        signupRow.setPreferredSize(new Dimension(formWidth, 22));
+        signupRow.setMaximumSize(new Dimension(FORM_WIDTH, 22));
+        signupRow.setPreferredSize(new Dimension(FORM_WIDTH, 22));
         signupRow.setAlignmentX(Component.LEFT_ALIGNMENT);
         JLabel signupHint = new JLabel("Don't have an account?");
-        signupHint.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        signupHint.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         signupHint.setForeground(TEXT_SECONDARY);
         JButton signupLink = createLinkButton("Sign up");
-        signupLink.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        signupLink.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         signupLink.addActionListener(event -> switchTab(TAB_CREATE));
         signupRow.add(signupHint);
         signupRow.add(signupLink);
@@ -258,42 +282,61 @@ public class LoginFrame extends JFrame {
     }
 
     private JPanel createCreateAccountPanel() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        JPanel columnWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        columnWrap.setOpaque(false);
+
+        JPanel column = new JPanel();
+        column.setOpaque(false);
+        column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 
         JLabel nameLabel = createFieldLabel("Full Name");
         styleTextField(createNameField, "Juan Dela Cruz");
+        createNameField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        createNameField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JLabel emailLabel = createFieldLabel("Email");
         styleTextField(createEmailField, "you@email.com");
+        createEmailField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        createEmailField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JLabel passwordLabel = createFieldLabel("Password");
         stylePasswordField(createPasswordField, "Create a password");
+        createPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        createPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JLabel confirmLabel = createFieldLabel("Confirm Password");
         stylePasswordField(createConfirmPasswordField, "Repeat your password");
+        createConfirmPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        createConfirmPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
-        createButton = createPrimaryButton("Create Account  ->");
+        createButton = createPrimaryButton("Create Account");
         createButton.addActionListener(event -> handleCreateAccount());
+        createButton.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        createButton.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
-        panel.add(nameLabel);
-        panel.add(Box.createVerticalStrut(7));
-        panel.add(createNameField);
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(emailLabel);
-        panel.add(Box.createVerticalStrut(7));
-        panel.add(createEmailField);
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(passwordLabel);
-        panel.add(Box.createVerticalStrut(7));
-        panel.add(createPasswordField);
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(confirmLabel);
-        panel.add(Box.createVerticalStrut(7));
-        panel.add(createConfirmPasswordField);
-        panel.add(Box.createVerticalStrut(14));
-        panel.add(createButton);
+        column.add(nameLabel);
+        column.add(Box.createVerticalStrut(6));
+        column.add(createNameField);
+        column.add(Box.createVerticalStrut(12));
+        column.add(emailLabel);
+        column.add(Box.createVerticalStrut(6));
+        column.add(createEmailField);
+        column.add(Box.createVerticalStrut(12));
+        column.add(passwordLabel);
+        column.add(Box.createVerticalStrut(6));
+        column.add(createPasswordField);
+        column.add(Box.createVerticalStrut(12));
+        column.add(confirmLabel);
+        column.add(Box.createVerticalStrut(6));
+        column.add(createConfirmPasswordField);
+        column.add(Box.createVerticalStrut(12));
+        column.add(createButton);
+
+        columnWrap.add(column);
+        panel.add(columnWrap, BorderLayout.CENTER);
         return panel;
     }
 
@@ -302,6 +345,10 @@ public class LoginFrame extends JFrame {
         boolean loginActive = TAB_LOGIN.equals(tabKey);
         styleTabButton(signInTabButton, loginActive);
         styleTabButton(createAccountTabButton, !loginActive);
+        formTitleLabel.setText(loginActive ? "Welcome back" : "Create your account");
+        formDescriptionLabel.setText(loginActive
+                ? "<html><div style='text-align:center; width: 500px'>Sign in to view your budget, recent spending, and allowance forecast.</div></html>"
+                : "<html><div style='text-align:center; width: 500px'>Start tracking your baon with a fresh account and secure email verification.</div></html>");
         if (loginActive && loginButton != null) {
             getRootPane().setDefaultButton(loginButton);
         } else if (!loginActive && createButton != null) {
@@ -325,15 +372,16 @@ public class LoginFrame extends JFrame {
     private void styleTabButton(JButton button, boolean active) {
         button.setForeground(active ? TEXT_PRIMARY : TEXT_SECONDARY);
         button.setBackground(active ? TAB_ACTIVE : TAB_INACTIVE);
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, active ? 17 : 16));
         button.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(active ? TAB_ACTIVE_BORDER : TAB_INACTIVE_BORDER, 1, true),
-                new EmptyBorder(10, 16, 10, 16)));
+                new EmptyBorder(14, 18, 14, 18)));
     }
 
     private JButton createPrimaryButton(String text) {
         JButton button = new JButton(text);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        button.setPreferredSize(new Dimension(0, 42));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        button.setPreferredSize(new Dimension(0, 48));
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBackground(ACTION);
@@ -341,7 +389,7 @@ public class LoginFrame extends JFrame {
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         button.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(ACTION_BORDER, 1, true),
-                new EmptyBorder(10, 16, 10, 16)));
+                new EmptyBorder(12, 18, 12, 18)));
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
         button.addMouseListener(new MouseAdapter() {
             @Override
@@ -371,36 +419,36 @@ public class LoginFrame extends JFrame {
 
     private JLabel createFieldLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
         label.setForeground(TEXT_SECONDARY);
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
     }
 
     private void styleTextField(JTextField field, String placeholder) {
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        field.setPreferredSize(new Dimension(0, 40));
-        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        field.setPreferredSize(new Dimension(0, 48));
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
         field.setBackground(FIELD_BACKGROUND);
         field.setForeground(TEXT_PRIMARY);
         field.setCaretColor(ACTION);
         field.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(FIELD_BORDER, 1, true),
-                new EmptyBorder(8, 14, 8, 14)));
+                new EmptyBorder(11, 15, 11, 15)));
         field.setToolTipText(placeholder);
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
     private void stylePasswordField(JPasswordField field, String placeholder) {
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        field.setPreferredSize(new Dimension(0, 40));
-        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        field.setPreferredSize(new Dimension(0, 48));
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
         field.setBackground(FIELD_BACKGROUND);
         field.setForeground(TEXT_PRIMARY);
         field.setCaretColor(ACTION);
         field.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(FIELD_BORDER, 1, true),
-                new EmptyBorder(8, 14, 8, 14)));
+                new EmptyBorder(11, 15, 11, 15)));
         field.setToolTipText(placeholder);
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
@@ -711,6 +759,15 @@ public class LoginFrame extends JFrame {
             g2.setPaint(glow);
             g2.fillRect(0, 0, getWidth(), getHeight());
 
+            g2.setColor(new Color(255, 255, 255, 60));
+            for (int x = -40; x < getWidth(); x += 140) {
+                g2.fillRoundRect(x, 0, 56, getHeight(), 24, 24);
+            }
+
+            g2.setColor(new Color(255, 255, 255, 34));
+            g2.fillOval(getWidth() - 260, 44, 210, 210);
+            g2.fillOval(54, getHeight() - 250, 240, 240);
+
             g2.setPaint(new GradientPaint(0, 0, new Color(148, 146, 144, 46), getWidth() / 2.0f, 0, new Color(148, 146, 144, 0)));
             g2.fillRect(0, 0, getWidth() / 2, getHeight());
             g2.setPaint(new GradientPaint(getWidth(), 0, new Color(148, 146, 144, 44), getWidth() / 2.0f, 0, new Color(148, 146, 144, 0)));
@@ -732,7 +789,7 @@ public class LoginFrame extends JFrame {
 
             int width = getWidth() - 1;
             int height = getHeight() - 10;
-            int radius = 24;
+            int radius = 28;
 
             Color shadowSoft = new Color(CARD_SHADOW.getRed(), CARD_SHADOW.getGreen(), CARD_SHADOW.getBlue(), 18);
             Color shadowStrong = new Color(CARD_SHADOW.getRed(), CARD_SHADOW.getGreen(), CARD_SHADOW.getBlue(), 36);
@@ -743,6 +800,9 @@ public class LoginFrame extends JFrame {
 
             g2.setColor(CARD_BACKGROUND);
             g2.fillRoundRect(0, 0, width, height, radius, radius);
+
+            g2.setColor(ACCENT_SOFT);
+            g2.fillRoundRect(20, 20, width - 40, 94, radius - 6, radius - 6);
 
             g2.setColor(CARD_BORDER);
             g2.drawRoundRect(0, 0, width, height, radius, radius);
@@ -779,7 +839,7 @@ public class LoginFrame extends JFrame {
         }
     }
 
-    private static class ResponsiveCenterPanel extends JPanel implements Scrollable {
+    private static class ResponsiveCenterPanel extends JPanel {
         private final JPanel content;
 
         ResponsiveCenterPanel(JPanel content) {
@@ -795,41 +855,12 @@ public class LoginFrame extends JFrame {
             int parentHeight = getParent() == null ? 0 : getParent().getHeight();
 
             int width = Math.max(LOGIN_CONTENT_MIN_WIDTH, parentWidth);
-            int contentHeight = content.getPreferredSize().height + 80;
+            int contentHeight = content.getPreferredSize().height + 24;
             int height = Math.max(LOGIN_CONTENT_MIN_HEIGHT, Math.max(contentHeight, parentHeight));
             return new Dimension(width, height);
         }
-
-        @Override
-        public Dimension getPreferredScrollableViewportSize() {
-            return getPreferredSize();
-        }
-
-        @Override
-        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-            return 24;
-        }
-
-        @Override
-        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-            return Math.max(visibleRect.height - 48, 48);
-        }
-
-        @Override
-        public boolean getScrollableTracksViewportWidth() {
-            return true;
-        }
-
-        @Override
-        public boolean getScrollableTracksViewportHeight() {
-            return getParent() != null && getPreferredSize().height <= getParent().getHeight();
-        }
     }
 }
-
-
-
-
 
 
 
