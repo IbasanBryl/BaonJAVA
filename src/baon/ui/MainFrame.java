@@ -5,6 +5,7 @@ import baon.model.ExpenseEntry;
 import baon.model.IncomeEntry;
 import baon.model.SavingEntry;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -81,6 +82,8 @@ public class MainFrame extends JFrame {
     private static final String PAGE_FORECAST = "forecast";
     private static final int DASHBOARD_METRIC_CARD_MIN_HEIGHT = 278;
     private static final int SAVINGS_HISTORY_MIN_PAGE_SIZE = 8;
+    private static final double BUDGET_ALERT_THRESHOLD_PERCENT = 85.0;
+    private static final int MAX_STORED_BUDGET_ALERTS = 10;
     private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };
     private static final String[] INCOME_SOURCE_OPTIONS = new String[] { "Allowance", "Salary", "Scholarship", "Gift", "Side Hustle", "Other" };
     private static final String[] SAVINGS_CATEGORY_OPTIONS = new String[] { "Emergency", "School", "Travel", "Gadgets", "Other" };
@@ -211,6 +214,9 @@ public class MainFrame extends JFrame {
     private final JLabel forecastOverspendingPercentLabel = new JLabel();
     private final JProgressBar forecastRiskProgressBar = new JProgressBar(0, 100);
     private final JPanel forecastBreakdownContentPanel = new JPanel(new BorderLayout());
+    private final JButton notificationButton = new JButton();
+    private final ArrayList<String> budgetAlertInbox = new ArrayList<String>();
+    private boolean hasUnreadBudgetAlerts = false;
 
     private final DefaultTableModel incomeTableModel = createTableModel(new String[] { "Source", "Date", "Amount" });
     private final DefaultTableModel expenseTableModel = createTableModel(new String[] { "Category", "Item", "Date", "Amount" });
@@ -264,8 +270,41 @@ public class MainFrame extends JFrame {
         root.setLayout(new BorderLayout(24, 0));
         root.setBorder(new EmptyBorder(10, 10, 10, 10));
         root.add(createSidebar(), BorderLayout.WEST);
-        root.add(createPageScrollPane(), BorderLayout.CENTER);
+        root.add(createContentArea(), BorderLayout.CENTER);
         setContentPane(root);
+    }
+
+    private JPanel createContentArea() {
+        JPanel panel = new JPanel(new BorderLayout(0, 18));
+        panel.setOpaque(false);
+        panel.add(createNotificationBar(), BorderLayout.NORTH);
+        panel.add(createPageScrollPane(), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createNotificationBar() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        panel.setOpaque(false);
+
+        notificationButton.setFocusable(false);
+        notificationButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        notificationButton.setIcon(new MailOutlineIcon(22, 16));
+        notificationButton.setText("");
+        notificationButton.setForeground(TEAL_DARK);
+        notificationButton.setBackground(SURFACE_TINT);
+        notificationButton.setOpaque(true);
+        notificationButton.setContentAreaFilled(true);
+        notificationButton.setFocusPainted(false);
+        notificationButton.setPreferredSize(new Dimension(54, 44));
+        notificationButton.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(CARD_TINT_BORDER, 20, 1),
+                new EmptyBorder(4, 8, 8, 8)));
+        notificationButton.setToolTipText("Please enable your notifications.");
+        notificationButton.addActionListener(event -> showBudgetAlertInboxDialog());
+
+        panel.add(notificationButton);
+        refreshNotificationBar();
+        return panel;
     }
 
     private JPanel createSidebar() {
@@ -2055,8 +2094,15 @@ public class MainFrame extends JFrame {
     }
 
     private void addExpenseEntry(ExpenseEntry entry) {
+        String budgetAlertMessage = buildExpenseBudgetAlertMessage(entry);
         expenseEntries.add(entry);
+        if (budgetAlertMessage != null) {
+            addBudgetAlert(budgetAlertMessage);
+        }
         handleFinancialDataChanged();
+        if (budgetAlertMessage != null) {
+            JOptionPane.showMessageDialog(this, buildBudgetAlertHtml(budgetAlertMessage), "Budget Alert", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private void loadStoredData() {
@@ -2099,6 +2145,7 @@ public class MainFrame extends JFrame {
         refreshBudgetSection();
         refreshSavingSection();
         refreshForecastSection();
+        refreshNotificationBar();
     }
 
     private void refreshDashboardSection() {
@@ -2440,8 +2487,9 @@ public class MainFrame extends JFrame {
         double projectedDailySpend = expenseEntries.isEmpty() ? 0.0 : totalExpenses / Math.max(1, LocalDate.now().getDayOfMonth());
         double estimatedRemaining = (totalIncome - totalExpenses) - predictFutureExpenses(3);
         double overspendingChance = calculateOverspendingChance(totalIncome, totalExpenses, averageSpending);
+        String riskLabel = describeRisk(overspendingChance);
 
-        styleBadgeLabel(forecastRiskBadgeLabel, describeRisk(overspendingChance), SURFACE_TINT, TEAL_DARK);
+        styleBadgeLabel(forecastRiskBadgeLabel, riskLabel, SURFACE_TINT, resolveRiskBadgeTextColor(riskLabel));
         forecastEstimatedRemainingValueLabel.setText(currencyFormat.format(estimatedRemaining));
         forecastHighRiskCategoryValueLabel.setText(findTopExpenseCategory());
         forecastProjectedDailyValueLabel.setText(currencyFormat.format(projectedDailySpend));
@@ -2969,6 +3017,16 @@ public class MainFrame extends JFrame {
         return "Low risk";
     }
 
+    private Color resolveRiskBadgeTextColor(String riskLabel) {
+        if ("High risk".equals(riskLabel)) {
+            return RED;
+        }
+        if ("Low risk".equals(riskLabel)) {
+            return GREEN;
+        }
+        return ORANGE;
+    }
+
     private String findTopIncomeSource() {
         if (incomeEntries.isEmpty()) {
             return "-";
@@ -3091,6 +3149,105 @@ public class MainFrame extends JFrame {
             return "-";
         }
         return bestCategory;
+    }
+
+    private String buildExpenseBudgetAlertMessage(ExpenseEntry entry) {
+        ArrayList<String> alerts = new ArrayList<String>();
+
+        double previousTotalExpenses = calculateTotalExpenses();
+        String overallAlert = buildBudgetThresholdAlert("Expenses", previousTotalExpenses, previousTotalExpenses + entry.amount, budgetLimit);
+        if (overallAlert != null) {
+            alerts.add(overallAlert);
+        }
+
+        Double categoryLimit = categoryBudgetLimits.get(entry.category);
+        if (categoryLimit != null && categoryLimit.doubleValue() > 0.0) {
+            double previousCategorySpent = calculateExpenseTotalForCategory(entry.category);
+            String categoryAlert = buildBudgetThresholdAlert(entry.category + " budget", previousCategorySpent,
+                    previousCategorySpent + entry.amount, categoryLimit.doubleValue());
+            if (categoryAlert != null) {
+                alerts.add(categoryAlert);
+            }
+        }
+
+        if (alerts.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder message = new StringBuilder();
+        for (int index = 0; index < alerts.size(); index++) {
+            if (index > 0) {
+                message.append("\n");
+            }
+            message.append(alerts.get(index));
+        }
+        return message.toString();
+    }
+
+    private String buildBudgetThresholdAlert(String label, double previousSpent, double newSpent, double limit) {
+        if (limit <= 0.0) {
+            return null;
+        }
+
+        double previousPercent = (previousSpent / limit) * 100.0;
+        double newPercent = (newSpent / limit) * 100.0;
+        if (previousPercent >= 100.0) {
+            return null;
+        }
+        if (previousPercent < 100.0 && newPercent >= 100.0) {
+            return label + " just went over by " + currencyFormat.format(newSpent - limit) + ".";
+        }
+        if (previousPercent < BUDGET_ALERT_THRESHOLD_PERCENT && newPercent >= BUDGET_ALERT_THRESHOLD_PERCENT) {
+            return label + " is at " + formatPercent(newPercent) + " of the limit with only "
+                    + currencyFormat.format(Math.max(0.0, limit - newSpent)) + " left.";
+        }
+        return null;
+    }
+
+    private void addBudgetAlert(String message) {
+        if (message == null || message.trim().isEmpty()) {
+            return;
+        }
+        budgetAlertInbox.add(0, message.trim());
+        while (budgetAlertInbox.size() > MAX_STORED_BUDGET_ALERTS) {
+            budgetAlertInbox.remove(budgetAlertInbox.size() - 1);
+        }
+        hasUnreadBudgetAlerts = true;
+    }
+
+    private void refreshNotificationBar() {
+        notificationButton.setBackground(hasUnreadBudgetAlerts ? PAGE_BACKGROUND_SOFT : SURFACE_TINT);
+        notificationButton.setForeground(hasUnreadBudgetAlerts ? ORANGE : TEAL_DARK);
+    }
+
+    private void showBudgetAlertInboxDialog() {
+        hasUnreadBudgetAlerts = false;
+        refreshNotificationBar();
+        JOptionPane.showMessageDialog(this, buildBudgetAlertInboxHtml(), "Alert Mail",
+                budgetAlertInbox.isEmpty() ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+    }
+
+    private String buildBudgetAlertHtml(String message) {
+        return "<html><body style='width: 320px'><b>Budget alert</b><br/><br/>"
+                + escapeHtml(message).replace("\n", "<br/>") + "</body></html>";
+    }
+
+    private String buildBudgetAlertInboxHtml() {
+        if (budgetAlertInbox.isEmpty()) {
+            return "<html><body style='width: 320px'><b>Please enable your notifications.</b></body></html>";
+        }
+
+        StringBuilder html = new StringBuilder("<html><body style='width: 360px'><b>Recent budget alerts</b><br/><br/>");
+        for (int index = 0; index < budgetAlertInbox.size(); index++) {
+            if (index > 0) {
+                html.append("<br/><br/>");
+            }
+            html.append(index + 1)
+                    .append(". ")
+                    .append(escapeHtml(budgetAlertInbox.get(index)).replace("\n", "<br/>"));
+        }
+        html.append("</body></html>");
+        return html.toString();
     }
 
     private void recalculateBudgetLimit() {
@@ -3236,6 +3393,11 @@ public class MainFrame extends JFrame {
         if (remaining < 0.0) {
             return "Budget alert: you are " + currencyFormat.format(Math.abs(remaining))
                     + " over budget, and " + buildMostPressuredCategoryText() + " needs attention first.";
+        }
+        double usedPercent = budgetLimit > 0.0 ? (totalExpenses / budgetLimit) * 100.0 : 0.0;
+        if (budgetLimit > 0.0 && usedPercent >= BUDGET_ALERT_THRESHOLD_PERCENT) {
+            return "Budget warning: only " + currencyFormat.format(remaining)
+                    + " is left before you go over, and " + buildMostPressuredCategoryText() + " is the closest limit.";
         }
         return "Budget status: " + currencyFormat.format(remaining)
                 + " is still available, and " + buildMostPressuredCategoryText() + " is closest to its limit.";
@@ -3683,10 +3845,43 @@ public class MainFrame extends JFrame {
             g2.dispose();
         }
     }
+
+    private static class MailOutlineIcon implements Icon {
+        private final int width;
+        private final int height;
+
+        MailOutlineIcon(int width, int height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public int getIconWidth() {
+            return width;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return height;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g2 = (Graphics2D) graphics.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+            g2.setColor(component.getForeground());
+            g2.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+            int left = x + 1;
+            int top = y + 2;
+            int boxWidth = width - 3;
+            int boxHeight = height - 4;
+            g2.drawRoundRect(left, top, boxWidth, boxHeight, 4, 4);
+            g2.drawLine(left + 1, top + 1, left + (boxWidth / 2), top + (boxHeight / 2) + 1);
+            g2.drawLine(left + boxWidth - 1, top + 1, left + (boxWidth / 2), top + (boxHeight / 2) + 1);
+            g2.dispose();
+        }
+    }
 }
-
-
-
-
-
 
