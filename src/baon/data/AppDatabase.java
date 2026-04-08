@@ -132,8 +132,48 @@ public final class AppDatabase {
 
     public static DatabaseState loadForUser(String email) {
         initialize();
-        DatabaseState state = new DatabaseState();
         String normalizedEmail = normalizeEmail(email);
+        DatabaseState jsonState = JsonStateStore.loadState(normalizedEmail);
+        if (!jsonState.categoryBudgetLimits.isEmpty()) {
+            jsonState.budgetLimit = calculateBudgetTotal(jsonState.categoryBudgetLimits);
+        }
+        if (hasStoredState(jsonState)) {
+            saveSqlStateForUser(normalizedEmail, jsonState);
+            return jsonState;
+        }
+
+        DatabaseState sqliteState = loadSqlStateForUser(normalizedEmail);
+        if (!sqliteState.categoryBudgetLimits.isEmpty()) {
+            sqliteState.budgetLimit = calculateBudgetTotal(sqliteState.categoryBudgetLimits);
+        }
+        if (hasStoredState(sqliteState)) {
+            JsonStateStore.saveState(normalizedEmail, sqliteState);
+        }
+        return sqliteState;
+    }
+
+    public static void saveForUser(String email, DatabaseState state) {
+        initialize();
+        if (state == null) {
+            return;
+        }
+        String normalizedEmail = normalizeEmail(email);
+        if (!state.categoryBudgetLimits.isEmpty()) {
+            state.budgetLimit = calculateBudgetTotal(state.categoryBudgetLimits);
+        }
+        JsonStateStore.saveState(normalizedEmail, state);
+        saveSqlStateForUser(normalizedEmail, state);
+    }
+
+    public static void resetFinancialDataForUser(String email) {
+        initialize();
+        String normalizedEmail = normalizeEmail(email);
+        JsonStateStore.clearState(normalizedEmail);
+        saveSqlStateForUser(normalizedEmail, new DatabaseState());
+    }
+
+    private static DatabaseState loadSqlStateForUser(String normalizedEmail) {
+        DatabaseState state = new DatabaseState();
         if (normalizedEmail.isEmpty()) {
             return state;
         }
@@ -158,9 +198,7 @@ public final class AppDatabase {
         }
     }
 
-    public static void saveForUser(String email, DatabaseState state) {
-        initialize();
-        String normalizedEmail = normalizeEmail(email);
+    private static void saveSqlStateForUser(String normalizedEmail, DatabaseState state) {
         if (normalizedEmail.isEmpty() || state == null) {
             return;
         }
@@ -181,10 +219,6 @@ public final class AppDatabase {
                 return;
             }
 
-            if (!state.categoryBudgetLimits.isEmpty()) {
-                state.budgetLimit = calculateBudgetTotal(state.categoryBudgetLimits);
-            }
-
             overwriteSettings(connection, userId.intValue(), state);
             overwriteIncomeEntries(connection, userId.intValue(), state.incomeEntries);
             overwriteExpenseEntries(connection, userId.intValue(), state.expenseEntries);
@@ -194,6 +228,16 @@ public final class AppDatabase {
         } catch (SQLException | IOException exception) {
             // Keep UI responsive even if persistence fails.
         }
+    }
+
+    private static boolean hasStoredState(DatabaseState state) {
+        return state != null
+                && (Math.abs(state.budgetLimit) > 0.0001
+                || Math.abs(state.savingGoalTarget) > 0.0001
+                || !state.incomeEntries.isEmpty()
+                || !state.expenseEntries.isEmpty()
+                || !state.savingEntries.isEmpty()
+                || !state.categoryBudgetLimits.isEmpty());
     }
 
     public static boolean userExists(String email) {
@@ -889,7 +933,4 @@ public final class AppDatabase {
         }
     }
 }
-
-
-
 

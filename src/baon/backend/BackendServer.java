@@ -114,7 +114,83 @@ public final class BackendServer {
     private static void saveDatabaseJson(String json) throws IOException {
         synchronized (FILE_LOCK) {
             ensureFileExists();
-            Files.write(DATA_PATH, json.getBytes(StandardCharsets.UTF_8));
+            Files.write(DATA_PATH, (prettyPrintJson(json) + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    private static String prettyPrintJson(String json) {
+        if (json == null) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        int indentLevel = 0;
+        boolean inString = false;
+        boolean escaping = false;
+
+        for (int index = 0; index < json.length(); index++) {
+            char current = json.charAt(index);
+
+            if (escaping) {
+                builder.append(current);
+                escaping = false;
+                continue;
+            }
+
+            if (current == '\\') {
+                builder.append(current);
+                if (inString) {
+                    escaping = true;
+                }
+                continue;
+            }
+
+            if (current == '"') {
+                builder.append(current);
+                inString = !inString;
+                continue;
+            }
+
+            if (inString) {
+                builder.append(current);
+                continue;
+            }
+
+            switch (current) {
+                case '{':
+                case '[':
+                    builder.append(current).append('\n');
+                    indentLevel++;
+                    appendIndent(builder, indentLevel);
+                    break;
+                case '}':
+                case ']':
+                    builder.append('\n');
+                    indentLevel = Math.max(0, indentLevel - 1);
+                    appendIndent(builder, indentLevel);
+                    builder.append(current);
+                    break;
+                case ',':
+                    builder.append(current).append('\n');
+                    appendIndent(builder, indentLevel);
+                    break;
+                case ':':
+                    builder.append(": ");
+                    break;
+                default:
+                    if (!Character.isWhitespace(current)) {
+                        builder.append(current);
+                    }
+                    break;
+            }
+        }
+
+        return builder.toString().trim();
+    }
+
+    private static void appendIndent(StringBuilder builder, int indentLevel) {
+        for (int index = 0; index < indentLevel; index++) {
+            builder.append("  ");
         }
     }
 

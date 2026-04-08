@@ -2,6 +2,7 @@ package baon.ui;
 
 import baon.data.AppDatabase;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -24,13 +25,14 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
@@ -69,7 +71,7 @@ public class LoginFrame extends JFrame {
 
     private final JTextField loginEmailField = new JTextField();
     private final JPasswordField loginPasswordField = new JPasswordField();
-    private final JCheckBox loginShowPasswordCheckBox = new JCheckBox("Show password");
+    private final JButton loginPasswordToggleButton = new JButton();
 
     private final JTextField createNameField = new JTextField();
     private final JTextField createEmailField = new JTextField();
@@ -86,6 +88,7 @@ public class LoginFrame extends JFrame {
     private JButton loginButton;
     private JButton createButton;
     private char loginPasswordEchoChar;
+    private boolean loginPasswordVisible;
 
     public LoginFrame() {
         super("BaonBrain Login");
@@ -275,29 +278,7 @@ public class LoginFrame extends JFrame {
         loginEmailField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JLabel passwordLabel = createFieldLabel("Password");
-        stylePasswordField(loginPasswordField, "Enter your password");
-        loginPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
-        loginPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
-        if (loginPasswordEchoChar == 0) {
-            loginPasswordEchoChar = loginPasswordField.getEchoChar();
-        }
-
-        loginShowPasswordCheckBox.setOpaque(false);
-        loginShowPasswordCheckBox.setFocusPainted(false);
-        loginShowPasswordCheckBox.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        loginShowPasswordCheckBox.setForeground(TEXT_SECONDARY);
-        loginShowPasswordCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        for (java.awt.event.ActionListener listener : loginShowPasswordCheckBox.getActionListeners()) {
-            loginShowPasswordCheckBox.removeActionListener(listener);
-        }
-        loginShowPasswordCheckBox.addActionListener(event -> setLoginPasswordVisible(loginShowPasswordCheckBox.isSelected()));
-
-        JPanel showPasswordRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        showPasswordRow.setOpaque(false);
-        showPasswordRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        showPasswordRow.setMaximumSize(new Dimension(FORM_WIDTH, 24));
-        showPasswordRow.setPreferredSize(new Dimension(FORM_WIDTH, 24));
-        showPasswordRow.add(loginShowPasswordCheckBox);
+        JPanel passwordFieldRow = createLoginPasswordFieldRow();
 
         JPanel forgotRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         forgotRow.setOpaque(false);
@@ -319,10 +300,8 @@ public class LoginFrame extends JFrame {
         column.add(Box.createVerticalStrut(12));
         column.add(passwordLabel);
         column.add(Box.createVerticalStrut(6));
-        column.add(loginPasswordField);
+        column.add(passwordFieldRow);
         column.add(Box.createVerticalStrut(8));
-        column.add(showPasswordRow);
-        column.add(Box.createVerticalStrut(4));
         column.add(forgotRow);
         column.add(Box.createVerticalStrut(12));
         column.add(loginButton);
@@ -425,9 +404,49 @@ public class LoginFrame extends JFrame {
         statusLabel.setText(" ");
     }
 
+    private JPanel createLoginPasswordFieldRow() {
+        stylePasswordField(loginPasswordField, "Enter your password");
+        loginPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        loginPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        if (loginPasswordEchoChar == 0) {
+            loginPasswordEchoChar = loginPasswordField.getEchoChar();
+        }
+        loginPasswordField.setOpaque(false);
+        loginPasswordField.setBorder(new EmptyBorder(11, 15, 11, 6));
+
+        configureLoginPasswordToggleButton();
+        setLoginPasswordVisible(false);
+
+        JPanel passwordFieldRow = new JPanel(new BorderLayout());
+        passwordFieldRow.setOpaque(true);
+        passwordFieldRow.setBackground(FIELD_BACKGROUND);
+        passwordFieldRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordFieldRow.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        passwordFieldRow.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        passwordFieldRow.setBorder(new LineBorder(FIELD_BORDER, 1, true));
+        passwordFieldRow.add(loginPasswordField, BorderLayout.CENTER);
+        passwordFieldRow.add(loginPasswordToggleButton, BorderLayout.EAST);
+        return passwordFieldRow;
+    }
+
+    private void configureLoginPasswordToggleButton() {
+        for (java.awt.event.ActionListener listener : loginPasswordToggleButton.getActionListeners()) {
+            loginPasswordToggleButton.removeActionListener(listener);
+        }
+        loginPasswordToggleButton.setFocusable(false);
+        loginPasswordToggleButton.setOpaque(false);
+        loginPasswordToggleButton.setContentAreaFilled(false);
+        loginPasswordToggleButton.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 12));
+        loginPasswordToggleButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        loginPasswordToggleButton.setPreferredSize(new Dimension(44, 46));
+        loginPasswordToggleButton.addActionListener(event -> setLoginPasswordVisible(!loginPasswordVisible));
+    }
+
     private void setLoginPasswordVisible(boolean visible) {
-        loginShowPasswordCheckBox.setSelected(visible);
+        loginPasswordVisible = visible;
         loginPasswordField.setEchoChar(visible ? (char) 0 : loginPasswordEchoChar);
+        loginPasswordToggleButton.setIcon(new EyeIcon(18, 12, !visible));
+        loginPasswordToggleButton.setToolTipText(visible ? "Hide password" : "Show password");
     }
 
     private JButton createTab(String text, boolean active) {
@@ -810,6 +829,52 @@ public class LoginFrame extends JFrame {
     private void showStatus(String message, Color color) {
         statusLabel.setText(message);
         statusLabel.setForeground(color);
+    }
+
+    private static class EyeIcon implements Icon {
+        private final int width;
+        private final int height;
+        private final boolean slashed;
+
+        EyeIcon(int width, int height, boolean slashed) {
+            this.width = width;
+            this.height = height;
+            this.slashed = slashed;
+        }
+
+        @Override
+        public int getIconWidth() {
+            return width;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return height;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g2 = (Graphics2D) graphics.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(TEXT_SECONDARY);
+            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+            int left = x + 1;
+            int top = y + 1;
+            int iconWidth = width - 2;
+            int iconHeight = height - 2;
+            int centerX = left + (iconWidth / 2);
+            int centerY = top + (iconHeight / 2);
+
+            g2.drawArc(left, top + 1, iconWidth, iconHeight, 0, 180);
+            g2.drawArc(left, top - 1, iconWidth, iconHeight, 180, 180);
+            g2.fillOval(centerX - 2, centerY - 2, 4, 4);
+
+            if (slashed) {
+                g2.drawLine(left + 1, top + iconHeight, left + iconWidth - 1, top);
+            }
+            g2.dispose();
+        }
     }
 
     private static class GradientPanel extends JPanel {
