@@ -1,8 +1,60 @@
 {
-  "budgetLimit": 0.0,
+  "budgetLimit": 123123.0,
   "savingGoalTarget": 0.0,
-  "incomeEntries": [],
-  "expenseEntries": [],
+  "incomeEntries": [
+    {
+      "amount": 123.0,
+      "source": "Allowance",
+      "date": "2026-04-08"
+    }
+  ],
+  "expenseEntries": [
+    {
+      "amount": 123.0,
+      "category": "Food",
+      "item": "Fca",
+      "date": "2026-04-08"
+    },
+    {
+      "amount": 123.0,
+      "category": "Food",
+      "item": "sad",
+      "date": "2026-04-08"
+    }
+  ],
   "savingEntries": [],
-  "categoryBudgetLimits": {}
+  "categoryBudgetLimits": {
+    "Food": 123123.0
+  },
+  "users": {
+    "ibasanbryl7@gmail.com": {
+      "budgetLimit": 123123.0,
+      "savingGoalTarget": 0.0,
+      "incomeEntries": [
+        {
+          "amount": 123.0,
+          "source": "Allowance",
+          "date": "2026-04-08"
+        }
+      ],
+      "expenseEntries": [
+        {
+          "amount": 123.0,
+          "category": "Food",
+          "item": "Fca",
+          "date": "2026-04-08"
+        },
+        {
+          "amount": 123.0,
+          "category": "Food",
+          "item": "sad",
+          "date": "2026-04-08"
+        }
+      ],
+      "savingEntries": [],
+      "categoryBudgetLimits": {
+        "Food": 123123.0
+      }
+    }
+  }
 }

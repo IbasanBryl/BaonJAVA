@@ -9,39 +9,38 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public final class SmtpClient {
-    private static final Path DOT_ENV_PATH = Paths.get(".env");
-    private static final Map<String, String> DOT_ENV_VALUES = loadDotEnv();
+    private static final String SMTP_HOST = "";
+    private static final int SMTP_PORT = 465;
+    private static final String SMTP_SECURITY = "ssl";
+    private static final String SMTP_USERNAME = "";
+    private static final String SMTP_PASSWORD = "";
+    private static final String SMTP_FROM = SMTP_USERNAME;
+    private static final String SMTP_FROM_NAME = "BaonBrain";
+    private static final boolean SMTP_SSL = SMTP_PORT == 465;
+    private static final boolean SMTP_STARTTLS = SMTP_PORT == 587;
 
     private SmtpClient() {
     }
 
     public static void sendEmail(String recipientEmail, String subject, String body) throws IOException {
-        String host = getConfig("BAONBRAIN_SMTP_HOST", getConfig("SMTP_HOST", "")).trim();
-        int port = getConfigInt("BAONBRAIN_SMTP_PORT", getConfigInt("SMTP_PORT", 465));
-        String security = getConfig("BAONBRAIN_SMTP_SECURITY", "ssl").trim().toLowerCase();
-        String username = getConfig("BAONBRAIN_SMTP_USERNAME", getConfig("SMTP_USERNAME", "")).trim();
-        String password = getConfig("BAONBRAIN_SMTP_PASSWORD", getConfig("SMTP_PASSWORD", ""));
-        String from = getConfig("BAONBRAIN_SMTP_FROM", getConfig("SMTP_FROM_EMAIL", username)).trim();
-        String fromName = getConfig("BAONBRAIN_SMTP_FROM_NAME", "BaonBrain").trim();
-        boolean useSsl = "ssl".equals(security) || getConfigBoolean("SMTP_SSL", port == 465);
-        boolean useStartTls = "starttls".equals(security)
-                || (!useSsl && getConfigBoolean("SMTP_STARTTLS", port == 587));
+        String host = SMTP_HOST.trim();
+        int port = SMTP_PORT;
+        String security = SMTP_SECURITY.trim().toLowerCase();
+        String username = SMTP_USERNAME.trim();
+        String password = SMTP_PASSWORD;
+        String from = SMTP_FROM.trim();
+        String fromName = SMTP_FROM_NAME.trim();
+        boolean useSsl = "ssl".equals(security) || SMTP_SSL;
+        boolean useStartTls = "starttls".equals(security) || (!useSsl && SMTP_STARTTLS);
 
         if (host.isEmpty() || from.isEmpty()) {
-            throw new IOException("BAONBRAIN_SMTP_HOST and BAONBRAIN_SMTP_FROM must be configured in .env.");
+            throw new IOException("SMTP host and sender email must be configured in SmtpClient.");
         }
         if (!username.isEmpty() && password.trim().isEmpty()) {
-            throw new IOException("BAONBRAIN_SMTP_PASSWORD is missing for authenticated SMTP.");
+            throw new IOException("SMTP password is missing for authenticated SMTP.");
         }
 
         SSLSocketFactory sslFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
@@ -132,71 +131,6 @@ public final class SmtpClient {
         return builder.toString();
     }
 
-    private static String getConfig(String key, String fallback) {
-        String environmentValue = System.getenv(key);
-        if (environmentValue != null && !environmentValue.trim().isEmpty()) {
-            return environmentValue.trim();
-        }
-        String dotEnvValue = DOT_ENV_VALUES.get(key);
-        if (dotEnvValue != null && !dotEnvValue.trim().isEmpty()) {
-            return dotEnvValue.trim();
-        }
-        return fallback;
-    }
-
-    private static int getConfigInt(String key, int fallback) {
-        String value = getConfig(key, String.valueOf(fallback));
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException exception) {
-            return fallback;
-        }
-    }
-
-    private static boolean getConfigBoolean(String key, boolean fallback) {
-        String value = getConfig(key, String.valueOf(fallback)).trim().toLowerCase();
-        if ("true".equals(value) || "1".equals(value) || "yes".equals(value)) {
-            return true;
-        }
-        if ("false".equals(value) || "0".equals(value) || "no".equals(value)) {
-            return false;
-        }
-        return fallback;
-    }
-
-    private static Map<String, String> loadDotEnv() {
-        if (!Files.exists(DOT_ENV_PATH)) {
-            return Collections.emptyMap();
-        }
-
-        HashMap<String, String> values = new HashMap<String, String>();
-        try {
-            List<String> lines = Files.readAllLines(DOT_ENV_PATH, StandardCharsets.UTF_8);
-            for (String rawLine : lines) {
-                String line = rawLine == null ? "" : rawLine.trim();
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-
-                int separator = line.indexOf('=');
-                if (separator <= 0) {
-                    continue;
-                }
-
-                String key = line.substring(0, separator).trim();
-                String value = line.substring(separator + 1).trim();
-                if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
-                    value = value.substring(1, value.length() - 1);
-                }
-                values.put(key, value);
-            }
-        } catch (IOException ignored) {
-            return Collections.emptyMap();
-        }
-
-        return values;
-    }
-
     private static final class SmtpSession implements AutoCloseable {
         private Socket socket;
         private final String host;
@@ -280,7 +214,4 @@ public final class SmtpClient {
         }
     }
 }
-
-
-
 

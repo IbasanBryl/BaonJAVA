@@ -41,10 +41,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.AbstractAction;
@@ -68,7 +66,6 @@ import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -76,10 +73,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.Document;
 
 public class MainFrame extends JFrame {
     private static final String PAGE_DASHBOARD = "dashboard";
@@ -1748,9 +1742,7 @@ public class MainFrame extends JFrame {
                     addIncomeEntry(new IncomeEntry(amount.doubleValue(), source, date));
                     dialog.dispose();
                     showPage(PAGE_INCOME);
-                },
-                () -> buildIncomeJsonPreview(amountField, sourceBox, dateField),
-                amountField, sourceBox, dateField);
+                });
     }
 
     private void showExpenseDialog() {
@@ -1797,9 +1789,7 @@ public class MainFrame extends JFrame {
                     addExpenseEntry(new ExpenseEntry(amount.doubleValue(), category, item, date));
                     dialog.dispose();
                     showPage(PAGE_EXPENSES);
-                },
-                () -> buildExpenseJsonPreview(categoryBox, itemField, amountField, dateField),
-                categoryBox, itemField, amountField, dateField);
+                });
     }
     private String normalizeExpenseDate(String value) {
         if (value == null) {
@@ -1857,9 +1847,7 @@ public class MainFrame extends JFrame {
                     handleFinancialDataChanged();
                     dialog.dispose();
                     showPage(PAGE_BUDGET);
-                },
-                () -> buildBudgetJsonPreview(categoryBox, amountField),
-                categoryBox, amountField);
+                });
     }
 
     private void showSavingGoalDialog() {
@@ -1883,9 +1871,7 @@ public class MainFrame extends JFrame {
                     handleFinancialDataChanged();
                     dialog.dispose();
                     showPage(PAGE_SAVING_GOAL);
-                },
-                () -> buildSavingGoalJsonPreview(amountField),
-                amountField);
+                });
     }
 
     private void showDailySavingsDialog() {
@@ -1927,9 +1913,7 @@ public class MainFrame extends JFrame {
                     handleFinancialDataChanged();
                     dialog.dispose();
                     showPage(PAGE_SAVING_GOAL);
-                },
-                () -> buildDailySavingsJsonPreview(categoryBox, amountField, dateField),
-                categoryBox, amountField, dateField);
+                });
     }
 
     private JPanel createDialogForm(String[] labels, Component[] components) {
@@ -1957,12 +1941,6 @@ public class MainFrame extends JFrame {
 
     private void showStyledInputDialog(String title, String subtitle, JComponent formContent, Component focusTarget,
             Dimension minimumSize, Consumer<JDialog> onConfirm) {
-        showStyledInputDialog(title, subtitle, formContent, focusTarget, minimumSize, onConfirm, null);
-    }
-
-    private void showStyledInputDialog(String title, String subtitle, JComponent formContent, Component focusTarget,
-            Dimension minimumSize, Consumer<JDialog> onConfirm, Supplier<String> jsonPreviewSupplier,
-            Component... previewBoundComponents) {
         JDialog dialog = new JDialog(this, title, true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setResizable(false);
@@ -2002,10 +1980,6 @@ public class MainFrame extends JFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         formContent.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(formContent);
-        if (jsonPreviewSupplier != null) {
-            content.add(Box.createVerticalStrut(16));
-            content.add(createJsonPreviewSection(jsonPreviewSupplier, previewBoundComponents));
-        }
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actions.setOpaque(false);
@@ -2036,284 +2010,6 @@ public class MainFrame extends JFrame {
             SwingUtilities.invokeLater(() -> focusTarget.requestFocusInWindow());
         }
         dialog.setVisible(true);
-    }
-
-    private JComponent createJsonPreviewSection(Supplier<String> jsonPreviewSupplier, Component... boundComponents) {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel label = createDialogFieldLabel("JSON Preview");
-        panel.add(label);
-        panel.add(Box.createVerticalStrut(6));
-
-        JTextArea previewArea = new JTextArea();
-        previewArea.setEditable(false);
-        previewArea.setRows(8);
-        previewArea.setLineWrap(false);
-        previewArea.setWrapStyleWord(false);
-        previewArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-        previewArea.setBackground(SURFACE_BLUE);
-        previewArea.setForeground(TEXT_PRIMARY);
-        previewArea.setBorder(new EmptyBorder(12, 12, 12, 12));
-
-        JScrollPane previewScrollPane = new JScrollPane(previewArea);
-        previewScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-        previewScrollPane.setPreferredSize(new Dimension(0, 180));
-        previewScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
-        previewScrollPane.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(CARD_BLUE_BORDER, 18, 1),
-                BorderFactory.createEmptyBorder()));
-        previewScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        previewScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        previewScrollPane.getViewport().setBackground(SURFACE_BLUE);
-
-        Runnable refreshPreview = () -> previewArea.setText(jsonPreviewSupplier.get());
-        attachJsonPreviewListeners(refreshPreview, boundComponents);
-        refreshPreview.run();
-
-        panel.add(previewScrollPane);
-        return panel;
-    }
-
-    private void attachJsonPreviewListeners(Runnable onChange, Component... components) {
-        if (onChange == null || components == null) {
-            return;
-        }
-        for (Component component : components) {
-            bindJsonPreviewListener(component, onChange);
-        }
-    }
-
-    private void bindJsonPreviewListener(Component component, Runnable onChange) {
-        if (component == null || onChange == null) {
-            return;
-        }
-        if (component instanceof JTextField) {
-            attachJsonPreviewDocumentListener(((JTextField) component).getDocument(), onChange);
-            return;
-        }
-        if (component instanceof JComboBox<?>) {
-            JComboBox<?> comboBox = (JComboBox<?>) component;
-            comboBox.addActionListener(event -> onChange.run());
-            if (comboBox.isEditable()) {
-                Component editorComponent = comboBox.getEditor().getEditorComponent();
-                if (editorComponent instanceof JTextField) {
-                    attachJsonPreviewDocumentListener(((JTextField) editorComponent).getDocument(), onChange);
-                }
-            }
-        }
-    }
-
-    private void attachJsonPreviewDocumentListener(Document document, Runnable onChange) {
-        if (document == null || onChange == null) {
-            return;
-        }
-        document.addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent event) {
-                onChange.run();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent event) {
-                onChange.run();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent event) {
-                onChange.run();
-            }
-        });
-    }
-
-    private String buildIncomeJsonPreview(JTextField amountField, JComboBox<String> sourceBox, JTextField dateField) {
-        LinkedHashMap<String, Object> payload = new LinkedHashMap<String, Object>();
-        payload.put("amount", resolveJsonNumber(amountField.getText()));
-        payload.put("source", readComboValue(sourceBox));
-        payload.put("date", safeTrim(dateField.getText()));
-        return toPrettyJson(payload);
-    }
-
-    private String buildExpenseJsonPreview(JComboBox<String> categoryBox, JTextField itemField, JTextField amountField,
-            JTextField dateField) {
-        LinkedHashMap<String, Object> payload = new LinkedHashMap<String, Object>();
-        payload.put("category", readComboValue(categoryBox));
-        payload.put("item", safeTrim(itemField.getText()));
-        payload.put("amount", resolveJsonNumber(amountField.getText()));
-        payload.put("date", resolveJsonDate(normalizeExpenseDate(dateField.getText().trim()), dateField.getText()));
-        return toPrettyJson(payload);
-    }
-
-    private String buildBudgetJsonPreview(JComboBox<String> categoryBox, JTextField amountField) {
-        LinkedHashMap<String, Object> payload = new LinkedHashMap<String, Object>();
-        payload.put("category", readComboValue(categoryBox));
-        payload.put("amount", resolveJsonNumber(amountField.getText()));
-        return toPrettyJson(payload);
-    }
-
-    private String buildSavingGoalJsonPreview(JTextField amountField) {
-        LinkedHashMap<String, Object> payload = new LinkedHashMap<String, Object>();
-        payload.put("savingGoalTarget", resolveJsonNumber(amountField.getText()));
-        return toPrettyJson(payload);
-    }
-
-    private String buildDailySavingsJsonPreview(JComboBox<String> categoryBox, JTextField amountField,
-            JTextField dateField) {
-        LinkedHashMap<String, Object> payload = new LinkedHashMap<String, Object>();
-        payload.put("category", readComboValue(categoryBox));
-        payload.put("amount", resolveJsonNumber(amountField.getText()));
-        payload.put("date", safeTrim(dateField.getText()));
-        return toPrettyJson(payload);
-    }
-
-    private Object resolveJsonNumber(String value) {
-        String trimmed = safeTrim(value);
-        if (trimmed.isEmpty()) {
-            return "";
-        }
-        Double parsedAmount = parseAmount(trimmed);
-        return parsedAmount == null ? trimmed : parsedAmount;
-    }
-
-    private Object resolveJsonDate(String normalizedValue, String rawValue) {
-        if (normalizedValue != null && !normalizedValue.trim().isEmpty()) {
-            return normalizedValue.trim();
-        }
-        return safeTrim(rawValue);
-    }
-
-    private String readComboValue(JComboBox<String> comboBox) {
-        if (comboBox == null) {
-            return "";
-        }
-        Object selectedValue = comboBox.isEditable() ? comboBox.getEditor().getItem() : comboBox.getSelectedItem();
-        return selectedValue == null ? "" : String.valueOf(selectedValue).trim();
-    }
-
-    private String safeTrim(String value) {
-        return value == null ? "" : value.trim();
-    }
-
-    private String toPrettyJson(Object value) {
-        StringBuilder builder = new StringBuilder();
-        appendPrettyJsonValue(builder, value, 0);
-        return builder.toString();
-    }
-
-    private void appendPrettyJsonValue(StringBuilder builder, Object value, int indentLevel) {
-        if (value == null) {
-            builder.append("null");
-            return;
-        }
-        if (value instanceof String) {
-            appendJsonString(builder, (String) value);
-            return;
-        }
-        if (value instanceof Number || value instanceof Boolean) {
-            builder.append(String.valueOf(value));
-            return;
-        }
-        if (value instanceof Map<?, ?>) {
-            appendPrettyJsonObject(builder, (Map<?, ?>) value, indentLevel);
-            return;
-        }
-        if (value instanceof List<?>) {
-            appendPrettyJsonArray(builder, (List<?>) value, indentLevel);
-            return;
-        }
-        appendJsonString(builder, String.valueOf(value));
-    }
-
-    private void appendPrettyJsonObject(StringBuilder builder, Map<?, ?> values, int indentLevel) {
-        builder.append("{");
-        if (!values.isEmpty()) {
-            builder.append("\n");
-        }
-
-        int index = 0;
-        for (Map.Entry<?, ?> entry : values.entrySet()) {
-            appendJsonIndent(builder, indentLevel + 1);
-            appendJsonString(builder, String.valueOf(entry.getKey()));
-            builder.append(": ");
-            appendPrettyJsonValue(builder, entry.getValue(), indentLevel + 1);
-            if (index < values.size() - 1) {
-                builder.append(",");
-            }
-            builder.append("\n");
-            index++;
-        }
-
-        if (!values.isEmpty()) {
-            appendJsonIndent(builder, indentLevel);
-        }
-        builder.append("}");
-    }
-
-    private void appendPrettyJsonArray(StringBuilder builder, List<?> values, int indentLevel) {
-        builder.append("[");
-        if (!values.isEmpty()) {
-            builder.append("\n");
-        }
-
-        for (int index = 0; index < values.size(); index++) {
-            appendJsonIndent(builder, indentLevel + 1);
-            appendPrettyJsonValue(builder, values.get(index), indentLevel + 1);
-            if (index < values.size() - 1) {
-                builder.append(",");
-            }
-            builder.append("\n");
-        }
-
-        if (!values.isEmpty()) {
-            appendJsonIndent(builder, indentLevel);
-        }
-        builder.append("]");
-    }
-
-    private void appendJsonIndent(StringBuilder builder, int indentLevel) {
-        for (int index = 0; index < indentLevel; index++) {
-            builder.append("  ");
-        }
-    }
-
-    private void appendJsonString(StringBuilder builder, String value) {
-        builder.append('"');
-        for (int index = 0; index < value.length(); index++) {
-            char current = value.charAt(index);
-            switch (current) {
-                case '\\':
-                    builder.append("\\\\");
-                    break;
-                case '"':
-                    builder.append("\\\"");
-                    break;
-                case '\b':
-                    builder.append("\\b");
-                    break;
-                case '\f':
-                    builder.append("\\f");
-                    break;
-                case '\n':
-                    builder.append("\\n");
-                    break;
-                case '\r':
-                    builder.append("\\r");
-                    break;
-                case '\t':
-                    builder.append("\\t");
-                    break;
-                default:
-                    if (current < 0x20) {
-                        builder.append(String.format("\\u%04x", Integer.valueOf(current)));
-                    } else {
-                        builder.append(current);
-                    }
-                    break;
-            }
-        }
-        builder.append('"');
     }
 
     private JLabel createDialogFieldLabel(String text) {

@@ -22,18 +22,15 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class AppDatabase {
     private static final String DEFAULT_JDBC_URL = "jdbc:sqlite:data/baon.db";
     private static final String DEFAULT_APP_EMAIL = "student@email.com";
-    private static final Path DOT_ENV_PATH = Paths.get(".env");
-    private static final Map<String, String> DOT_ENV_VALUES = loadDotEnv();
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final int OTP_EXPIRY_MINUTES = 5;
+    private static final boolean OTP_DEV_FALLBACK = true;
     private static volatile boolean initialized;
 
     private AppDatabase() {
@@ -350,7 +347,7 @@ public final class AppDatabase {
 
         String otpCode = String.format("%06d", Integer.valueOf(RANDOM.nextInt(1000000)));
         long now = Instant.now().toEpochMilli();
-        int expiryMinutes = Math.max(1, getConfigInt("OTP_EXPIRY_MINUTES", 5));
+        int expiryMinutes = OTP_EXPIRY_MINUTES;
         long expiresAt = now + (expiryMinutes * 60L * 1000L);
 
         try (Connection connection = openConnection()) {
@@ -376,11 +373,11 @@ public final class AppDatabase {
             SmtpClient.sendEmail(normalizedEmail, subject, body);
             return OtpDispatchResult.success("OTP sent. Check your email inbox.");
         } catch (Throwable exception) {
-            if (isDevOtpFallbackEnabled()) {
+            if (OTP_DEV_FALLBACK) {
                 return OtpDispatchResult.success("SMTP unavailable. Dev OTP: " + otpCode);
             }
             invalidateAllOtps(normalizedEmail);
-            return OtpDispatchResult.failure("Unable to send OTP email. Check SMTP settings in .env.");
+            return OtpDispatchResult.failure("Unable to send OTP email. Check SMTP settings in SmtpClient.");
         }
     }
 
@@ -715,13 +712,7 @@ public final class AppDatabase {
     private static Connection openConnection() throws SQLException, IOException {
         String jdbcUrl = jdbcUrl();
         ensureSqliteDirectory(jdbcUrl);
-        String user = getConfig("JDBC_USER", "").trim();
-        String password = getConfig("JDBC_PASSWORD", "");
-
-        if (user.isEmpty()) {
-            return DriverManager.getConnection(jdbcUrl);
-        }
-        return DriverManager.getConnection(jdbcUrl, user, password);
+        return DriverManager.getConnection(jdbcUrl);
     }
 
     private static void ensureSqliteDirectory(String jdbcUrl) throws IOException {
@@ -751,11 +742,11 @@ public final class AppDatabase {
     }
 
     private static String jdbcUrl() {
-        return getConfig("JDBC_URL", DEFAULT_JDBC_URL);
+        return DEFAULT_JDBC_URL;
     }
 
     private static String defaultEmail() {
-        return normalizeEmail(getConfig("APP_DEFAULT_EMAIL", DEFAULT_APP_EMAIL));
+        return normalizeEmail(DEFAULT_APP_EMAIL);
     }
 
     private static String normalizeEmail(String email) {
@@ -825,74 +816,6 @@ public final class AppDatabase {
         return merged;
     }
 
-    private static String getConfig(String key, String fallback) {
-        String environmentValue = System.getenv(key);
-        if (environmentValue != null && !environmentValue.trim().isEmpty()) {
-            return environmentValue.trim();
-        }
-        String dotEnvValue = DOT_ENV_VALUES.get(key);
-        if (dotEnvValue != null && !dotEnvValue.trim().isEmpty()) {
-            return dotEnvValue.trim();
-        }
-        return fallback;
-    }
-
-    private static int getConfigInt(String key, int fallback) {
-        String value = getConfig(key, String.valueOf(fallback));
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException exception) {
-            return fallback;
-        }
-    }
-
-    private static boolean getConfigBoolean(String key, boolean fallback) {
-        String value = getConfig(key, String.valueOf(fallback)).trim().toLowerCase();
-        if ("true".equals(value) || "1".equals(value) || "yes".equals(value)) {
-            return true;
-        }
-        if ("false".equals(value) || "0".equals(value) || "no".equals(value)) {
-            return false;
-        }
-        return fallback;
-    }
-
-    private static boolean isDevOtpFallbackEnabled() {
-        return getConfigBoolean("OTP_DEV_FALLBACK", true);
-    }
-
-    private static Map<String, String> loadDotEnv() {
-        if (!Files.exists(DOT_ENV_PATH)) {
-            return Collections.emptyMap();
-        }
-
-        HashMap<String, String> values = new HashMap<String, String>();
-        try {
-            List<String> lines = Files.readAllLines(DOT_ENV_PATH, StandardCharsets.UTF_8);
-            for (String rawLine : lines) {
-                String line = rawLine == null ? "" : rawLine.trim();
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-
-                int separator = line.indexOf('=');
-                if (separator <= 0) {
-                    continue;
-                }
-
-                String key = line.substring(0, separator).trim();
-                String value = line.substring(separator + 1).trim();
-                if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
-                    value = value.substring(1, value.length() - 1);
-                }
-                values.put(key, value);
-            }
-        } catch (IOException ignored) {
-            return Collections.emptyMap();
-        }
-
-        return values;
-    }
 
     public static final class DatabaseState {
         public final ArrayList<IncomeEntry> incomeEntries = new ArrayList<IncomeEntry>();

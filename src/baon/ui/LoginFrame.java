@@ -637,7 +637,7 @@ public class LoginFrame extends JFrame {
                 return;
             }
         } catch (Throwable exception) {
-            JOptionPane.showMessageDialog(this, "Create account failed. Check .env and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Create account failed. Check SMTP settings and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
             showStatus("Create account failed. Check SMTP settings and rebuild.", ERROR);
             return;
         }
@@ -733,7 +733,7 @@ public class LoginFrame extends JFrame {
             loginPasswordField.setText("");
             showStatus("Password reset successful. You can now sign in.", SUCCESS);
         } catch (Throwable exception) {
-            JOptionPane.showMessageDialog(this, "Password reset failed. Check .env and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Password reset failed. Check SMTP settings and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
             showStatus("Password reset failed. Check SMTP settings and rebuild.", ERROR);
         }
     }
@@ -996,3 +996,4 @@ public class LoginFrame extends JFrame {
         }
     }
 }
+
