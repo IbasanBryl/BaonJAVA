@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.Cursor;
@@ -52,6 +53,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -87,6 +89,8 @@ public class MainFrame extends JFrame {
     private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };
     private static final String[] INCOME_SOURCE_OPTIONS = new String[] { "Allowance", "Salary", "Scholarship", "Gift", "Side Hustle", "Other" };
     private static final String[] SAVINGS_CATEGORY_OPTIONS = new String[] { "Emergency", "School", "Travel", "Gadgets", "Other" };
+    private static final String BRAND_LOGO_PATH = "D:\\Baon Brain\\bb-logo.png";
+    private static final int BRAND_LOGO_SIZE = 34;
     private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
     private static final Color PAGE_BACKGROUND = AppTheme.color("--main-page-background", "#F5EED9");
     private static final Color PAGE_BACKGROUND_SOFT = AppTheme.color("--main-page-background-soft", "#FBF7EC");
@@ -275,17 +279,17 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createContentArea() {
-        JPanel panel = new JPanel(new BorderLayout(0, 18));
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.add(createNotificationBar(), BorderLayout.NORTH);
+        configureNotificationButton();
         panel.add(createPageScrollPane(), BorderLayout.CENTER);
         return panel;
     }
 
-    private JPanel createNotificationBar() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        panel.setOpaque(false);
-
+    private void configureNotificationButton() {
+        for (java.awt.event.ActionListener listener : notificationButton.getActionListeners()) {
+            notificationButton.removeActionListener(listener);
+        }
         notificationButton.setFocusable(false);
         notificationButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         notificationButton.setIcon(new MailOutlineIcon(22, 16));
@@ -301,9 +305,31 @@ public class MainFrame extends JFrame {
                 new EmptyBorder(4, 8, 8, 8)));
         notificationButton.setToolTipText("Please enable your notifications.");
         notificationButton.addActionListener(event -> showBudgetAlertInboxDialog());
-
-        panel.add(notificationButton);
         refreshNotificationBar();
+    }
+
+    private void refreshContentHeader() {
+        boolean showNotification = PAGE_DASHBOARD.equals(currentPage);
+        notificationButton.setVisible(showNotification);
+        notificationButton.revalidate();
+        notificationButton.repaint();
+    }
+
+    private JPanel createContentHeaderBar() {
+        JPanel panel = new JPanel(new BorderLayout(18, 0));
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(0, 0, 18, 0));
+
+        JLabel titleLabel = new JLabel("Financial Overview");
+        titleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
+        titleLabel.setForeground(TEXT_PRIMARY);
+
+        JPanel accessoryPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        accessoryPanel.setOpaque(false);
+        accessoryPanel.add(notificationButton);
+
+        panel.add(titleLabel, BorderLayout.WEST);
+        panel.add(accessoryPanel, BorderLayout.EAST);
         return panel;
     }
 
@@ -321,9 +347,13 @@ public class MainFrame extends JFrame {
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel brand = new JLabel("BaonBrain");
-        brand.setFont(new Font(FONT_FAMILY, Font.BOLD, 30));
+        brand.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
         brand.setForeground(SIDEBAR_TEXT);
         brand.setAlignmentX(Component.LEFT_ALIGNMENT);
+        brand.setIcon(loadBrandLogoIcon());
+        brand.setIconTextGap(8);
+        brand.setHorizontalTextPosition(SwingConstants.RIGHT);
+        brand.setVerticalTextPosition(SwingConstants.CENTER);
 
         JLabel body = new JLabel("<html>Track spending, plan smarter, and keep your weekly baon under control.</html>");
         body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
@@ -407,6 +437,15 @@ public class MainFrame extends JFrame {
         footer.add(Box.createHorizontalStrut(10));
         footer.add(sidebarUsernameLabel);
         return footer;
+    }
+
+    private Icon loadBrandLogoIcon() {
+        ImageIcon icon = new ImageIcon(BRAND_LOGO_PATH);
+        if (icon.getIconWidth() <= 0 || icon.getIconHeight() <= 0) {
+            return null;
+        }
+        Image scaled = icon.getImage().getScaledInstance(BRAND_LOGO_SIZE, BRAND_LOGO_SIZE, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaled);
     }
     private void showAccountMenu(JPopupMenu menu, Component anchor) {
         int margin = 8;
@@ -989,7 +1028,12 @@ public class MainFrame extends JFrame {
         pagePanel.add(createSavingGoalPage(), PAGE_SAVING_GOAL);
         pagePanel.add(createForecastPage(), PAGE_FORECAST);
 
-        JScrollPane scrollPane = new JScrollPane(pagePanel);
+        ResponsivePagePanel scrollContent = new ResponsivePagePanel(new BorderLayout());
+        scrollContent.setOpaque(false);
+        scrollContent.add(createContentHeaderBar(), BorderLayout.NORTH);
+        scrollContent.add(pagePanel, BorderLayout.CENTER);
+
+        JScrollPane scrollPane = new JScrollPane(scrollContent);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
@@ -1133,13 +1177,6 @@ public class MainFrame extends JFrame {
         textBlock.setOpaque(false);
         textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
 
-        JLabel mainTitle = new JLabel("Financial Overview");
-        mainTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
-        mainTitle.setForeground(TEXT_PRIMARY);
-        mainTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        textBlock.add(mainTitle);
-
         if (sectionTitle != null && description != null) {
             JLabel section = new JLabel(sectionTitle);
             section.setFont(new Font(FONT_FAMILY, Font.BOLD, 34));
@@ -1151,7 +1188,6 @@ public class MainFrame extends JFrame {
             body.setForeground(TEXT_SECONDARY);
             body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            textBlock.add(Box.createVerticalStrut(24));
             textBlock.add(section);
             textBlock.add(Box.createVerticalStrut(8));
             textBlock.add(body);
@@ -2885,6 +2921,7 @@ public class MainFrame extends JFrame {
         applySidebarButtonStyle(budgetNavButton, PAGE_BUDGET.equals(pageKey));
         applySidebarButtonStyle(savingGoalNavButton, PAGE_SAVING_GOAL.equals(pageKey));
         applySidebarButtonStyle(forecastNavButton, PAGE_FORECAST.equals(pageKey));
+        refreshContentHeader();
     }
 
     private DefaultTableModel createTableModel(String[] columns) {
@@ -3218,6 +3255,7 @@ public class MainFrame extends JFrame {
     private void refreshNotificationBar() {
         notificationButton.setBackground(hasUnreadBudgetAlerts ? PAGE_BACKGROUND_SOFT : SURFACE_TINT);
         notificationButton.setForeground(hasUnreadBudgetAlerts ? ORANGE : TEAL_DARK);
+        refreshContentHeader();
     }
 
     private void showBudgetAlertInboxDialog() {
@@ -3884,4 +3922,5 @@ public class MainFrame extends JFrame {
         }
     }
 }
+
 

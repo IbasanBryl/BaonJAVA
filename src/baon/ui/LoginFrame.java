@@ -24,6 +24,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -68,6 +69,7 @@ public class LoginFrame extends JFrame {
 
     private final JTextField loginEmailField = new JTextField();
     private final JPasswordField loginPasswordField = new JPasswordField();
+    private final JCheckBox loginShowPasswordCheckBox = new JCheckBox("Show password");
 
     private final JTextField createNameField = new JTextField();
     private final JTextField createEmailField = new JTextField();
@@ -83,6 +85,7 @@ public class LoginFrame extends JFrame {
     private JButton createAccountTabButton;
     private JButton loginButton;
     private JButton createButton;
+    private char loginPasswordEchoChar;
 
     public LoginFrame() {
         super("BaonBrain Login");
@@ -227,7 +230,18 @@ public class LoginFrame extends JFrame {
 
         statusLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         statusLabel.setForeground(TEXT_SECONDARY);
-        statusLabel.setBorder(new EmptyBorder(8, 4, 0, 4));
+        statusLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        statusLabel.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+        JPanel statusWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        statusWrap.setOpaque(false);
+
+        JPanel statusRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        statusRow.setOpaque(false);
+        statusRow.setMaximumSize(new Dimension(FORM_WIDTH, 24));
+        statusRow.setPreferredSize(new Dimension(FORM_WIDTH, 24));
+        statusRow.add(statusLabel);
+        statusWrap.add(statusRow);
 
         content.add(tabs);
         content.add(Box.createVerticalStrut(10));
@@ -238,7 +252,7 @@ public class LoginFrame extends JFrame {
         content.add(formContentPanel);
 
         card.add(content, BorderLayout.CENTER);
-        card.add(statusLabel, BorderLayout.SOUTH);
+        card.add(statusWrap, BorderLayout.SOUTH);
 
         switchTab(TAB_LOGIN);
         return card;
@@ -264,6 +278,26 @@ public class LoginFrame extends JFrame {
         stylePasswordField(loginPasswordField, "Enter your password");
         loginPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
         loginPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        if (loginPasswordEchoChar == 0) {
+            loginPasswordEchoChar = loginPasswordField.getEchoChar();
+        }
+
+        loginShowPasswordCheckBox.setOpaque(false);
+        loginShowPasswordCheckBox.setFocusPainted(false);
+        loginShowPasswordCheckBox.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        loginShowPasswordCheckBox.setForeground(TEXT_SECONDARY);
+        loginShowPasswordCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        for (java.awt.event.ActionListener listener : loginShowPasswordCheckBox.getActionListeners()) {
+            loginShowPasswordCheckBox.removeActionListener(listener);
+        }
+        loginShowPasswordCheckBox.addActionListener(event -> setLoginPasswordVisible(loginShowPasswordCheckBox.isSelected()));
+
+        JPanel showPasswordRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        showPasswordRow.setOpaque(false);
+        showPasswordRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        showPasswordRow.setMaximumSize(new Dimension(FORM_WIDTH, 24));
+        showPasswordRow.setPreferredSize(new Dimension(FORM_WIDTH, 24));
+        showPasswordRow.add(loginShowPasswordCheckBox);
 
         JPanel forgotRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         forgotRow.setOpaque(false);
@@ -287,6 +321,8 @@ public class LoginFrame extends JFrame {
         column.add(Box.createVerticalStrut(6));
         column.add(loginPasswordField);
         column.add(Box.createVerticalStrut(8));
+        column.add(showPasswordRow);
+        column.add(Box.createVerticalStrut(4));
         column.add(forgotRow);
         column.add(Box.createVerticalStrut(12));
         column.add(loginButton);
@@ -385,7 +421,13 @@ public class LoginFrame extends JFrame {
         } else if (!loginActive && createButton != null) {
             getRootPane().setDefaultButton(createButton);
         }
+        setLoginPasswordVisible(false);
         statusLabel.setText(" ");
+    }
+
+    private void setLoginPasswordVisible(boolean visible) {
+        loginShowPasswordCheckBox.setSelected(visible);
+        loginPasswordField.setEchoChar(visible ? (char) 0 : loginPasswordEchoChar);
     }
 
     private JButton createTab(String text, boolean active) {
@@ -889,8 +931,3 @@ public class LoginFrame extends JFrame {
         }
     }
 }
-
-
-
-
-
