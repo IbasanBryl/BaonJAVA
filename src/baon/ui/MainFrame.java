@@ -1,6 +1,7 @@
 package baon.ui;
 
 import baon.data.AppDatabase;
+import baon.data.RememberedLoginStore;
 import baon.model.ExpenseEntry;
 import baon.model.IncomeEntry;
 import baon.model.SavingEntry;
@@ -813,6 +814,7 @@ public class MainFrame extends JFrame {
                 return;
             }
 
+            RememberedLoginStore.updatePasswordIfRemembered(accountEmail, password);
             passwordUpdated[0] = true;
             dialog.dispose();
         });
@@ -3923,5 +3925,4 @@ public class MainFrame extends JFrame {
         }
     }
 }
-
 

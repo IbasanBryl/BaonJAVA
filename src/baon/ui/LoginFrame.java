@@ -1,6 +1,7 @@
 package baon.ui;
 
 import baon.data.AppDatabase;
+import baon.data.RememberedLoginStore;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -25,6 +26,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -72,6 +74,7 @@ public class LoginFrame extends JFrame {
     private final JTextField loginEmailField = new JTextField();
     private final JPasswordField loginPasswordField = new JPasswordField();
     private final JButton loginPasswordToggleButton = new JButton();
+    private final JCheckBox rememberPasswordCheckBox = new JCheckBox("Remember password");
 
     private final JTextField createNameField = new JTextField();
     private final JTextField createEmailField = new JTextField();
@@ -101,6 +104,7 @@ public class LoginFrame extends JFrame {
         setSize(1240, 760);
         setLocationRelativeTo(null);
         setContentPane(createRoot());
+        applyRememberedLogin();
         try {
             AppDatabase.initialize();
         } catch (RuntimeException exception) {
@@ -280,6 +284,15 @@ public class LoginFrame extends JFrame {
         JLabel passwordLabel = createFieldLabel("Password");
         JPanel passwordFieldRow = createLoginPasswordFieldRow();
 
+        JPanel rememberAndForgotRow = new JPanel(new BorderLayout());
+        rememberAndForgotRow.setOpaque(false);
+        rememberAndForgotRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        rememberAndForgotRow.setMaximumSize(new Dimension(FORM_WIDTH, 28));
+        rememberAndForgotRow.setPreferredSize(new Dimension(FORM_WIDTH, 28));
+
+        styleRememberPasswordCheckBox();
+        rememberAndForgotRow.add(rememberPasswordCheckBox, BorderLayout.WEST);
+
         JPanel forgotRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         forgotRow.setOpaque(false);
         forgotRow.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -288,6 +301,7 @@ public class LoginFrame extends JFrame {
         JButton forgotPasswordButton = createLinkButton("Forgot password?");
         forgotPasswordButton.addActionListener(event -> handleForgotPassword());
         forgotRow.add(forgotPasswordButton);
+        rememberAndForgotRow.add(forgotRow, BorderLayout.EAST);
 
         loginButton = createPrimaryButton("Sign In to Dashboard");
         loginButton.addActionListener(event -> handleLogin());
@@ -302,7 +316,7 @@ public class LoginFrame extends JFrame {
         column.add(Box.createVerticalStrut(6));
         column.add(passwordFieldRow);
         column.add(Box.createVerticalStrut(8));
-        column.add(forgotRow);
+        column.add(rememberAndForgotRow);
         column.add(Box.createVerticalStrut(12));
         column.add(loginButton);
         column.add(Box.createVerticalStrut(10));
@@ -429,6 +443,17 @@ public class LoginFrame extends JFrame {
         return passwordFieldRow;
     }
 
+    private void applyRememberedLogin() {
+        RememberedLoginStore.RememberedLogin rememberedLogin = RememberedLoginStore.load();
+        if (!rememberedLogin.remembered) {
+            return;
+        }
+
+        loginEmailField.setText(rememberedLogin.email);
+        loginPasswordField.setText(rememberedLogin.password);
+        rememberPasswordCheckBox.setSelected(true);
+    }
+
     private void configureLoginPasswordToggleButton() {
         for (java.awt.event.ActionListener listener : loginPasswordToggleButton.getActionListeners()) {
             loginPasswordToggleButton.removeActionListener(listener);
@@ -545,6 +570,15 @@ public class LoginFrame extends JFrame {
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
+    private void styleRememberPasswordCheckBox() {
+        rememberPasswordCheckBox.setOpaque(false);
+        rememberPasswordCheckBox.setFocusPainted(false);
+        rememberPasswordCheckBox.setForeground(TEXT_SECONDARY);
+        rememberPasswordCheckBox.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        rememberPasswordCheckBox.setBorder(new EmptyBorder(0, 0, 0, 0));
+        rememberPasswordCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+
     private void handleLogin() {
         String email = loginEmailField.getText().trim().toLowerCase();
         String password = new String(loginPasswordField.getPassword()).trim();
@@ -574,6 +608,12 @@ public class LoginFrame extends JFrame {
         if (user == null) {
             showStatus("Invalid email or password.", ERROR);
             return;
+        }
+
+        if (rememberPasswordCheckBox.isSelected()) {
+            RememberedLoginStore.save(email, password);
+        } else {
+            RememberedLoginStore.clear();
         }
 
         showStatus("Login successful. Opening dashboard...", SUCCESS);
@@ -730,7 +770,8 @@ public class LoginFrame extends JFrame {
             }
 
             loginEmailField.setText(email);
-            loginPasswordField.setText("");
+            loginPasswordField.setText(newPassword);
+            RememberedLoginStore.updatePasswordIfRemembered(email, newPassword);
             showStatus("Password reset successful. You can now sign in.", SUCCESS);
         } catch (Throwable exception) {
             JOptionPane.showMessageDialog(this, "Password reset failed. Check SMTP settings and rebuild.", "Error", JOptionPane.ERROR_MESSAGE);
