@@ -137,6 +137,62 @@ public class MainFrame extends JFrame {
     private static final Color SIDEBAR_ACTIVE_BORDER = AppTheme.color("--main-sidebar-active-border", "#7FA6A7");
     private static final Color FILLED_BADGE_BACKGROUND = AppTheme.color("--main-filled-badge-background", "rgba(255, 255, 255, 30)");
     private static final Color FILLED_BODY_TEXT = AppTheme.color("--main-filled-body-text", "rgb(245, 248, 248)");
+    private static final Color MANAGE_SURFACE = AppTheme.color("--main-manage-surface", "#FFFDF8");
+    private static final Color MANAGE_BORDER = AppTheme.color("--main-manage-border", "#E7D7AE");
+    private static final Color MANAGE_MUTED_SURFACE = AppTheme.color("--main-manage-muted-surface", "#FFF8EE");
+    private static final Color MANAGE_CHIP_BACKGROUND = AppTheme.color("--main-manage-chip-background", "#F5FBF6");
+    private static final Color MANAGE_CHIP_BORDER = AppTheme.color("--main-manage-chip-border", "#D7E9DB");
+    private static final Color MANAGE_TITLE = AppTheme.color("--main-manage-title", "#111713");
+    private static final Color MANAGE_SUBTITLE = AppTheme.color("--main-manage-subtitle", "#7A613E");
+    private static final Color MANAGE_ACCENT = AppTheme.color("--main-manage-accent", "#5BA476");
+    private static final Color MANAGE_ACCENT_DARK = AppTheme.color("--main-manage-accent-dark", "#356D4B");
+    private static final Color MANAGE_SECONDARY_BUTTON_FILL = AppTheme.color("--main-manage-secondary-button-fill", "#FFF8EE");
+    private static final Color MANAGE_SECONDARY_BUTTON_BORDER = AppTheme.color("--main-manage-secondary-button-border", "#E7D7AE");
+    private static final Color MANAGE_SECONDARY_BUTTON_TEXT = AppTheme.color("--main-manage-secondary-button-text", "#111713");
+    private static final Color NOTIFICATION_SURFACE = AppTheme.color("--main-notification-surface", "#FFFDF9");
+    private static final Color NOTIFICATION_BORDER = AppTheme.color("--main-notification-border", "#E8D9B2");
+    private static final Color NOTIFICATION_MUTED_SURFACE = AppTheme.color("--main-notification-muted-surface", "#FFF7EA");
+    private static final Color NOTIFICATION_HOVER = AppTheme.color("--main-notification-hover", "#FFF2D9");
+    private static final Color NOTIFICATION_UNREAD = AppTheme.color("--main-notification-unread", "#FFF3DE");
+    private static final Color NOTIFICATION_UNREAD_TEXT = AppTheme.color("--main-notification-unread-text", "#C57A21");
+    private static final int MANAGE_DIALOG_WIDTH = AppTheme.integer("--main-manage-dialog-width", 980);
+    private static final int MANAGE_DIALOG_HEIGHT = AppTheme.integer("--main-manage-dialog-height", 820);
+    private static final int MANAGE_DIALOG_MIN_WIDTH = AppTheme.integer("--main-manage-dialog-min-width", 760);
+    private static final int MANAGE_DIALOG_MIN_HEIGHT = AppTheme.integer("--main-manage-dialog-min-height", 640);
+    private static final int MANAGE_CARD_WIDTH = AppTheme.integer("--main-manage-card-width", 720);
+    private static final int MANAGE_CONTENT_WIDTH = AppTheme.integer("--main-manage-content-width", 660);
+    private static final int MANAGE_HEADER_GAP = AppTheme.integer("--main-manage-header-gap", 18);
+    private static final int MANAGE_CARD_RADIUS = AppTheme.integer("--main-manage-card-radius", 24);
+    private static final int MANAGE_SECTION_RADIUS = AppTheme.integer("--main-manage-section-radius", 20);
+    private static final int MANAGE_FIELD_RADIUS = AppTheme.integer("--main-manage-field-radius", 20);
+    private static final int MANAGE_INPUT_RADIUS = AppTheme.integer("--main-manage-input-radius", 22);
+    private static final int MANAGE_BUTTON_RADIUS = AppTheme.integer("--main-manage-button-radius", 28);
+    private static final int MANAGE_CARD_PADDING = AppTheme.integer("--main-manage-card-padding", 30);
+    private static final int MANAGE_SECTION_PADDING = AppTheme.integer("--main-manage-section-padding", 18);
+    private static final int MANAGE_FIELD_PADDING = AppTheme.integer("--main-manage-field-padding", 16);
+    private static final int MANAGE_SECTION_GAP = AppTheme.integer("--main-manage-section-gap", 24);
+    private static final int MANAGE_FIELD_GAP = AppTheme.integer("--main-manage-field-gap", 16);
+    private static final int MANAGE_ACTION_GAP = AppTheme.integer("--main-manage-action-gap", 12);
+    private static final int MANAGE_INPUT_HEIGHT = AppTheme.integer("--main-manage-input-height", 46);
+    private static final int MANAGE_ACTION_HEIGHT = AppTheme.integer("--main-manage-action-height", 42);
+    private static final int MANAGE_CHIP_FONT_SIZE = AppTheme.integer("--main-manage-chip-font-size", 12);
+    private static final int MANAGE_TITLE_FONT_SIZE = AppTheme.integer("--main-manage-title-font-size", 34);
+    private static final int MANAGE_SUBTITLE_FONT_SIZE = AppTheme.integer("--main-manage-subtitle-font-size", 17);
+    private static final int MANAGE_SECTION_LABEL_FONT_SIZE = AppTheme.integer("--main-manage-section-label-font-size", 13);
+    private static final int MANAGE_HEADING_FONT_SIZE = AppTheme.integer("--main-manage-heading-font-size", 22);
+    private static final int MANAGE_FIELD_TITLE_FONT_SIZE = AppTheme.integer("--main-manage-field-title-font-size", 15);
+    private static final int MANAGE_FIELD_NOTE_FONT_SIZE = AppTheme.integer("--main-manage-field-note-font-size", 12);
+    private static final int MANAGE_BUTTON_FONT_SIZE = AppTheme.integer("--main-manage-button-font-size", 14);
+    private static final int NOTIFICATION_DIALOG_WIDTH = AppTheme.integer("--main-notification-dialog-width", 620);
+    private static final int NOTIFICATION_DIALOG_HEIGHT = AppTheme.integer("--main-notification-dialog-height", 560);
+    private static final int NOTIFICATION_DIALOG_MIN_WIDTH = AppTheme.integer("--main-notification-dialog-min-width", 460);
+    private static final int NOTIFICATION_DIALOG_MIN_HEIGHT = AppTheme.integer("--main-notification-dialog-min-height", 420);
+    private static final int NOTIFICATION_BUTTON_WIDTH = AppTheme.integer("--main-notification-button-width", 54);
+    private static final int NOTIFICATION_BUTTON_HEIGHT = AppTheme.integer("--main-notification-button-height", 44);
+    private static final int NOTIFICATION_BUTTON_RADIUS = AppTheme.integer("--main-notification-button-radius", 20);
+    private static final int NOTIFICATION_CARD_RADIUS = AppTheme.integer("--main-notification-card-radius", 22);
+    private static final int NOTIFICATION_ITEM_RADIUS = AppTheme.integer("--main-notification-item-radius", 18);
+    private static final int NOTIFICATION_SECTION_GAP = AppTheme.integer("--main-notification-section-gap", 18);
 
     private final ArrayList<IncomeEntry> incomeEntries = new ArrayList<IncomeEntry>();
     private final ArrayList<ExpenseEntry> expenseEntries = new ArrayList<ExpenseEntry>();
@@ -296,21 +352,21 @@ public class MainFrame extends JFrame {
         notificationButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         notificationButton.setIcon(new MailOutlineIcon(22, 16));
         notificationButton.setForeground(TEAL_DARK);
-        notificationButton.setBackground(SURFACE_TINT);
+        notificationButton.setBackground(NOTIFICATION_MUTED_SURFACE);
         notificationButton.setOpaque(true);
         notificationButton.setContentAreaFilled(true);
         notificationButton.setFocusPainted(false);
         notificationButton.setText("");
-        notificationButton.setPreferredSize(new Dimension(54, 44));
+        notificationButton.setPreferredSize(new Dimension(NOTIFICATION_BUTTON_WIDTH, NOTIFICATION_BUTTON_HEIGHT));
         notificationButton.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(CARD_TINT_BORDER, 20, 1),
+                new RoundedLineBorder(NOTIFICATION_BORDER, NOTIFICATION_BUTTON_RADIUS, 1),
                 new EmptyBorder(4, 8, 8, 8)));
         notificationButton.setToolTipText("Open notifications");
         notificationButton.addActionListener(event -> showBudgetAlertInboxDialog());
         notificationButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent event) {
-                notificationButton.setBackground(hasUnreadBudgetAlerts ? PAGE_BACKGROUND : PAGE_BACKGROUND_SOFT);
+                notificationButton.setBackground(hasUnreadBudgetAlerts ? NOTIFICATION_HOVER : PAGE_BACKGROUND_SOFT);
             }
 
             @Override
@@ -512,18 +568,18 @@ public class MainFrame extends JFrame {
     }
     private void showManageAccountDialog() {
         final Color dialogBackground = PAGE_BACKGROUND_SOFT;
-        final Color cardBackground = SURFACE;
-        final Color cardBorder = SURFACE_BORDER;
-        final Color fieldBackground = SURFACE;
-        final Color fieldBorder = SURFACE_BORDER;
-        final Color textPrimary = TEXT_PRIMARY;
-        final Color textSecondary = TEXT_SECONDARY;
+        final Color cardBackground = MANAGE_SURFACE;
+        final Color cardBorder = MANAGE_BORDER;
+        final Color fieldBackground = MANAGE_SURFACE;
+        final Color fieldBorder = MANAGE_BORDER;
+        final Color textPrimary = MANAGE_TITLE;
+        final Color textSecondary = MANAGE_SUBTITLE;
 
         JDialog dialog = new JDialog(this, "Manage Account", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setResizable(true);
-        dialog.setSize(980, 820);
-        dialog.setMinimumSize(new Dimension(760, 640));
+        dialog.setSize(MANAGE_DIALOG_WIDTH, MANAGE_DIALOG_HEIGHT);
+        dialog.setMinimumSize(new Dimension(MANAGE_DIALOG_MIN_WIDTH, MANAGE_DIALOG_MIN_HEIGHT));
         dialog.setLocationRelativeTo(this);
 
         JPanel root = new JPanel(new GridBagLayout()) {
@@ -539,35 +595,27 @@ public class MainFrame extends JFrame {
         };
         root.setBorder(new EmptyBorder(18, 18, 18, 18));
 
-        SurfacePanel card = createSurface(new BorderLayout(0, 24), cardBackground, cardBorder, 24);
-        card.setBorder(new EmptyBorder(30, 30, 28, 30));
-        card.setPreferredSize(new Dimension(720, 0));
+        SurfacePanel card = createSurface(new BorderLayout(0, MANAGE_SECTION_GAP), cardBackground, cardBorder, MANAGE_CARD_RADIUS);
+        card.setBorder(new EmptyBorder(MANAGE_CARD_PADDING, MANAGE_CARD_PADDING, MANAGE_CARD_PADDING - 2, MANAGE_CARD_PADDING));
+        card.setPreferredSize(new Dimension(MANAGE_CARD_WIDTH, 0));
 
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.setMaximumSize(new Dimension(660, Integer.MAX_VALUE));
-        content.setPreferredSize(new Dimension(660, content.getPreferredSize().height));
+        content.setMaximumSize(new Dimension(MANAGE_CONTENT_WIDTH, Integer.MAX_VALUE));
+        content.setPreferredSize(new Dimension(MANAGE_CONTENT_WIDTH, content.getPreferredSize().height));
 
-        JLabel chip = new JLabel("PROFILE SETTINGS", SwingConstants.LEFT);
-        chip.setOpaque(true);
-        chip.setBackground(SURFACE_BLUE);
-        chip.setForeground(TEAL_DARK);
-        chip.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
-        chip.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(CARD_BLUE_BORDER, 20, 1),
-                new EmptyBorder(6, 14, 6, 14)));
-        chip.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel chip = createManageChipLabel("PROFILE SETTINGS");
 
         JLabel title = new JLabel("Manage Account");
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 34));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_TITLE_FONT_SIZE));
         title.setForeground(textPrimary);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextArea subtitle = createWrappedTextArea(
                 "Update how your account appears in the dashboard and keep your sign-in details organized.",
-                new Font(FONT_FAMILY, Font.PLAIN, 17),
+                new Font(FONT_FAMILY, Font.PLAIN, MANAGE_SUBTITLE_FONT_SIZE),
                 textSecondary);
 
         JPanel detailsGroup = new JPanel();
@@ -575,10 +623,7 @@ public class MainFrame extends JFrame {
         detailsGroup.setLayout(new BoxLayout(detailsGroup, BoxLayout.Y_AXIS));
         detailsGroup.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel detailsLabel = new JLabel("ACCOUNT DETAILS");
-        detailsLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
-        detailsLabel.setForeground(TEAL_DARK);
-        detailsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel detailsLabel = createManageSectionLabel("ACCOUNT DETAILS");
 
         JTextField emailField = new JTextField(accountEmail);
         styleManageTextField(emailField, false, fieldBackground, fieldBorder, textSecondary);
@@ -595,66 +640,63 @@ public class MainFrame extends JFrame {
         detailsGroup.add(detailsLabel);
         detailsGroup.add(Box.createVerticalStrut(12));
         detailsGroup.add(emailCard);
-        detailsGroup.add(Box.createVerticalStrut(16));
+        detailsGroup.add(Box.createVerticalStrut(MANAGE_FIELD_GAP));
         detailsGroup.add(displayNameCard);
 
-        SurfacePanel securityCard = createSurface(new BorderLayout(20, 0), cardBackground, cardBorder, 20);
-        securityCard.setBorder(new EmptyBorder(18, 18, 18, 18));
+        SurfacePanel securityCard = createSurface(new BorderLayout(0, MANAGE_FIELD_GAP), cardBackground, cardBorder, MANAGE_SECTION_RADIUS);
+        securityCard.setBorder(new EmptyBorder(MANAGE_SECTION_PADDING, MANAGE_SECTION_PADDING, MANAGE_SECTION_PADDING, MANAGE_SECTION_PADDING));
         securityCard.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel securityText = new JPanel();
-        securityText.setOpaque(false);
-        securityText.setLayout(new BoxLayout(securityText, BoxLayout.Y_AXIS));
-        securityText.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel securityContent = new JPanel();
+        securityContent.setOpaque(false);
+        securityContent.setLayout(new BoxLayout(securityContent, BoxLayout.Y_AXIS));
+        securityContent.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel securityTitle = new JLabel("SECURITY");
-        securityTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
-        securityTitle.setForeground(TEAL_DARK);
-        securityTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel securityTitle = createManageSectionLabel("SECURITY");
 
         JLabel securityHeading = new JLabel("Password");
-        securityHeading.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
+        securityHeading.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_HEADING_FONT_SIZE));
         securityHeading.setForeground(textPrimary);
         securityHeading.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextArea securityBody = createWrappedTextArea(
                 "Change your password anytime to keep your account protected.",
-                new Font(FONT_FAMILY, Font.PLAIN, 15),
+                new Font(FONT_FAMILY, Font.PLAIN, MANAGE_SUBTITLE_FONT_SIZE - 1),
                 textSecondary);
 
         JPanel securityActionWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         securityActionWrap.setOpaque(false);
         securityActionWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton changePasswordButton = createManageActionButton("Change Password", TEAL, TEAL_DARK, Color.WHITE);
-        changePasswordButton.setPreferredSize(new Dimension(180, 46));
-        changePasswordButton.setMaximumSize(new Dimension(180, 46));
+        JButton changePasswordButton = createManageActionButton("Change Password", MANAGE_ACCENT, MANAGE_ACCENT_DARK, Color.WHITE);
+        changePasswordButton.setPreferredSize(new Dimension(180, MANAGE_INPUT_HEIGHT));
+        changePasswordButton.setMaximumSize(new Dimension(180, MANAGE_INPUT_HEIGHT));
         changePasswordButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         changePasswordButton.addActionListener(event -> showChangePasswordDialog(dialog));
         securityActionWrap.add(changePasswordButton);
 
-        securityText.add(securityTitle);
-        securityText.add(Box.createVerticalStrut(8));
-        securityText.add(securityHeading);
-        securityText.add(Box.createVerticalStrut(10));
-        securityText.add(securityBody);
-        securityCard.add(securityText, BorderLayout.CENTER);
-        securityCard.add(securityActionWrap, BorderLayout.SOUTH);
+        securityContent.add(securityTitle);
+        securityContent.add(Box.createVerticalStrut(8));
+        securityContent.add(securityHeading);
+        securityContent.add(Box.createVerticalStrut(10));
+        securityContent.add(securityBody);
+        securityContent.add(Box.createVerticalStrut(MANAGE_FIELD_GAP));
+        securityContent.add(securityActionWrap);
+        securityCard.add(securityContent, BorderLayout.CENTER);
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, MANAGE_ACTION_GAP, 0));
         actions.setOpaque(false);
         actions.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT,
-                SURFACE_BORDER, TEXT_PRIMARY);
-        cancelButton.setPreferredSize(new Dimension(132, 42));
-        cancelButton.setMaximumSize(new Dimension(132, 42));
+        JButton cancelButton = createManageActionButton("Cancel", MANAGE_SECONDARY_BUTTON_FILL, MANAGE_SECONDARY_BUTTON_BORDER, MANAGE_SECONDARY_BUTTON_TEXT);
+        cancelButton.setPreferredSize(new Dimension(132, MANAGE_ACTION_HEIGHT));
+        cancelButton.setMaximumSize(new Dimension(132, MANAGE_ACTION_HEIGHT));
         cancelButton.addActionListener(event -> dialog.dispose());
 
-        JButton saveButton = createManageActionButton("Save Changes", TEAL,
-                TEAL_DARK, Color.WHITE);
-        saveButton.setPreferredSize(new Dimension(168, 42));
-        saveButton.setMaximumSize(new Dimension(168, 42));
+        JButton saveButton = createManageActionButton("Save Changes", MANAGE_ACCENT,
+                MANAGE_ACCENT_DARK, Color.WHITE);
+        saveButton.setPreferredSize(new Dimension(168, MANAGE_ACTION_HEIGHT));
+        saveButton.setMaximumSize(new Dimension(168, MANAGE_ACTION_HEIGHT));
         saveButton.addActionListener(event -> {
             String displayName = displayNameField.getText().trim();
             if (displayName.isEmpty()) {
@@ -676,15 +718,15 @@ public class MainFrame extends JFrame {
         actions.add(cancelButton);
 
         content.add(chip);
-        content.add(Box.createVerticalStrut(18));
+        content.add(Box.createVerticalStrut(MANAGE_HEADER_GAP));
         content.add(title);
         content.add(Box.createVerticalStrut(12));
         content.add(subtitle);
-        content.add(Box.createVerticalStrut(30));
+        content.add(Box.createVerticalStrut(MANAGE_CARD_PADDING));
         content.add(detailsGroup);
-        content.add(Box.createVerticalStrut(18));
+        content.add(Box.createVerticalStrut(MANAGE_FIELD_GAP + 2));
         content.add(securityCard);
-        content.add(Box.createVerticalStrut(24));
+        content.add(Box.createVerticalStrut(MANAGE_SECTION_GAP));
         content.add(actions);
 
         card.add(content, BorderLayout.CENTER);
@@ -714,19 +756,20 @@ public class MainFrame extends JFrame {
             Color cardBackground, Color cardBorder, Color titleColor, Color noteColor) {
         JPanel card = new JPanel();
         card.setOpaque(true);
-        card.setBackground(PAGE_BACKGROUND_SOFT);
+        card.setBackground(MANAGE_MUTED_SURFACE);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(cardBorder, 20, 1),
-                new EmptyBorder(16, 16, 16, 16)));
+                new RoundedLineBorder(cardBorder, MANAGE_FIELD_RADIUS, 1),
+                new EmptyBorder(MANAGE_FIELD_PADDING, MANAGE_FIELD_PADDING, MANAGE_FIELD_PADDING, MANAGE_FIELD_PADDING)));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JLabel title = new JLabel(titleText);
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_FIELD_TITLE_FONT_SIZE));
         title.setForeground(titleColor);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextArea note = createWrappedTextArea(noteText, new Font(FONT_FAMILY, Font.PLAIN, 12), noteColor);
+        JTextArea note = createWrappedTextArea(noteText, new Font(FONT_FAMILY, Font.PLAIN, MANAGE_FIELD_NOTE_FONT_SIZE), noteColor);
 
         card.add(title);
         card.add(Box.createVerticalStrut(10));
@@ -737,14 +780,14 @@ public class MainFrame extends JFrame {
     }
     private void styleManageTextField(JTextField field, boolean editable, Color fillColor, Color borderColor, Color textColor) {
         field.setEditable(editable);
-        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, 15));
-        field.setBackground(editable ? fillColor : PAGE_BACKGROUND_SOFT);
+        field.setFont(new Font(FONT_FAMILY, Font.PLAIN, MANAGE_FIELD_TITLE_FONT_SIZE));
+        field.setBackground(editable ? fillColor : MANAGE_MUTED_SURFACE);
         field.setForeground(textColor);
         field.setCaretColor(SIDEBAR_TEXT);
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-        field.setPreferredSize(new Dimension(0, 46));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, MANAGE_INPUT_HEIGHT));
+        field.setPreferredSize(new Dimension(0, MANAGE_INPUT_HEIGHT));
         field.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(borderColor, 22, 1),
+                new RoundedLineBorder(borderColor, MANAGE_INPUT_RADIUS, 1),
                 new EmptyBorder(12, 18, 12, 18)));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
@@ -752,26 +795,78 @@ public class MainFrame extends JFrame {
         JButton button = new JButton(text);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_BUTTON_FONT_SIZE));
         button.setForeground(textColor);
         button.setBackground(fillColor);
         button.setOpaque(true);
         button.setContentAreaFilled(true);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(borderColor, 28, 1),
+                new RoundedLineBorder(borderColor, MANAGE_BUTTON_RADIUS, 1),
                 new EmptyBorder(11, 20, 11, 20)));
-        button.setPreferredSize(new Dimension(152, 40));
+        button.setPreferredSize(new Dimension(152, MANAGE_ACTION_HEIGHT));
+        installButtonHover(button, fillColor);
         return button;
     }
+
+    private JLabel createManageChipLabel(String text) {
+        JLabel label = new JLabel(text, SwingConstants.LEFT);
+        label.setOpaque(true);
+        label.setBackground(MANAGE_CHIP_BACKGROUND);
+        label.setForeground(MANAGE_ACCENT_DARK);
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_CHIP_FONT_SIZE));
+        label.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(MANAGE_CHIP_BORDER, 20, 1),
+                new EmptyBorder(6, 14, 6, 14)));
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
+    }
+
+    private JLabel createManageSectionLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_SECTION_LABEL_FONT_SIZE));
+        label.setForeground(MANAGE_ACCENT_DARK);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
+    }
+
+    private void installButtonHover(JButton button, Color baseColor) {
+        final Color hoverColor = createButtonHoverColor(baseColor);
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                button.setBackground(hoverColor);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                button.setBackground(baseColor);
+            }
+        });
+    }
+
+    private Color createButtonHoverColor(Color baseColor) {
+        int average = (baseColor.getRed() + baseColor.getGreen() + baseColor.getBlue()) / 3;
+        return average > 210 ? mixColor(baseColor, MANAGE_BORDER, 0.35f) : mixColor(baseColor, Color.BLACK, 0.12f);
+    }
+
+    private Color mixColor(Color first, Color second, float ratio) {
+        float clamped = Math.max(0.0f, Math.min(1.0f, ratio));
+        float inverse = 1.0f - clamped;
+        int red = Math.round(first.getRed() * inverse + second.getRed() * clamped);
+        int green = Math.round(first.getGreen() * inverse + second.getGreen() * clamped);
+        int blue = Math.round(first.getBlue() * inverse + second.getBlue() * clamped);
+        return new Color(red, green, blue, first.getAlpha());
+    }
+
     private void showChangePasswordDialog(JDialog owner) {
         final Color dialogBackground = PAGE_BACKGROUND_SOFT;
 
-        final Color cardBackground = SURFACE;
-        final Color cardBorder = SURFACE_BORDER;
-        final Color fieldBackground = SURFACE;
-        final Color fieldBorder = SURFACE_BORDER;
-        final Color textPrimary = TEXT_PRIMARY;
-        final Color textSecondary = TEXT_SECONDARY;
+        final Color cardBackground = MANAGE_SURFACE;
+        final Color cardBorder = MANAGE_BORDER;
+        final Color fieldBackground = MANAGE_SURFACE;
+        final Color fieldBorder = MANAGE_BORDER;
+        final Color textPrimary = MANAGE_TITLE;
+        final Color textSecondary = MANAGE_SUBTITLE;
 
         final boolean[] passwordUpdated = new boolean[] { false };
 
@@ -796,35 +891,27 @@ public class MainFrame extends JFrame {
             }
         };
         root.setLayout(new BorderLayout());
-        root.setBorder(new EmptyBorder(10, 10, 10, 10));
+        root.setBorder(new EmptyBorder(14, 14, 14, 14));
 
         JPanel content = new JPanel();
         content.setOpaque(true);
         content.setBackground(cardBackground);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(cardBorder, 18, 1),
-                new EmptyBorder(14, 16, 14, 16)));
+                new RoundedLineBorder(cardBorder, MANAGE_SECTION_RADIUS, 1),
+                new EmptyBorder(MANAGE_SECTION_PADDING, MANAGE_SECTION_PADDING, MANAGE_SECTION_PADDING, MANAGE_SECTION_PADDING)));
 
-        JLabel chip = new JLabel("SECURITY", SwingConstants.LEFT);
-        chip.setOpaque(true);
-        chip.setBackground(SURFACE_BLUE);
-        chip.setForeground(TEAL_DARK);
-        chip.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
-        chip.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(CARD_BLUE_BORDER, 20, 1),
-                new EmptyBorder(5, 12, 5, 12)));
-        chip.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel chip = createManageChipLabel("SECURITY");
 
         JLabel title = new JLabel("Change Password");
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_HEADING_FONT_SIZE));
         title.setForeground(textPrimary);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel subtitle = new JLabel("<html>Update your password to keep your account protected.</html>");
-        subtitle.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
-        subtitle.setForeground(textSecondary);
-        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextArea subtitle = createWrappedTextArea(
+                "Update your password to keep your account protected.",
+                new Font(FONT_FAMILY, Font.PLAIN, MANAGE_FIELD_TITLE_FONT_SIZE - 1),
+                textSecondary);
 
         JPanel newPasswordCard = createManageFieldCard(
                 "New Password",
@@ -844,17 +931,18 @@ public class MainFrame extends JFrame {
                 textPrimary,
                 textSecondary);
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, MANAGE_ACTION_GAP, 0));
         actions.setOpaque(false);
+        actions.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT,
-                SURFACE_BORDER, TEXT_PRIMARY);
-        cancelButton.setPreferredSize(new Dimension(124, 38));
+        JButton cancelButton = createManageActionButton("Cancel", MANAGE_SECONDARY_BUTTON_FILL,
+                MANAGE_SECONDARY_BUTTON_BORDER, MANAGE_SECONDARY_BUTTON_TEXT);
+        cancelButton.setPreferredSize(new Dimension(124, MANAGE_ACTION_HEIGHT));
         cancelButton.addActionListener(event -> dialog.dispose());
 
-        JButton updateButton = createManageActionButton("Update Password", TEAL,
-                TEAL_DARK, Color.WHITE);
-        updateButton.setPreferredSize(new Dimension(168, 38));
+        JButton updateButton = createManageActionButton("Update Password", MANAGE_ACCENT,
+                MANAGE_ACCENT_DARK, Color.WHITE);
+        updateButton.setPreferredSize(new Dimension(168, MANAGE_ACTION_HEIGHT));
         updateButton.addActionListener(event -> {
             String password = new String(newPasswordField.getPassword()).trim();
             String confirmPassword = new String(confirmPasswordField.getPassword()).trim();
@@ -877,19 +965,19 @@ public class MainFrame extends JFrame {
             dialog.dispose();
         });
 
-        actions.add(cancelButton);
         actions.add(updateButton);
+        actions.add(cancelButton);
 
         content.add(chip);
-        content.add(Box.createVerticalStrut(10));
+        content.add(Box.createVerticalStrut(MANAGE_HEADER_GAP - 4));
         content.add(title);
         content.add(Box.createVerticalStrut(8));
         content.add(subtitle);
-        content.add(Box.createVerticalStrut(10));
+        content.add(Box.createVerticalStrut(MANAGE_FIELD_GAP));
         content.add(newPasswordCard);
-        content.add(Box.createVerticalStrut(10));
+        content.add(Box.createVerticalStrut(MANAGE_FIELD_GAP));
         content.add(confirmPasswordCard);
-        content.add(Box.createVerticalStrut(10));
+        content.add(Box.createVerticalStrut(MANAGE_SECTION_GAP));
         content.add(actions);
 
         root.add(content, BorderLayout.CENTER);
@@ -3407,8 +3495,8 @@ public class MainFrame extends JFrame {
     }
 
     private void refreshNotificationBar() {
-        notificationButton.setBackground(hasUnreadBudgetAlerts ? PAGE_BACKGROUND_SOFT : SURFACE_TINT);
-        notificationButton.setForeground(hasUnreadBudgetAlerts ? ORANGE : TEAL_DARK);
+        notificationButton.setBackground(hasUnreadBudgetAlerts ? NOTIFICATION_UNREAD : NOTIFICATION_MUTED_SURFACE);
+        notificationButton.setForeground(hasUnreadBudgetAlerts ? NOTIFICATION_UNREAD_TEXT : TEAL_DARK);
         notificationButton.setToolTipText(hasUnreadBudgetAlerts
                 ? "You have " + budgetAlertInbox.size() + " new notification" + (budgetAlertInbox.size() == 1 ? "" : "s")
                 : "Open notifications");
@@ -3425,8 +3513,8 @@ public class MainFrame extends JFrame {
         JDialog dialog = new JDialog(this, "Notifications", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setResizable(true);
-        dialog.setSize(620, 560);
-        dialog.setMinimumSize(new Dimension(460, 420));
+        dialog.setSize(NOTIFICATION_DIALOG_WIDTH, NOTIFICATION_DIALOG_HEIGHT);
+        dialog.setMinimumSize(new Dimension(NOTIFICATION_DIALOG_MIN_WIDTH, NOTIFICATION_DIALOG_MIN_HEIGHT));
         dialog.setLocationRelativeTo(this);
 
         JPanel root = new JPanel(new BorderLayout()) {
@@ -3442,7 +3530,7 @@ public class MainFrame extends JFrame {
         };
         root.setBorder(new EmptyBorder(16, 16, 16, 16));
 
-        SurfacePanel card = createSurface(new BorderLayout(0, 18), SURFACE, SURFACE_BORDER, 22);
+        SurfacePanel card = createSurface(new BorderLayout(0, NOTIFICATION_SECTION_GAP), NOTIFICATION_SURFACE, NOTIFICATION_BORDER, NOTIFICATION_CARD_RADIUS);
         card.setBorder(new EmptyBorder(22, 22, 20, 22));
 
         JPanel header = new JPanel();
@@ -3450,7 +3538,7 @@ public class MainFrame extends JFrame {
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel chip = createBadgeLabel("NOTIFICATIONS", SURFACE_BLUE, TEAL_DARK);
+        JLabel chip = createBadgeLabel("NOTIFICATIONS", MANAGE_CHIP_BACKGROUND, TEAL_DARK);
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel title = new JLabel("Alert Mail");
@@ -3514,7 +3602,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createNotificationItemCard(int index, String message) {
-        SurfacePanel panel = createSurface(new BorderLayout(0, 10), PAGE_BACKGROUND_SOFT, CARD_CREAM_BORDER, 18);
+        SurfacePanel panel = createSurface(new BorderLayout(0, 10), NOTIFICATION_MUTED_SURFACE, NOTIFICATION_BORDER, NOTIFICATION_ITEM_RADIUS);
         panel.setBorder(new EmptyBorder(16, 16, 16, 16));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
