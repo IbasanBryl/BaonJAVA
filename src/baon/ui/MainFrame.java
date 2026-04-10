@@ -295,24 +295,34 @@ public class MainFrame extends JFrame {
         notificationButton.setFocusable(false);
         notificationButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         notificationButton.setIcon(new MailOutlineIcon(22, 16));
-        notificationButton.setText("");
         notificationButton.setForeground(TEAL_DARK);
         notificationButton.setBackground(SURFACE_TINT);
         notificationButton.setOpaque(true);
         notificationButton.setContentAreaFilled(true);
         notificationButton.setFocusPainted(false);
+        notificationButton.setText("");
         notificationButton.setPreferredSize(new Dimension(54, 44));
         notificationButton.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(CARD_TINT_BORDER, 20, 1),
                 new EmptyBorder(4, 8, 8, 8)));
-        notificationButton.setToolTipText("Please enable your notifications.");
+        notificationButton.setToolTipText("Open notifications");
         notificationButton.addActionListener(event -> showBudgetAlertInboxDialog());
+        notificationButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                notificationButton.setBackground(hasUnreadBudgetAlerts ? PAGE_BACKGROUND : PAGE_BACKGROUND_SOFT);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                refreshNotificationBar();
+            }
+        });
         refreshNotificationBar();
     }
 
     private void refreshContentHeader() {
-        boolean showNotification = PAGE_DASHBOARD.equals(currentPage);
-        notificationButton.setVisible(showNotification);
+        notificationButton.setVisible(true);
         notificationButton.revalidate();
         notificationButton.repaint();
     }
@@ -3399,14 +3409,125 @@ public class MainFrame extends JFrame {
     private void refreshNotificationBar() {
         notificationButton.setBackground(hasUnreadBudgetAlerts ? PAGE_BACKGROUND_SOFT : SURFACE_TINT);
         notificationButton.setForeground(hasUnreadBudgetAlerts ? ORANGE : TEAL_DARK);
+        notificationButton.setToolTipText(hasUnreadBudgetAlerts
+                ? "You have " + budgetAlertInbox.size() + " new notification" + (budgetAlertInbox.size() == 1 ? "" : "s")
+                : "Open notifications");
         refreshContentHeader();
     }
 
     private void showBudgetAlertInboxDialog() {
         hasUnreadBudgetAlerts = false;
         refreshNotificationBar();
-        JOptionPane.showMessageDialog(this, buildBudgetAlertInboxHtml(), "Alert Mail",
-                budgetAlertInbox.isEmpty() ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+        showNotificationInboxDialog();
+    }
+
+    private void showNotificationInboxDialog() {
+        JDialog dialog = new JDialog(this, "Notifications", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setResizable(true);
+        dialog.setSize(620, 560);
+        dialog.setMinimumSize(new Dimension(460, 420));
+        dialog.setLocationRelativeTo(this);
+
+        JPanel root = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                super.paintComponent(graphics);
+                Graphics2D g2 = (Graphics2D) graphics.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setPaint(PAGE_BACKGROUND_SOFT);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+            }
+        };
+        root.setBorder(new EmptyBorder(16, 16, 16, 16));
+
+        SurfacePanel card = createSurface(new BorderLayout(0, 18), SURFACE, SURFACE_BORDER, 22);
+        card.setBorder(new EmptyBorder(22, 22, 20, 22));
+
+        JPanel header = new JPanel();
+        header.setOpaque(false);
+        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+        header.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel chip = createBadgeLabel("NOTIFICATIONS", SURFACE_BLUE, TEAL_DARK);
+        chip.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel title = new JLabel("Alert Mail");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 28));
+        title.setForeground(TEXT_PRIMARY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea subtitle = createWrappedTextArea(
+                budgetAlertInbox.isEmpty()
+                        ? "No notifications yet. Budget alerts will appear here when spending gets close to or exceeds a limit."
+                        : "Recent budget alerts are listed below. Open this panel anytime from the header.",
+                new Font(FONT_FAMILY, Font.PLAIN, 14),
+                TEXT_SECONDARY);
+
+        header.add(chip);
+        header.add(Box.createVerticalStrut(14));
+        header.add(title);
+        header.add(Box.createVerticalStrut(10));
+        header.add(subtitle);
+
+        JPanel inboxList = new JPanel();
+        inboxList.setOpaque(false);
+        inboxList.setLayout(new BoxLayout(inboxList, BoxLayout.Y_AXIS));
+        inboxList.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        if (budgetAlertInbox.isEmpty()) {
+            inboxList.add(createLargeEmptyState("Inbox is clear",
+                    "You are all caught up. New budget warnings will appear here automatically."));
+        } else {
+            for (int index = 0; index < budgetAlertInbox.size(); index++) {
+                inboxList.add(createNotificationItemCard(index + 1, budgetAlertInbox.get(index)));
+                if (index < budgetAlertInbox.size() - 1) {
+                    inboxList.add(Box.createVerticalStrut(12));
+                }
+            }
+        }
+
+        JScrollPane scrollPane = new JScrollPane(inboxList);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setViewportBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        actions.setOpaque(false);
+
+        JButton closeButton = createManageActionButton("Close", PAGE_BACKGROUND_SOFT, SURFACE_BORDER, TEXT_PRIMARY);
+        closeButton.setPreferredSize(new Dimension(124, 42));
+        closeButton.addActionListener(event -> dialog.dispose());
+        actions.add(closeButton);
+
+        card.add(header, BorderLayout.NORTH);
+        card.add(scrollPane, BorderLayout.CENTER);
+        card.add(actions, BorderLayout.SOUTH);
+
+        root.add(card, BorderLayout.CENTER);
+        dialog.setContentPane(root);
+        dialog.setVisible(true);
+    }
+
+    private JPanel createNotificationItemCard(int index, String message) {
+        SurfacePanel panel = createSurface(new BorderLayout(0, 10), PAGE_BACKGROUND_SOFT, CARD_CREAM_BORDER, 18);
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel title = new JLabel("Alert " + index);
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
+        title.setForeground(TEAL_DARK);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea body = createWrappedTextArea(message, new Font(FONT_FAMILY, Font.PLAIN, 14), TEXT_PRIMARY);
+
+        panel.add(title, BorderLayout.NORTH);
+        panel.add(body, BorderLayout.CENTER);
+        return panel;
     }
 
     private String buildBudgetAlertHtml(String message) {
@@ -3416,7 +3537,7 @@ public class MainFrame extends JFrame {
 
     private String buildBudgetAlertInboxHtml() {
         if (budgetAlertInbox.isEmpty()) {
-            return "<html><body style='width: 320px'><b>Please enable your notifications.</b></body></html>";
+            return "<html><body style='width: 320px'><b>No notifications yet.</b><br/><br/>Budget alerts will appear here when your spending gets close to or exceeds a limit.</body></html>";
         }
 
         StringBuilder html = new StringBuilder("<html><body style='width: 360px'><b>Recent budget alerts</b><br/><br/>");
