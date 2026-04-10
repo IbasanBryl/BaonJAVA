@@ -67,6 +67,7 @@ import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -90,7 +91,7 @@ public class MainFrame extends JFrame {
     private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };
     private static final String[] INCOME_SOURCE_OPTIONS = new String[] { "Allowance", "Salary", "Scholarship", "Gift", "Side Hustle", "Other" };
     private static final String[] SAVINGS_CATEGORY_OPTIONS = new String[] { "Emergency", "School", "Travel", "Gadgets", "Other" };
-    private static final String BRAND_LOGO_PATH = "D:\\Baon Brain\\bb-logo.png";
+    private static final String BRAND_LOGO_PATH = "D:\\BaonJava\\lib\\bb-logo.png";
     private static final int BRAND_LOGO_SIZE = 34;
     private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
     private static final Color PAGE_BACKGROUND = AppTheme.color("--main-page-background", "#F5EED9");
@@ -1006,7 +1007,9 @@ public class MainFrame extends JFrame {
     }
 
     private static String toWrappedHtml(String text, int width) {
-        return "<html><body style='width: " + width + "px'>" + escapeHtml(text) + "</body></html>";
+        return "<html><body style='width: " + width + "px; margin: 0; padding: 0; text-align: left;'>"
+                + escapeHtml(text)
+                + "</body></html>";
     }
 
     private JButton createSidebarButton(String text, String pageKey) {
@@ -1241,6 +1244,8 @@ public class MainFrame extends JFrame {
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         stack.setBorder(new EmptyBorder(2, 0, 0, 0));
         stack.add(tag);
         stack.add(Box.createVerticalStrut(14));
@@ -1299,6 +1304,10 @@ public class MainFrame extends JFrame {
         panel.setBorder(new EmptyBorder(16, 18, 16, 18));
         label.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         label.setForeground(TEXT_PRIMARY);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setHorizontalAlignment(SwingConstants.LEFT);
+        label.setVerticalAlignment(SwingConstants.TOP);
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         panel.add(label, BorderLayout.CENTER);
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
@@ -1323,6 +1332,8 @@ public class MainFrame extends JFrame {
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         stack.add(createCardTitle("Income Summary", "A quick look at how much money has come in this month."));
         stack.add(Box.createVerticalStrut(18));
@@ -1335,10 +1346,11 @@ public class MainFrame extends JFrame {
         stack.add(createValueRow("Records tracked", incomeTrackedCountValueLabel, true, TEAL));
         stack.add(Box.createVerticalStrut(16));
 
-        JLabel footnote = new JLabel("Add your first income entry to start building a clearer picture.");
-        footnote.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        footnote.setForeground(TEXT_SECONDARY);
-        stack.add(footnote);
+        JTextArea footnote = createWrappedTextArea(
+                "Add your first income entry to start building a clearer picture.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+        stack.add(createColumnBlock(footnote));
         stack.add(Box.createVerticalGlue());
 
         panel.add(stack, BorderLayout.CENTER);
@@ -1362,6 +1374,8 @@ public class MainFrame extends JFrame {
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         stack.add(createCardTitle("Category Totals",
                 "See which spending groups are taking the biggest share."));
@@ -1375,19 +1389,25 @@ public class MainFrame extends JFrame {
 
         expenseSummaryNoteLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 17));
         expenseSummaryNoteLabel.setForeground(TEXT_PRIMARY);
-        stack.add(expenseSummaryNoteLabel);
+        expenseSummaryNoteLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        expenseSummaryNoteLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        expenseSummaryNoteLabel.setVerticalAlignment(SwingConstants.TOP);
+        expenseSummaryNoteLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        stack.add(createColumnBlock(expenseSummaryNoteLabel));
         stack.add(Box.createVerticalStrut(10));
 
-        JLabel body = new JLabel("Once you add expenses, each category total will appear here.");
-        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        body.setForeground(TEXT_SECONDARY);
-        stack.add(body);
+        JTextArea body = createWrappedTextArea(
+                "Once you add expenses, each category total will appear here.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+        stack.add(createColumnBlock(body));
         stack.add(Box.createVerticalStrut(18));
 
-        JLabel extra = new JLabel("Add an expense to see your category totals build up here.");
-        extra.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        extra.setForeground(TEXT_SECONDARY);
-        stack.add(extra);
+        JTextArea extra = createWrappedTextArea(
+                "Add an expense to see your category totals build up here.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+        stack.add(createColumnBlock(extra));
         stack.add(Box.createVerticalGlue());
 
         panel.add(stack, BorderLayout.CENTER);
@@ -1414,6 +1434,8 @@ public class MainFrame extends JFrame {
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         stack.add(createCardTitle("Budget Snapshot",
                 "A quick read on how your category budgets compare with your overall monthly budget."));
@@ -1429,10 +1451,11 @@ public class MainFrame extends JFrame {
         stack.add(createValueRow("Closest to limit", budgetClosestValueLabel, false, null));
         stack.add(Box.createVerticalStrut(18));
 
-        JLabel note = new JLabel("Add your first category budget to start tracking spending progress.");
-        note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        note.setForeground(TEXT_SECONDARY);
-        stack.add(note);
+        JTextArea note = createWrappedTextArea(
+                "Add your first category budget to start tracking spending progress.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+        stack.add(createColumnBlock(note));
         stack.add(Box.createVerticalStrut(14));
 
         JPanel divider = new JPanel();
@@ -1443,10 +1466,11 @@ public class MainFrame extends JFrame {
         stack.add(divider);
         stack.add(Box.createVerticalStrut(14));
 
-        JLabel extra = new JLabel("Budget progress and snapshot will compare here once you add categories.");
-        extra.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        extra.setForeground(TEXT_SECONDARY);
-        stack.add(extra);
+        JTextArea extra = createWrappedTextArea(
+                "Budget progress and snapshot will compare here once you add categories.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+        stack.add(createColumnBlock(extra));
         stack.add(Box.createVerticalGlue());
 
         panel.add(stack, BorderLayout.CENTER);
@@ -1459,17 +1483,27 @@ public class MainFrame extends JFrame {
 
         JPanel top = new JPanel(new BorderLayout(12, 0));
         top.setOpaque(false);
-        top.add(createCardTitle("Goal Progress", "Set a target amount to start tracking progress."), BorderLayout.WEST);
+        top.add(createCardTitle("Goal Progress", "Set a target amount to start tracking progress."), BorderLayout.CENTER);
         top.add(savingsStatusBadgeLabel, BorderLayout.EAST);
 
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         savingsGoalTitleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         savingsGoalTitleLabel.setForeground(TEXT_PRIMARY);
+        savingsGoalTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        savingsGoalTitleLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        savingsGoalTitleLabel.setVerticalAlignment(SwingConstants.TOP);
+        savingsGoalTitleLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         savingsGoalBodyLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         savingsGoalBodyLabel.setForeground(TEXT_SECONDARY);
+        savingsGoalBodyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        savingsGoalBodyLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        savingsGoalBodyLabel.setVerticalAlignment(SwingConstants.TOP);
+        savingsGoalBodyLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         styleProgressBar(savingsGoalProgressBar);
 
@@ -1477,19 +1511,21 @@ public class MainFrame extends JFrame {
         percentWrap.setOpaque(false);
         percentWrap.add(savingsPercentBadgeLabel);
 
-        content.add(savingsGoalTitleLabel);
+        content.add(createColumnBlock(savingsGoalTitleLabel));
         content.add(Box.createVerticalStrut(10));
-        content.add(savingsGoalBodyLabel);
+        content.add(createColumnBlock(savingsGoalBodyLabel));
         content.add(Box.createVerticalStrut(10));
         content.add(percentWrap);
         content.add(Box.createVerticalStrut(10));
         content.add(savingsGoalProgressBar);
         content.add(Box.createVerticalStrut(10));
 
-        JLabel footnote = new JLabel("Set a target amount to start tracking progress.");
-        footnote.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        JTextArea footnote = createWrappedTextArea(
+                "Set a target amount to start tracking progress.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_PRIMARY);
         footnote.setForeground(TEXT_PRIMARY);
-        content.add(footnote);
+        content.add(createColumnBlock(footnote));
         content.add(Box.createVerticalGlue());
 
         panel.add(top, BorderLayout.NORTH);
@@ -1504,6 +1540,8 @@ public class MainFrame extends JFrame {
         JPanel stack = new JPanel();
         stack.setOpaque(false);
         stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         stack.add(createCardTitle("Saving Snapshot", "A quick check on how close you are to your target."));
         stack.add(Box.createVerticalStrut(18));
@@ -1516,10 +1554,11 @@ public class MainFrame extends JFrame {
         stack.add(createValueRow("Entries", savingsEntriesValueLabel, false, null));
         stack.add(Box.createVerticalStrut(18));
 
-        JLabel note = new JLabel("Set your goal to unlock a clearer savings snapshot.");
-        note.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        note.setForeground(TEXT_SECONDARY);
-        stack.add(note);
+        JTextArea note = createWrappedTextArea(
+                "Set your goal to unlock a clearer savings snapshot.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+        stack.add(createColumnBlock(note));
         stack.add(Box.createVerticalGlue());
 
         panel.add(stack, BorderLayout.CENTER);
@@ -1595,7 +1634,7 @@ public class MainFrame extends JFrame {
         JPanel header = new JPanel(new BorderLayout(12, 0));
         header.setOpaque(false);
 
-        header.add(createCardTitle(titleText, bodyText), BorderLayout.WEST);
+        header.add(createCardTitle(titleText, bodyText), BorderLayout.CENTER);
         if (badgeLabel != null) {
             header.add(badgeLabel, BorderLayout.EAST);
         }
@@ -1606,20 +1645,22 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JLabel title = new JLabel(titleText);
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        title.setHorizontalAlignment(SwingConstants.LEFT);
+        title.setVerticalAlignment(SwingConstants.TOP);
+        title.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        JLabel body = new JLabel("<html>" + bodyText + "</html>");
-        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        body.setForeground(TEXT_SECONDARY);
-        body.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextArea body = createWrappedTextArea(bodyText, new Font(FONT_FAMILY, Font.PLAIN, 13), TEXT_SECONDARY);
 
-        panel.add(title);
+        panel.add(createColumnBlock(title));
         panel.add(Box.createVerticalStrut(10));
-        panel.add(body);
+        panel.add(createColumnBlock(body));
         return panel;
     }
 
@@ -1629,19 +1670,28 @@ public class MainFrame extends JFrame {
         Color textColor = highlighted ? Color.WHITE : TEAL_DARK;
 
         SurfacePanel row = createSurface(new BorderLayout(), fillColor, borderColor, 16);
-        row.setBorder(new EmptyBorder(12, 14, 12, 14));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+        row.setBorder(new EmptyBorder(14, 14, 14, 14));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 84));
 
-        JLabel title = new JLabel(titleText);
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
-        title.setForeground(textColor);
+        JPanel stack = new JPanel();
+        stack.setOpaque(false);
+        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+        JTextArea title = createWrappedTextArea(titleText, new Font(FONT_FAMILY, Font.BOLD, 14), textColor);
 
         valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 17));
         valueLabel.setForeground(highlighted ? Color.WHITE : TEXT_PRIMARY);
-        valueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        valueLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        valueLabel.setVerticalAlignment(SwingConstants.TOP);
+        valueLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        row.add(title, BorderLayout.WEST);
-        row.add(valueLabel, BorderLayout.EAST);
+        stack.add(createColumnBlock(title));
+        stack.add(Box.createVerticalStrut(6));
+        stack.add(createColumnBlock(valueLabel));
+        row.add(stack, BorderLayout.CENTER);
         return row;
     }
 
@@ -1649,15 +1699,14 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 10), SURFACE, CARD_CREAM_BORDER, 16);
         panel.setBorder(new EmptyBorder(12, 12, 12, 12));
 
-        JLabel title = new JLabel(titleText);
-        title.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
-        title.setForeground(TEXT_SECONDARY);
+        JTextArea title = createWrappedTextArea(titleText, new Font(FONT_FAMILY, Font.PLAIN, 12), TEXT_SECONDARY);
 
         valueLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         valueLabel.setForeground(TEXT_PRIMARY);
+        valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        panel.add(title, BorderLayout.NORTH);
-        panel.add(valueLabel, BorderLayout.CENTER);
+        panel.add(createColumnBlock(title), BorderLayout.NORTH);
+        panel.add(createColumnBlock(valueLabel), BorderLayout.CENTER);
         return panel;
     }
 
@@ -2353,10 +2402,14 @@ public class MainFrame extends JFrame {
 
         styleBadgeLabel(savingsStatusBadgeLabel, savingGoalTarget > 0 ? "Set" : "Not set", SURFACE_TINT, TEAL_DARK);
         styleBadgeLabel(savingsPercentBadgeLabel, progress + "%", SURFACE_TINT, TEAL_DARK);
-        savingsGoalTitleLabel.setText(savingGoalTarget > 0 ? "Saving goal in progress" : "No saving goal yet");
-        savingsGoalBodyLabel.setText(savingGoalTarget > 0
-                ? "You have saved " + currencyFormat.format(totalSaved) + " out of your target."
-                : "Set a target amount to start tracking progress.");
+        savingsGoalTitleLabel.setText(toWrappedHtml(
+                savingGoalTarget > 0 ? "Saving goal in progress" : "No saving goal yet",
+                240));
+        savingsGoalBodyLabel.setText(toWrappedHtml(
+                savingGoalTarget > 0
+                        ? "You have saved " + currencyFormat.format(totalSaved) + " out of your target."
+                        : "Set a target amount to start tracking progress.",
+                240));
         savingsGoalProgressBar.setValue(progress);
 
         savingsTargetValueLabel.setText(currencyFormat.format(savingGoalTarget));
@@ -2657,18 +2710,23 @@ public class MainFrame extends JFrame {
         SurfacePanel row = createSurface(new BorderLayout(0, 10), SURFACE, CATEGORY_DEFAULT_BORDER, 26);
         row.setBorder(new EmptyBorder(11, 14, 11, 14));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 122));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
 
-        JPanel top = new JPanel(new BorderLayout());
+        JPanel top = new JPanel();
         top.setOpaque(false);
+        top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+        top.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel(titleText);
+        int titleWrapWidth = Math.max(140, wrapWidth - 110);
+        JLabel title = new JLabel(toWrappedHtml(titleText, titleWrapWidth));
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         title.setForeground(TEXT_PRIMARY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel value = new JLabel(currencyFormat.format(amount), SwingConstants.RIGHT);
+        JLabel value = new JLabel(currencyFormat.format(amount));
         value.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         value.setForeground(TEXT_PRIMARY);
+        value.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel detail = new JLabel(toWrappedHtml(buildCategoryRowDetail(amount, totalSpent, categoryBudgetLimit), wrapWidth));
         detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
@@ -2680,8 +2738,9 @@ public class MainFrame extends JFrame {
         progressBar.setValue((int) Math.min(100, Math.round(totalSpent <= 0.0 ? 0.0 : (amount / totalSpent) * 100.0)));
         progressBar.setForeground(resolveCategoryProgressColor(amount, totalSpent, categoryBudgetLimit));
 
-        top.add(title, BorderLayout.WEST);
-        top.add(value, BorderLayout.EAST);
+        top.add(title);
+        top.add(Box.createVerticalStrut(4));
+        top.add(value);
         row.add(top, BorderLayout.NORTH);
         row.add(detail, BorderLayout.CENTER);
         row.add(progressBar, BorderLayout.SOUTH);
@@ -2692,7 +2751,7 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(14, 0), PAGE_BACKGROUND_SOFT, CARD_CREAM_BORDER, 26);
         panel.setBorder(new EmptyBorder(12, 14, 12, 14));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 188));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
 
         DonutPlaceholderPanel donut = new DonutPlaceholderPanel(formatPercent(topShare), SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY);
         donut.setPreferredSize(new Dimension(142, 142));
@@ -2708,13 +2767,13 @@ public class MainFrame extends JFrame {
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         title.setForeground(TEXT_PRIMARY);
 
-        JLabel category = new JLabel(topCategory);
+        JLabel category = new JLabel(toWrappedHtml(topCategory, 170));
         category.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         category.setForeground(TEAL_DARK);
 
         JLabel detail = new JLabel(toWrappedHtml(
                 currencyFormat.format(topAmount) + " spent so far | " + formatPercent(topShare) + " of total expenses.",
-                250));
+                170));
         detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         detail.setForeground(TEXT_SECONDARY);
 
@@ -2804,21 +2863,18 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        JLabel title = new JLabel(titleText);
+        JTextArea title = createWrappedTextArea(titleText, new Font(FONT_FAMILY, Font.BOLD, 20), TEXT_PRIMARY);
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
-        title.setForeground(TEXT_PRIMARY);
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel body = new JLabel(bodyText);
-        body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        body.setForeground(TEXT_SECONDARY);
-        body.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextArea body = createWrappedTextArea(bodyText, new Font(FONT_FAMILY, Font.PLAIN, 13), TEXT_SECONDARY);
 
         panel.add(Box.createVerticalStrut(24));
-        panel.add(title);
+        panel.add(createColumnBlock(title));
         panel.add(Box.createVerticalStrut(10));
-        panel.add(body);
+        panel.add(createColumnBlock(body));
         panel.add(Box.createVerticalGlue());
         return panel;
     }
@@ -2842,20 +2898,16 @@ public class MainFrame extends JFrame {
         body.setOpaque(false);
         body.setBorder(new EmptyBorder(32, 18, 32, 18));
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setAlignmentX(Component.LEFT_ALIGNMENT);
+        body.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        JLabel title = new JLabel(titleText);
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
-        title.setForeground(TEXT_PRIMARY);
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextArea title = createWrappedTextArea(titleText, new Font(FONT_FAMILY, Font.BOLD, 18), TEXT_PRIMARY);
 
-        JLabel text = new JLabel(bodyText);
-        text.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        text.setForeground(TEXT_SECONDARY);
-        text.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextArea text = createWrappedTextArea(bodyText, new Font(FONT_FAMILY, Font.PLAIN, 13), TEXT_SECONDARY);
 
-        body.add(title);
+        body.add(createColumnBlock(title));
         body.add(Box.createVerticalStrut(10));
-        body.add(text);
+        body.add(createColumnBlock(text));
         body.add(Box.createVerticalGlue());
 
         panel.add(headerRow, BorderLayout.NORTH);
@@ -2868,39 +2920,81 @@ public class MainFrame extends JFrame {
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        JPanel top = new JPanel(new BorderLayout());
+        JPanel top = new JPanel();
         top.setOpaque(false);
+        top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+        top.setAlignmentX(Component.LEFT_ALIGNMENT);
+        top.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        JLabel title = new JLabel(titleText);
-        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
-        title.setForeground(TEXT_PRIMARY);
+        JTextArea title = createWrappedTextArea(titleText, new Font(FONT_FAMILY, Font.BOLD, 15), TEXT_PRIMARY);
 
-        JLabel value = new JLabel(currencyFormat.format(spent) + " / " + currencyFormat.format(limit), SwingConstants.RIGHT);
+        JLabel value = new JLabel(currencyFormat.format(spent) + " / " + currencyFormat.format(limit));
         value.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         value.setForeground(TEXT_SECONDARY);
+        value.setAlignmentX(Component.LEFT_ALIGNMENT);
+        value.setHorizontalAlignment(SwingConstants.LEFT);
+        value.setVerticalAlignment(SwingConstants.TOP);
+        value.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JProgressBar progressBar = new JProgressBar(0, 100);
         styleProgressBar(progressBar);
         progressBar.setValue((int) Math.min(100, Math.round((spent / Math.max(limit, 1.0)) * 100.0)));
 
         panel.add(top);
-        top.add(title, BorderLayout.WEST);
-        top.add(value, BorderLayout.EAST);
+        top.add(createColumnBlock(title));
+        top.add(Box.createVerticalStrut(4));
+        top.add(createColumnBlock(value));
         panel.add(Box.createVerticalStrut(8));
         panel.add(progressBar);
         return panel;
     }
 
     private JPanel createMutedNote(String text) {
-        JLabel label = new JLabel("<html>" + text + "</html>");
-        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        label.setForeground(TEXT_SECONDARY);
+        JTextArea label = createWrappedTextArea(text, new Font(FONT_FAMILY, Font.PLAIN, 13), TEXT_SECONDARY);
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.add(label, BorderLayout.CENTER);
+        panel.add(createColumnBlock(label), BorderLayout.CENTER);
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
         return panel;
+    }
+
+    private JPanel createColumnBlock(Component component) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        panel.add(component, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JTextArea createWrappedTextArea(String text, Font font, Color color) {
+        JTextArea area = new JTextArea(text == null ? "" : text);
+        area.setEditable(false);
+        area.setFocusable(false);
+        area.setOpaque(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setFont(font);
+        area.setForeground(color);
+        area.setBorder(BorderFactory.createEmptyBorder());
+        area.setMargin(new Insets(0, 0, 0, 0));
+        area.setAlignmentX(Component.LEFT_ALIGNMENT);
+        area.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
+        area.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        return area;
+    }
+
+    private JLabel createWrappedBodyLabel(String text, int width) {
+        JLabel label = new JLabel(toWrappedHtml(text, width));
+        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        label.setForeground(TEXT_SECONDARY);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setHorizontalAlignment(SwingConstants.LEFT);
+        label.setVerticalAlignment(SwingConstants.TOP);
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        return label;
     }
 
     private void applySidebarButtonStyle(JButton button, boolean active) {
@@ -3925,4 +4019,3 @@ public class MainFrame extends JFrame {
         }
     }
 }
-

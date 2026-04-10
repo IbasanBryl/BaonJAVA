@@ -17,6 +17,7 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
@@ -29,6 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -67,6 +69,8 @@ public class LoginFrame extends JFrame {
     private static final int LOGIN_CONTENT_MIN_WIDTH = 360;
     private static final int LOGIN_CONTENT_MIN_HEIGHT = 560;
     private static final int FORM_WIDTH = 460;
+    private static final String BRAND_LOGO_PATH = "D:\\BaonJava\\lib\\bb-logo.png";
+    private static final int BRAND_LOGO_SIZE = 72;
 
     private static final String TAB_LOGIN = "login";
     private static final String TAB_CREATE = "create";
@@ -150,6 +154,10 @@ public class LoginFrame extends JFrame {
         JLabel pageTitle = new JLabel("BaonBrain");
         pageTitle.setFont(new Font(FONT_FAMILY, Font.BOLD, 68));
         pageTitle.setForeground(TEXT_PRIMARY);
+        pageTitle.setIcon(loadBrandLogoIcon());
+        pageTitle.setIconTextGap(14);
+        pageTitle.setHorizontalTextPosition(SwingConstants.RIGHT);
+        pageTitle.setVerticalTextPosition(SwingConstants.CENTER);
         pageTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel pageSubtitle = new JLabel(
@@ -178,6 +186,15 @@ public class LoginFrame extends JFrame {
         wrap.add(cardWrap);
         wrap.add(Box.createVerticalStrut(8));
         return wrap;
+    }
+
+    private Icon loadBrandLogoIcon() {
+        ImageIcon icon = new ImageIcon(BRAND_LOGO_PATH);
+        if (icon.getIconWidth() <= 0 || icon.getIconHeight() <= 0) {
+            return null;
+        }
+        Image scaled = icon.getImage().getScaledInstance(BRAND_LOGO_SIZE, BRAND_LOGO_SIZE, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaled);
     }
 
     private JPanel createHeroPills() {
