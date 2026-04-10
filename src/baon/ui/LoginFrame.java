@@ -80,6 +80,8 @@ public class LoginFrame extends JFrame {
     private final JTextField createEmailField = new JTextField();
     private final JPasswordField createPasswordField = new JPasswordField();
     private final JPasswordField createConfirmPasswordField = new JPasswordField();
+    private final JButton createPasswordToggleButton = new JButton();
+    private final JButton createConfirmPasswordToggleButton = new JButton();
 
     private final JLabel statusLabel = new JLabel(" ");
     private final CardLayout formLayout = new CardLayout();
@@ -91,7 +93,11 @@ public class LoginFrame extends JFrame {
     private JButton loginButton;
     private JButton createButton;
     private char loginPasswordEchoChar;
+    private char createPasswordEchoChar;
+    private char createConfirmPasswordEchoChar;
     private boolean loginPasswordVisible;
+    private boolean createPasswordVisible;
+    private boolean createConfirmPasswordVisible;
 
     public LoginFrame() {
         super("BaonBrain Login");
@@ -363,14 +369,18 @@ public class LoginFrame extends JFrame {
         createEmailField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
 
         JLabel passwordLabel = createFieldLabel("Password");
-        stylePasswordField(createPasswordField, "Create a password");
-        createPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
-        createPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        JPanel createPasswordFieldRow = createCreatePasswordFieldRow(
+                createPasswordField,
+                createPasswordToggleButton,
+                "Create a password",
+                true);
 
         JLabel confirmLabel = createFieldLabel("Confirm Password");
-        stylePasswordField(createConfirmPasswordField, "Repeat your password");
-        createConfirmPasswordField.setMaximumSize(new Dimension(FORM_WIDTH, 48));
-        createConfirmPasswordField.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        JPanel createConfirmPasswordFieldRow = createCreatePasswordFieldRow(
+                createConfirmPasswordField,
+                createConfirmPasswordToggleButton,
+                "Repeat your password",
+                false);
 
         createButton = createPrimaryButton("Create Account");
         createButton.addActionListener(event -> handleCreateAccount());
@@ -387,11 +397,11 @@ public class LoginFrame extends JFrame {
         column.add(Box.createVerticalStrut(12));
         column.add(passwordLabel);
         column.add(Box.createVerticalStrut(6));
-        column.add(createPasswordField);
+        column.add(createPasswordFieldRow);
         column.add(Box.createVerticalStrut(12));
         column.add(confirmLabel);
         column.add(Box.createVerticalStrut(6));
-        column.add(createConfirmPasswordField);
+        column.add(createConfirmPasswordFieldRow);
         column.add(Box.createVerticalStrut(12));
         column.add(createButton);
 
@@ -415,6 +425,8 @@ public class LoginFrame extends JFrame {
             getRootPane().setDefaultButton(createButton);
         }
         setLoginPasswordVisible(false);
+        setCreatePasswordVisible(false);
+        setCreateConfirmPasswordVisible(false);
         statusLabel.setText(" ");
     }
 
@@ -443,6 +455,43 @@ public class LoginFrame extends JFrame {
         return passwordFieldRow;
     }
 
+    private JPanel createCreatePasswordFieldRow(
+            JPasswordField field,
+            JButton toggleButton,
+            String placeholder,
+            boolean primaryPasswordField) {
+        stylePasswordField(field, placeholder);
+        field.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        field.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        if (primaryPasswordField) {
+            if (createPasswordEchoChar == 0) {
+                createPasswordEchoChar = field.getEchoChar();
+            }
+        } else if (createConfirmPasswordEchoChar == 0) {
+            createConfirmPasswordEchoChar = field.getEchoChar();
+        }
+        field.setOpaque(false);
+        field.setBorder(new EmptyBorder(11, 15, 11, 6));
+
+        configureCreatePasswordToggleButton(toggleButton, primaryPasswordField);
+        if (primaryPasswordField) {
+            setCreatePasswordVisible(false);
+        } else {
+            setCreateConfirmPasswordVisible(false);
+        }
+
+        JPanel passwordFieldRow = new JPanel(new BorderLayout());
+        passwordFieldRow.setOpaque(true);
+        passwordFieldRow.setBackground(FIELD_BACKGROUND);
+        passwordFieldRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        passwordFieldRow.setMaximumSize(new Dimension(FORM_WIDTH, 48));
+        passwordFieldRow.setPreferredSize(new Dimension(FORM_WIDTH, 48));
+        passwordFieldRow.setBorder(new LineBorder(FIELD_BORDER, 1, true));
+        passwordFieldRow.add(field, BorderLayout.CENTER);
+        passwordFieldRow.add(toggleButton, BorderLayout.EAST);
+        return passwordFieldRow;
+    }
+
     private void applyRememberedLogin() {
         RememberedLoginStore.RememberedLogin rememberedLogin = RememberedLoginStore.load();
         if (!rememberedLogin.remembered) {
@@ -467,11 +516,42 @@ public class LoginFrame extends JFrame {
         loginPasswordToggleButton.addActionListener(event -> setLoginPasswordVisible(!loginPasswordVisible));
     }
 
+    private void configureCreatePasswordToggleButton(JButton toggleButton, boolean primaryPasswordField) {
+        for (java.awt.event.ActionListener listener : toggleButton.getActionListeners()) {
+            toggleButton.removeActionListener(listener);
+        }
+        toggleButton.setFocusable(false);
+        toggleButton.setOpaque(false);
+        toggleButton.setContentAreaFilled(false);
+        toggleButton.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 12));
+        toggleButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        toggleButton.setPreferredSize(new Dimension(44, 46));
+        if (primaryPasswordField) {
+            toggleButton.addActionListener(event -> setCreatePasswordVisible(!createPasswordVisible));
+        } else {
+            toggleButton.addActionListener(event -> setCreateConfirmPasswordVisible(!createConfirmPasswordVisible));
+        }
+    }
+
     private void setLoginPasswordVisible(boolean visible) {
         loginPasswordVisible = visible;
         loginPasswordField.setEchoChar(visible ? (char) 0 : loginPasswordEchoChar);
         loginPasswordToggleButton.setIcon(new EyeIcon(18, 12, !visible));
         loginPasswordToggleButton.setToolTipText(visible ? "Hide password" : "Show password");
+    }
+
+    private void setCreatePasswordVisible(boolean visible) {
+        createPasswordVisible = visible;
+        createPasswordField.setEchoChar(visible ? (char) 0 : createPasswordEchoChar);
+        createPasswordToggleButton.setIcon(new EyeIcon(18, 12, !visible));
+        createPasswordToggleButton.setToolTipText(visible ? "Hide password" : "Show password");
+    }
+
+    private void setCreateConfirmPasswordVisible(boolean visible) {
+        createConfirmPasswordVisible = visible;
+        createConfirmPasswordField.setEchoChar(visible ? (char) 0 : createConfirmPasswordEchoChar);
+        createConfirmPasswordToggleButton.setIcon(new EyeIcon(18, 12, !visible));
+        createConfirmPasswordToggleButton.setToolTipText(visible ? "Hide password" : "Show password");
     }
 
     private JButton createTab(String text, boolean active) {
