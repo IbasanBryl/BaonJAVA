@@ -201,6 +201,7 @@ public class MainFrame extends JFrame {
 
     private final CardLayout pageLayout = new CardLayout();
     private final JPanel pagePanel = new ResponsivePagePanel(pageLayout);
+    private JScrollPane contentScrollPane;
 
     private JButton dashboardNavButton;
     private JButton incomeNavButton;
@@ -246,7 +247,7 @@ public class MainFrame extends JFrame {
     private final JLabel expenseTotalSpentValueLabel = new JLabel();
     private final JLabel expenseTopCategoryValueLabel = new JLabel();
     private final JLabel expenseTrackedCountValueLabel = new JLabel();
-    private final JLabel expenseSummaryNoteLabel = new JLabel();
+    private final JTextArea expenseSummaryNoteLabel = new JTextArea();
 
     private final JLabel budgetCategoryBadgeLabel = new JLabel();
     private final JPanel budgetProgressContentPanel = new JPanel();
@@ -1184,21 +1185,21 @@ public class MainFrame extends JFrame {
         scrollContent.add(createContentHeaderBar(), BorderLayout.NORTH);
         scrollContent.add(pagePanel, BorderLayout.CENTER);
 
-        JScrollPane scrollPane = new JScrollPane(scrollContent);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getViewport().addComponentListener(new ComponentAdapter() {
+        contentScrollPane = new JScrollPane(scrollContent);
+        contentScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        contentScrollPane.setOpaque(false);
+        contentScrollPane.getViewport().setOpaque(false);
+        contentScrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
+        contentScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        contentScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        contentScrollPane.getViewport().addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent event) {
                 pagePanel.revalidate();
                 pagePanel.repaint();
             }
         });
-        return scrollPane;
+        return contentScrollPane;
     }
 
     private JPanel createDashboardPage() {
@@ -1474,29 +1475,50 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_BLUE, CARD_BLUE_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel stack = new JPanel();
+        JPanel stack = new JPanel(new GridBagLayout());
         stack.setOpaque(false);
-        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
         stack.setAlignmentX(Component.LEFT_ALIGNMENT);
         stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        stack.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 
-        stack.add(createCardTitle("Income Summary", "A quick look at how much money has come in this month."));
-        stack.add(Box.createVerticalStrut(18));
-        stack.add(createValueRow("This month", incomeMonthValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Average per week", incomeWeekValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Top source", incomeTopSourceValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(14));
-        stack.add(createValueRow("Records tracked", incomeTrackedCountValueLabel, true, TEAL));
-        stack.add(Box.createVerticalStrut(16));
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.weightx = 1.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        constraints.gridy = 0;
+        constraints.insets = new Insets(0, 0, 18, 0);
+        stack.add(createSummaryTitleBlock("Income Summary", "A quick look at how much money has come in this month."),
+                constraints);
+
+        constraints.gridy = 1;
+        constraints.insets = new Insets(0, 0, 12, 0);
+        stack.add(createValueRow("This month", incomeMonthValueLabel, false, null), constraints);
+
+        constraints.gridy = 2;
+        stack.add(createValueRow("Average per week", incomeWeekValueLabel, false, null), constraints);
+
+        constraints.gridy = 3;
+        stack.add(createValueRow("Top source", incomeTopSourceValueLabel, false, null), constraints);
+
+        constraints.gridy = 4;
+        constraints.insets = new Insets(0, 0, 16, 0);
+        stack.add(createValueRow("Records tracked", incomeTrackedCountValueLabel, true, TEAL), constraints);
 
         JTextArea footnote = createWrappedTextArea(
                 "Add your first income entry to start building a clearer picture.",
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
-        stack.add(createColumnBlock(footnote));
-        stack.add(Box.createVerticalGlue());
+
+        constraints.gridy = 5;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        stack.add(createColumnBlock(footnote), constraints);
+
+        constraints.gridy = 6;
+        constraints.weighty = 1.0;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        stack.add(Box.createVerticalGlue(), constraints);
 
         panel.add(stack, BorderLayout.CENTER);
         return panel;
@@ -1516,44 +1538,72 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, CARD_GOLD_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel stack = new JPanel();
+        JPanel stack = new JPanel(new GridBagLayout());
         stack.setOpaque(false);
-        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
         stack.setAlignmentX(Component.LEFT_ALIGNMENT);
         stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        stack.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 
-        stack.add(createCardTitle("Category Totals",
-                "See which spending groups are taking the biggest share."));
-        stack.add(Box.createVerticalStrut(18));
-        stack.add(createValueRow("Total spent", expenseTotalSpentValueLabel, true, GOLD));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Top category", expenseTopCategoryValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Expenses tracked", expenseTrackedCountValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(22));
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.weightx = 1.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        constraints.gridy = 0;
+        constraints.insets = new Insets(0, 0, 18, 0);
+        stack.add(createSummaryTitleBlock("Category Totals",
+                "See which spending groups are taking the biggest share."), constraints);
+
+        constraints.gridy = 1;
+        constraints.insets = new Insets(0, 0, 12, 0);
+        stack.add(createValueRow("Total spent", expenseTotalSpentValueLabel, true, GOLD), constraints);
+
+        constraints.gridy = 2;
+        stack.add(createValueRow("Top category", expenseTopCategoryValueLabel, false, null), constraints);
+
+        constraints.gridy = 3;
+        constraints.insets = new Insets(0, 0, 22, 0);
+        stack.add(createValueRow("Expenses tracked", expenseTrackedCountValueLabel, false, null), constraints);
 
         expenseSummaryNoteLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 17));
         expenseSummaryNoteLabel.setForeground(TEXT_PRIMARY);
+        expenseSummaryNoteLabel.setEditable(false);
+        expenseSummaryNoteLabel.setFocusable(false);
+        expenseSummaryNoteLabel.setOpaque(false);
+        expenseSummaryNoteLabel.setLineWrap(true);
+        expenseSummaryNoteLabel.setWrapStyleWord(true);
+        expenseSummaryNoteLabel.setBorder(BorderFactory.createEmptyBorder());
+        expenseSummaryNoteLabel.setMargin(new Insets(0, 0, 0, 0));
         expenseSummaryNoteLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        expenseSummaryNoteLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        expenseSummaryNoteLabel.setVerticalAlignment(SwingConstants.TOP);
         expenseSummaryNoteLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-        stack.add(createColumnBlock(expenseSummaryNoteLabel));
-        stack.add(Box.createVerticalStrut(10));
+
+        constraints.gridy = 4;
+        constraints.insets = new Insets(0, 0, 10, 0);
+        stack.add(createColumnBlock(expenseSummaryNoteLabel), constraints);
 
         JTextArea body = createWrappedTextArea(
                 "Once you add expenses, each category total will appear here.",
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
-        stack.add(createColumnBlock(body));
-        stack.add(Box.createVerticalStrut(18));
+
+        constraints.gridy = 5;
+        constraints.insets = new Insets(0, 0, 18, 0);
+        stack.add(createColumnBlock(body), constraints);
 
         JTextArea extra = createWrappedTextArea(
                 "Add an expense to see your category totals build up here.",
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
-        stack.add(createColumnBlock(extra));
-        stack.add(Box.createVerticalGlue());
+
+        constraints.gridy = 6;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        stack.add(createColumnBlock(extra), constraints);
+
+        constraints.gridy = 7;
+        constraints.weighty = 1.0;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        stack.add(Box.createVerticalGlue(), constraints);
 
         panel.add(stack, BorderLayout.CENTER);
         return panel;
@@ -1576,47 +1626,72 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE_BLUE, CARD_DIVIDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel stack = new JPanel();
+        JPanel stack = new JPanel(new GridBagLayout());
         stack.setOpaque(false);
-        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
         stack.setAlignmentX(Component.LEFT_ALIGNMENT);
         stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        stack.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 
-        stack.add(createCardTitle("Budget Snapshot",
-                "A quick read on how your category budgets compare with your overall monthly budget."));
-        stack.add(Box.createVerticalStrut(18));
-        stack.add(createValueRow("Total budgeted", budgetTotalBudgetedValueLabel, true, TEAL));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Total spent", budgetTotalSpentValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Remaining budget", budgetRemainingValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Overall used", budgetOverallUsedValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Closest to limit", budgetClosestValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(18));
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.weightx = 1.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        constraints.gridy = 0;
+        constraints.insets = new Insets(0, 0, 18, 0);
+        stack.add(createSummaryTitleBlock("Budget Snapshot",
+                "A quick read on how your category budgets compare with your overall monthly budget."), constraints);
+
+        constraints.gridy = 1;
+        constraints.insets = new Insets(0, 0, 12, 0);
+        stack.add(createValueRow("Total budgeted", budgetTotalBudgetedValueLabel, true, TEAL), constraints);
+
+        constraints.gridy = 2;
+        stack.add(createValueRow("Total spent", budgetTotalSpentValueLabel, false, null), constraints);
+
+        constraints.gridy = 3;
+        stack.add(createValueRow("Remaining budget", budgetRemainingValueLabel, false, null), constraints);
+
+        constraints.gridy = 4;
+        stack.add(createValueRow("Overall used", budgetOverallUsedValueLabel, false, null), constraints);
+
+        constraints.gridy = 5;
+        constraints.insets = new Insets(0, 0, 18, 0);
+        stack.add(createValueRow("Closest to limit", budgetClosestValueLabel, false, null), constraints);
 
         JTextArea note = createWrappedTextArea(
                 "Add your first category budget to start tracking spending progress.",
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
-        stack.add(createColumnBlock(note));
-        stack.add(Box.createVerticalStrut(14));
+
+        constraints.gridy = 6;
+        constraints.insets = new Insets(0, 0, 14, 0);
+        stack.add(createColumnBlock(note), constraints);
 
         JPanel divider = new JPanel();
         divider.setOpaque(true);
         divider.setBackground(CARD_DIVIDER);
         divider.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         divider.setPreferredSize(new Dimension(0, 1));
-        stack.add(divider);
-        stack.add(Box.createVerticalStrut(14));
+
+        constraints.gridy = 7;
+        constraints.insets = new Insets(0, 0, 14, 0);
+        stack.add(divider, constraints);
 
         JTextArea extra = createWrappedTextArea(
                 "Budget progress and snapshot will compare here once you add categories.",
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
-        stack.add(createColumnBlock(extra));
-        stack.add(Box.createVerticalGlue());
+
+        constraints.gridy = 8;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        stack.add(createColumnBlock(extra), constraints);
+
+        constraints.gridy = 9;
+        constraints.weighty = 1.0;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        stack.add(Box.createVerticalGlue(), constraints);
 
         panel.add(stack, BorderLayout.CENTER);
         return panel;
@@ -1682,29 +1757,50 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = createSurface(new BorderLayout(0, 16), SURFACE, CARD_SKY_BORDER, 24);
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel stack = new JPanel();
+        JPanel stack = new JPanel(new GridBagLayout());
         stack.setOpaque(false);
-        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
         stack.setAlignmentX(Component.LEFT_ALIGNMENT);
         stack.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        stack.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 
-        stack.add(createCardTitle("Saving Snapshot", "A quick check on how close you are to your target."));
-        stack.add(Box.createVerticalStrut(18));
-        stack.add(createValueRow("Target", savingsTargetValueLabel, true, TEAL));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Saved", savingsSavedValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Remaining", savingsRemainingValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(12));
-        stack.add(createValueRow("Entries", savingsEntriesValueLabel, false, null));
-        stack.add(Box.createVerticalStrut(18));
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.weightx = 1.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        constraints.gridy = 0;
+        constraints.insets = new Insets(0, 0, 18, 0);
+        stack.add(createSummaryTitleBlock("Saving Snapshot", "A quick check on how close you are to your target."),
+                constraints);
+
+        constraints.gridy = 1;
+        constraints.insets = new Insets(0, 0, 12, 0);
+        stack.add(createValueRow("Target", savingsTargetValueLabel, true, TEAL), constraints);
+
+        constraints.gridy = 2;
+        stack.add(createValueRow("Saved", savingsSavedValueLabel, false, null), constraints);
+
+        constraints.gridy = 3;
+        stack.add(createValueRow("Remaining", savingsRemainingValueLabel, false, null), constraints);
+
+        constraints.gridy = 4;
+        stack.add(createValueRow("Entries", savingsEntriesValueLabel, false, null), constraints);
 
         JTextArea note = createWrappedTextArea(
                 "Set your goal to unlock a clearer savings snapshot.",
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
-        stack.add(createColumnBlock(note));
-        stack.add(Box.createVerticalGlue());
+
+        constraints.gridy = 5;
+        constraints.insets = new Insets(6, 0, 0, 0);
+        stack.add(createColumnBlock(note), constraints);
+
+        constraints.gridy = 6;
+        constraints.weighty = 1.0;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        stack.add(Box.createVerticalGlue(), constraints);
 
         panel.add(stack, BorderLayout.CENTER);
         return panel;
@@ -1801,6 +1897,23 @@ public class MainFrame extends JFrame {
         title.setVerticalAlignment(SwingConstants.TOP);
         title.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
+        JTextArea body = createWrappedTextArea(bodyText, new Font(FONT_FAMILY, Font.PLAIN, 13), TEXT_SECONDARY);
+
+        panel.add(createColumnBlock(title));
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(createColumnBlock(body));
+        return panel;
+    }
+
+    private JPanel createSummaryTitleBlock(String titleText, String bodyText) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        panel.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
+
+        JTextArea title = createWrappedTextArea(titleText, new Font(FONT_FAMILY, Font.BOLD, 22), TEXT_PRIMARY);
         JTextArea body = createWrappedTextArea(bodyText, new Font(FONT_FAMILY, Font.PLAIN, 13), TEXT_SECONDARY);
 
         panel.add(createColumnBlock(title));
@@ -2367,8 +2480,10 @@ public class MainFrame extends JFrame {
     }
 
     private void handleFinancialDataChanged() {
+        Point scrollPosition = getContentScrollPosition();
         persistData();
         refreshAllSections();
+        restoreContentScrollPosition(scrollPosition);
     }
 
     private void refreshAllSections() {
@@ -3155,6 +3270,8 @@ public class MainFrame extends JFrame {
     }
 
     private void showPage(String pageKey) {
+        boolean samePage = pageKey != null && pageKey.equals(currentPage);
+        Point scrollPosition = samePage ? getContentScrollPosition() : new Point(0, 0);
         currentPage = pageKey;
         pageLayout.show(pagePanel, pageKey);
         applySidebarButtonStyle(dashboardNavButton, PAGE_DASHBOARD.equals(pageKey));
@@ -3164,6 +3281,23 @@ public class MainFrame extends JFrame {
         applySidebarButtonStyle(savingGoalNavButton, PAGE_SAVING_GOAL.equals(pageKey));
         applySidebarButtonStyle(forecastNavButton, PAGE_FORECAST.equals(pageKey));
         refreshContentHeader();
+        restoreContentScrollPosition(scrollPosition);
+    }
+
+    private Point getContentScrollPosition() {
+        if (contentScrollPane == null || contentScrollPane.getViewport() == null) {
+            return new Point(0, 0);
+        }
+        return contentScrollPane.getViewport().getViewPosition();
+    }
+
+    private void restoreContentScrollPosition(Point position) {
+        if (contentScrollPane == null || contentScrollPane.getViewport() == null) {
+            return;
+        }
+
+        Point target = position == null ? new Point(0, 0) : new Point(Math.max(0, position.x), Math.max(0, position.y));
+        SwingUtilities.invokeLater(() -> contentScrollPane.getViewport().setViewPosition(target));
     }
 
     private DefaultTableModel createTableModel(String[] columns) {

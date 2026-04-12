@@ -1,59 +1,295 @@
 {
-  "budgetLimit": 123123.0,
-  "savingGoalTarget": 0.0,
+  "budgetLimit": 3600.0,
+  "savingGoalTarget": 2500.0,
   "incomeEntries": [
     {
-      "amount": 123.0,
+      "amount": 1200.0,
       "source": "Allowance",
+      "date": "2026-04-01"
+    },
+    {
+      "amount": 1800.0,
+      "source": "Scholarship",
+      "date": "2026-04-04"
+    },
+    {
+      "amount": 550.0,
+      "source": "Side Hustle",
       "date": "2026-04-08"
+    },
+    {
+      "amount": 250.0,
+      "source": "Gift",
+      "date": "2026-04-10"
     }
   ],
   "expenseEntries": [
     {
-      "amount": 123.0,
+      "amount": 140.0,
       "category": "Food",
-      "item": "Fca",
+      "item": "Lunch and snacks",
+      "date": "2026-04-02"
+    },
+    {
+      "amount": 95.0,
+      "category": "Transport",
+      "item": "Jeepney fare and reload",
+      "date": "2026-04-03"
+    },
+    {
+      "amount": 180.0,
+      "category": "School",
+      "item": "Printing and project sheets",
+      "date": "2026-04-04"
+    },
+    {
+      "amount": 220.0,
+      "category": "Leisure",
+      "item": "Cinema and snacks",
+      "date": "2026-04-05"
+    },
+    {
+      "amount": 260.0,
+      "category": "Food",
+      "item": "Groceries for the week",
+      "date": "2026-04-06"
+    },
+    {
+      "amount": 120.0,
+      "category": "Transport",
+      "item": "Ride share and fuel share",
+      "date": "2026-04-07"
+    },
+    {
+      "amount": 145.0,
+      "category": "Food",
+      "item": "Campus cafeteria meals",
       "date": "2026-04-08"
     },
     {
-      "amount": 123.0,
+      "amount": 210.0,
+      "category": "School",
+      "item": "Laboratory materials",
+      "date": "2026-04-09"
+    },
+    {
+      "amount": 80.0,
+      "category": "Other",
+      "item": "Mobile load",
+      "date": "2026-04-10"
+    },
+    {
+      "amount": 310.0,
       "category": "Food",
-      "item": "sad",
-      "date": "2026-04-08"
+      "item": "Weekend brunch and coffee",
+      "date": "2026-04-11"
+    },
+    {
+      "amount": 190.0,
+      "category": "Leisure",
+      "item": "Streaming and game credits",
+      "date": "2026-04-12"
+    },
+    {
+      "amount": 11.0,
+      "category": "Food",
+      "item": "AV",
+      "date": "2026-04-12"
+    },
+    {
+      "amount": 1.0,
+      "category": "Food",
+      "item": "qwe",
+      "date": "2026-04-12"
+    },
+    {
+      "amount": 1.0,
+      "category": "Food",
+      "item": "qwq",
+      "date": "2026-04-12"
+    },
+    {
+      "amount": 1.0,
+      "category": "Food",
+      "item": "a",
+      "date": "2026-04-12"
     }
   ],
-  "savingEntries": [],
+  "savingEntries": [
+    {
+      "amount": 150.0,
+      "category": "Emergency",
+      "date": "2026-04-03"
+    },
+    {
+      "amount": 200.0,
+      "category": "School",
+      "date": "2026-04-06"
+    },
+    {
+      "amount": 180.0,
+      "category": "Travel",
+      "date": "2026-04-09"
+    },
+    {
+      "amount": 220.0,
+      "category": "Gadgets",
+      "date": "2026-04-11"
+    }
+  ],
   "categoryBudgetLimits": {
-    "Food": 123123.0
+    "Food": 900.0,
+    "Transport": 500.0,
+    "School": 850.0,
+    "Leisure": 750.0,
+    "Other": 600.0
   },
   "users": {
     "ibasanbryl7@gmail.com": {
-      "budgetLimit": 123123.0,
-      "savingGoalTarget": 0.0,
+      "budgetLimit": 3600.0,
+      "savingGoalTarget": 2500.0,
       "incomeEntries": [
         {
-          "amount": 123.0,
+          "amount": 1200.0,
           "source": "Allowance",
+          "date": "2026-04-01"
+        },
+        {
+          "amount": 1800.0,
+          "source": "Scholarship",
+          "date": "2026-04-04"
+        },
+        {
+          "amount": 550.0,
+          "source": "Side Hustle",
           "date": "2026-04-08"
+        },
+        {
+          "amount": 250.0,
+          "source": "Gift",
+          "date": "2026-04-10"
         }
       ],
       "expenseEntries": [
         {
-          "amount": 123.0,
+          "amount": 140.0,
           "category": "Food",
-          "item": "Fca",
+          "item": "Lunch and snacks",
+          "date": "2026-04-02"
+        },
+        {
+          "amount": 95.0,
+          "category": "Transport",
+          "item": "Jeepney fare and reload",
+          "date": "2026-04-03"
+        },
+        {
+          "amount": 180.0,
+          "category": "School",
+          "item": "Printing and project sheets",
+          "date": "2026-04-04"
+        },
+        {
+          "amount": 220.0,
+          "category": "Leisure",
+          "item": "Cinema and snacks",
+          "date": "2026-04-05"
+        },
+        {
+          "amount": 260.0,
+          "category": "Food",
+          "item": "Groceries for the week",
+          "date": "2026-04-06"
+        },
+        {
+          "amount": 120.0,
+          "category": "Transport",
+          "item": "Ride share and fuel share",
+          "date": "2026-04-07"
+        },
+        {
+          "amount": 145.0,
+          "category": "Food",
+          "item": "Campus cafeteria meals",
           "date": "2026-04-08"
         },
         {
-          "amount": 123.0,
+          "amount": 210.0,
+          "category": "School",
+          "item": "Laboratory materials",
+          "date": "2026-04-09"
+        },
+        {
+          "amount": 80.0,
+          "category": "Other",
+          "item": "Mobile load",
+          "date": "2026-04-10"
+        },
+        {
+          "amount": 310.0,
           "category": "Food",
-          "item": "sad",
-          "date": "2026-04-08"
+          "item": "Weekend brunch and coffee",
+          "date": "2026-04-11"
+        },
+        {
+          "amount": 190.0,
+          "category": "Leisure",
+          "item": "Streaming and game credits",
+          "date": "2026-04-12"
+        },
+        {
+          "amount": 11.0,
+          "category": "Food",
+          "item": "AV",
+          "date": "2026-04-12"
+        },
+        {
+          "amount": 1.0,
+          "category": "Food",
+          "item": "qwe",
+          "date": "2026-04-12"
+        },
+        {
+          "amount": 1.0,
+          "category": "Food",
+          "item": "qwq",
+          "date": "2026-04-12"
+        },
+        {
+          "amount": 1.0,
+          "category": "Food",
+          "item": "a",
+          "date": "2026-04-12"
         }
       ],
-      "savingEntries": [],
+      "savingEntries": [
+        {
+          "amount": 150.0,
+          "category": "Emergency",
+          "date": "2026-04-03"
+        },
+        {
+          "amount": 200.0,
+          "category": "School",
+          "date": "2026-04-06"
+        },
+        {
+          "amount": 180.0,
+          "category": "Travel",
+          "date": "2026-04-09"
+        },
+        {
+          "amount": 220.0,
+          "category": "Gadgets",
+          "date": "2026-04-11"
+        }
+      ],
       "categoryBudgetLimits": {
-        "Food": 123123.0
+        "Food": 900.0,
+        "Transport": 500.0,
+        "School": 850.0,
+        "Leisure": 750.0,
+        "Other": 600.0
       }
     }
   }
