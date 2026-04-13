@@ -71,6 +71,8 @@ public class LoginFrame extends JFrame {
     private static final int FORM_WIDTH = 460;
     private static final String BRAND_LOGO_PATH = "D:\\BaonJava\\lib\\bb-logo.png";
     private static final int BRAND_LOGO_SIZE = 72;
+    private static final int TAB_BUTTON_RADIUS = 28;
+    private static final int PRIMARY_BUTTON_RADIUS = 32;
 
     private static final String TAB_LOGIN = "login";
     private static final String TAB_CREATE = "create";
@@ -572,13 +574,13 @@ public class LoginFrame extends JFrame {
     }
 
     private JButton createTab(String text, boolean active) {
-        JButton tab = new JButton(text);
+        JButton tab = new RoundedButton(text, TAB_BUTTON_RADIUS);
         tab.setFocusable(false);
         tab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         tab.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
         tab.setFocusPainted(false);
-        tab.setOpaque(true);
-        tab.setContentAreaFilled(true);
+        tab.setOpaque(false);
+        tab.setContentAreaFilled(false);
         styleTabButton(tab, active);
         return tab;
     }
@@ -588,12 +590,12 @@ public class LoginFrame extends JFrame {
         button.setBackground(active ? TAB_ACTIVE : TAB_INACTIVE);
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, active ? 17 : 16));
         button.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(active ? TAB_ACTIVE_BORDER : TAB_INACTIVE_BORDER, 1, true),
+                new RoundedLineBorder(active ? TAB_ACTIVE_BORDER : TAB_INACTIVE_BORDER, TAB_BUTTON_RADIUS, 1),
                 new EmptyBorder(12, 18, 12, 18)));
     }
 
     private JButton createPrimaryButton(String text) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, PRIMARY_BUTTON_RADIUS);
         button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
         button.setPreferredSize(new Dimension(0, 48));
         button.setFocusPainted(false);
@@ -601,8 +603,10 @@ public class LoginFrame extends JFrame {
         button.setBackground(ACTION);
         button.setForeground(Color.WHITE);
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(ACTION_BORDER, 1, true),
+                new RoundedLineBorder(ACTION_BORDER, PRIMARY_BUTTON_RADIUS, 1),
                 new EmptyBorder(12, 18, 12, 18)));
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
         button.addMouseListener(new MouseAdapter() {
@@ -1021,32 +1025,28 @@ public class LoginFrame extends JFrame {
             super.paintComponent(graphics);
             Graphics2D g2 = (Graphics2D) graphics.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setPaint(new GradientPaint(0, 0, PAGE_TOP, getWidth(), getHeight(), PAGE_BOTTOM));
+            g2.setPaint(new GradientPaint(0, 0, PAGE_TOP, 0, getHeight(), PAGE_BOTTOM));
             g2.fillRect(0, 0, getWidth(), getHeight());
 
             float[] fractions = new float[] { 0.0f, 0.45f, 1.0f };
             Color[] colors = new Color[] {
-                    new Color(250, 231, 186, 120),
-                    new Color(250, 231, 186, 55),
-                    new Color(250, 231, 186, 0)
+                    new Color(255, 248, 223, 64),
+                    new Color(255, 248, 223, 26),
+                    new Color(255, 248, 223, 0)
             };
-            float radius = Math.max(getWidth(), getHeight()) * 0.48f;
+            float radius = Math.max(getWidth(), getHeight()) * 0.62f;
             RadialGradientPaint glow = new RadialGradientPaint(getWidth() / 2.0f, getHeight() / 2.4f, radius, fractions, colors);
             g2.setPaint(glow);
             g2.fillRect(0, 0, getWidth(), getHeight());
 
-            g2.setColor(new Color(255, 255, 255, 60));
-            for (int x = -40; x < getWidth(); x += 140) {
-                g2.fillRoundRect(x, 0, 56, getHeight(), 24, 24);
+            g2.setColor(new Color(255, 255, 255, 0));
+            for (int x = -30; x < getWidth() + 70; x += 140) {
+                g2.fillRoundRect(x, 0, 58, getHeight(), 24, 24);
             }
 
-            g2.setColor(new Color(255, 255, 255, 34));
-            g2.fillOval(getWidth() - 260, 44, 210, 210);
-            g2.fillOval(54, getHeight() - 250, 240, 240);
-
-            g2.setPaint(new GradientPaint(0, 0, new Color(148, 146, 144, 46), getWidth() / 2.0f, 0, new Color(148, 146, 144, 0)));
+            g2.setPaint(new GradientPaint(0, 0, new Color(244, 231, 190, 20), getWidth() / 2.0f, 0, new Color(244, 231, 190, 0)));
             g2.fillRect(0, 0, getWidth() / 2, getHeight());
-            g2.setPaint(new GradientPaint(getWidth(), 0, new Color(148, 146, 144, 44), getWidth() / 2.0f, 0, new Color(148, 146, 144, 0)));
+            g2.setPaint(new GradientPaint(getWidth(), 0, new Color(244, 231, 190, 20), getWidth() / 2.0f, 0, new Color(244, 231, 190, 0)));
             g2.fillRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
             g2.dispose();
         }

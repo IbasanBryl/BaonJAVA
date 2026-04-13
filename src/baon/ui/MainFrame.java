@@ -73,7 +73,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
@@ -277,7 +276,7 @@ public class MainFrame extends JFrame {
     private final JLabel forecastOverspendingPercentLabel = new JLabel();
     private final JProgressBar forecastRiskProgressBar = new JProgressBar(0, 100);
     private final JPanel forecastBreakdownContentPanel = new JPanel(new BorderLayout());
-    private final JButton notificationButton = new JButton();
+    private final JButton notificationButton = new RoundedButton("", NOTIFICATION_BUTTON_RADIUS);
     private final ArrayList<String> budgetAlertInbox = new ArrayList<String>();
     private boolean hasUnreadBudgetAlerts = false;
 
@@ -354,8 +353,8 @@ public class MainFrame extends JFrame {
         notificationButton.setIcon(new MailOutlineIcon(22, 16));
         notificationButton.setForeground(TEAL_DARK);
         notificationButton.setBackground(NOTIFICATION_MUTED_SURFACE);
-        notificationButton.setOpaque(true);
-        notificationButton.setContentAreaFilled(true);
+        notificationButton.setOpaque(false);
+        notificationButton.setContentAreaFilled(false);
         notificationButton.setFocusPainted(false);
         notificationButton.setText("");
         notificationButton.setPreferredSize(new Dimension(NOTIFICATION_BUTTON_WIDTH, NOTIFICATION_BUTTON_HEIGHT));
@@ -363,6 +362,7 @@ public class MainFrame extends JFrame {
                 new RoundedLineBorder(NOTIFICATION_BORDER, NOTIFICATION_BUTTON_RADIUS, 1),
                 new EmptyBorder(4, 8, 8, 8)));
         notificationButton.setToolTipText("Open notifications");
+        // notification button logic for alerts
         notificationButton.addActionListener(event -> showBudgetAlertInboxDialog());
         notificationButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -379,7 +379,7 @@ public class MainFrame extends JFrame {
     }
 
     private void refreshContentHeader() {
-        notificationButton.setVisible(true);
+        notificationButton.setVisible(PAGE_DASHBOARD.equals(currentPage));
         notificationButton.revalidate();
         notificationButton.repaint();
     }
@@ -424,7 +424,7 @@ public class MainFrame extends JFrame {
         brand.setHorizontalTextPosition(SwingConstants.RIGHT);
         brand.setVerticalTextPosition(SwingConstants.CENTER);
 
-        JLabel body = new JLabel("<html>Track spending, plan smarter, and keep your weekly baon under control.</html>");
+        JLabel body = new JLabel("<html>Track spending, plan smarter, and keep your monthly budget under control.</html>");
         body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(SIDEBAR_MUTED);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -435,10 +435,15 @@ public class MainFrame extends JFrame {
         brandBlock.add(Box.createVerticalStrut(10));
         brandBlock.add(body);
 
+        // dashboard button logic for page
         dashboardNavButton = createSidebarButton("Dashboard", PAGE_DASHBOARD);
+        // income button logic for page
         incomeNavButton = createSidebarButton("Income", PAGE_INCOME);
+        // expenses button logic for page
         expensesNavButton = createSidebarButton("Expenses", PAGE_EXPENSES);
+        // budget button logic for page
         budgetNavButton = createSidebarButton("Budget", PAGE_BUDGET);
+        // saving goal button logic for page
         savingGoalNavButton = createSidebarButton("Saving Goal", PAGE_SAVING_GOAL);
         forecastNavButton = createSidebarButton("Forecast", PAGE_FORECAST);
 
@@ -793,14 +798,14 @@ public class MainFrame extends JFrame {
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
     private JButton createManageActionButton(String text, Color fillColor, Color borderColor, Color textColor) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, MANAGE_BUTTON_RADIUS);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, MANAGE_BUTTON_FONT_SIZE));
         button.setForeground(textColor);
         button.setBackground(fillColor);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(borderColor, MANAGE_BUTTON_RADIUS, 1),
                 new EmptyBorder(11, 20, 11, 20)));
@@ -1159,7 +1164,7 @@ public class MainFrame extends JFrame {
     }
 
     private JButton createSidebarButton(String text, String pageKey) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, 30);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
         button.setPreferredSize(new Dimension(0, 54));
@@ -1247,6 +1252,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createIncomePage() {
+        // add income button logic for form
         JButton addIncomeButton = createActionButton("Add Income");
         addIncomeButton.addActionListener(event -> showIncomeDialog());
 
@@ -1260,6 +1266,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createExpensesPage() {
+        // add expense button logic for form
         JButton addExpenseButton = createActionButton("Add Expense");
         addExpenseButton.addActionListener(event -> showExpenseDialog());
 
@@ -1273,6 +1280,7 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createBudgetPage() {
+        // add budget button logic for form
         JButton addBudgetButton = createActionButton("Add Budget");
         addBudgetButton.addActionListener(event -> showBudgetDialog());
 
@@ -1286,9 +1294,11 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createSavingGoalPage() {
+        // add daily savings button logic for form
         JButton addDailySavingsButton = createActionButton("Add Daily Savings");
         addDailySavingsButton.addActionListener(event -> showDailySavingsDialog());
 
+        // set saving goal button logic for form
         JButton setSavingGoalButton = createActionButton("Set Saving Goal");
         setSavingGoalButton.addActionListener(event -> showSavingGoalDialog());
 
@@ -1969,14 +1979,14 @@ public class MainFrame extends JFrame {
     }
 
     private JButton createActionButton(String text) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, 32);
         button.setFocusable(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         button.setForeground(Color.WHITE);
         button.setBackground(TEAL);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(TEAL, 32, 1),
@@ -2367,14 +2377,14 @@ public class MainFrame extends JFrame {
     }
 
     private JButton createDialogPrimaryButton(String text) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, 28);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         button.setForeground(Color.WHITE);
         button.setBackground(TEAL);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(TEAL_DARK, 28, 1),
                 new EmptyBorder(9, 16, 9, 16)));
@@ -2394,14 +2404,14 @@ public class MainFrame extends JFrame {
     }
 
     private JButton createDialogSecondaryButton(String text) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, 28);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
         button.setForeground(TEXT_PRIMARY);
         button.setBackground(PAGE_BACKGROUND_SOFT);
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(SURFACE_BORDER, 28, 1),
                 new EmptyBorder(9, 16, 9, 16)));
@@ -2809,16 +2819,16 @@ public class MainFrame extends JFrame {
     }
 
     private JButton createSavingsPaginationButton(String text, boolean emphasize, boolean enabled) {
-        JButton button = new JButton(text);
+        JButton button = new RoundedButton(text, 18);
         button.setFocusable(false);
         button.setEnabled(enabled);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
         button.setForeground(emphasize ? Color.BLACK : new Color(245, 245, 245));
         button.setBackground(emphasize ? GOLD : new Color(12, 14, 19));
-        button.setOpaque(true);
+        button.setOpaque(false);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(emphasize ? GOLD : new Color(28, 33, 42), 14, 1),
+                new RoundedLineBorder(emphasize ? GOLD : new Color(28, 33, 42), 18, 1),
                 new EmptyBorder(8, 16, 8, 16)));
 
         int minWidth = text.length() <= 2 ? 40 : 72;
@@ -3008,6 +3018,8 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createCategoryDonutSummary(String topCategory, double topAmount, double topShare) {
+        final int summaryTextWidth = 130;
+
         SurfacePanel panel = createSurface(new BorderLayout(14, 0), PAGE_BACKGROUND_SOFT, CARD_CREAM_BORDER, 26);
         panel.setBorder(new EmptyBorder(12, 14, 12, 14));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -3022,18 +3034,19 @@ public class MainFrame extends JFrame {
         body.setOpaque(false);
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setAlignmentY(Component.CENTER_ALIGNMENT);
+        body.setPreferredSize(new Dimension(summaryTextWidth, 0));
 
         JLabel title = new JLabel("Top category share");
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
         title.setForeground(TEXT_PRIMARY);
 
-        JLabel category = new JLabel(toWrappedHtml(topCategory, 170));
+        JLabel category = new JLabel(toWrappedHtml(topCategory, summaryTextWidth));
         category.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
         category.setForeground(TEAL_DARK);
 
         JLabel detail = new JLabel(toWrappedHtml(
                 currencyFormat.format(topAmount) + " spent so far | " + formatPercent(topShare) + " of total expenses.",
-                170));
+                summaryTextWidth));
         detail.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         detail.setForeground(TEXT_SECONDARY);
 
@@ -3261,8 +3274,8 @@ public class MainFrame extends JFrame {
         button.setBackground(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON);
         button.setForeground(SIDEBAR_TEXT);
         button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 16));
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON, 30, 1),
@@ -3672,53 +3685,68 @@ public class MainFrame extends JFrame {
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        JPanel metaRow = new JPanel(new BorderLayout(12, 0));
+        metaRow.setOpaque(false);
+
         JLabel chip = createBadgeLabel("NOTIFICATIONS", MANAGE_CHIP_BACKGROUND, TEAL_DARK);
         chip.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel title = new JLabel("Alert Mail");
+        JLabel statusBadge = createBadgeLabel(
+                budgetAlertInbox.isEmpty()
+                        ? "INBOX CLEAR"
+                        : budgetAlertInbox.size() + " ALERT" + (budgetAlertInbox.size() == 1 ? "" : "S"),
+                budgetAlertInbox.isEmpty() ? SURFACE_TINT : NOTIFICATION_UNREAD,
+                budgetAlertInbox.isEmpty() ? TEAL_DARK : NOTIFICATION_UNREAD_TEXT);
+        statusBadge.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel title = new JLabel("Notifications");
         title.setFont(new Font(FONT_FAMILY, Font.BOLD, 28));
         title.setForeground(TEXT_PRIMARY);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextArea subtitle = createWrappedTextArea(
                 budgetAlertInbox.isEmpty()
-                        ? "No notifications yet. Budget alerts will appear here when spending gets close to or exceeds a limit."
+                        ? "Budget alerts will appear here when spending gets close to or exceeds a category limit."
                         : "Recent budget alerts are listed below. Open this panel anytime from the header.",
                 new Font(FONT_FAMILY, Font.PLAIN, 14),
                 TEXT_SECONDARY);
 
-        header.add(chip);
+        metaRow.add(chip, BorderLayout.WEST);
+        metaRow.add(statusBadge, BorderLayout.EAST);
+
+        header.add(metaRow);
         header.add(Box.createVerticalStrut(14));
         header.add(title);
         header.add(Box.createVerticalStrut(10));
         header.add(subtitle);
 
-        JPanel inboxList = new JPanel();
-        inboxList.setOpaque(false);
-        inboxList.setLayout(new BoxLayout(inboxList, BoxLayout.Y_AXIS));
-        inboxList.setAlignmentX(Component.LEFT_ALIGNMENT);
-
+        JComponent centerViewportContent;
         if (budgetAlertInbox.isEmpty()) {
-            inboxList.add(createLargeEmptyState("Inbox is clear",
-                    "You are all caught up. New budget warnings will appear here automatically."));
+            centerViewportContent = createNotificationEmptyState();
         } else {
+            JPanel inboxList = new JPanel();
+            inboxList.setOpaque(false);
+            inboxList.setLayout(new BoxLayout(inboxList, BoxLayout.Y_AXIS));
+            inboxList.setAlignmentX(Component.LEFT_ALIGNMENT);
+
             for (int index = 0; index < budgetAlertInbox.size(); index++) {
                 inboxList.add(createNotificationItemCard(index + 1, budgetAlertInbox.get(index)));
                 if (index < budgetAlertInbox.size() - 1) {
                     inboxList.add(Box.createVerticalStrut(12));
                 }
             }
+            centerViewportContent = inboxList;
         }
 
-        JScrollPane scrollPane = new JScrollPane(inboxList);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setViewportBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.setOpaque(false);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        JScrollPane centerScrollPane = new JScrollPane(centerViewportContent);
+        centerScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        centerScrollPane.setViewportBorder(BorderFactory.createEmptyBorder());
+        centerScrollPane.getViewport().setOpaque(false);
+        centerScrollPane.setOpaque(false);
+        centerScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        centerScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         actions.setOpaque(false);
 
         JButton closeButton = createManageActionButton("Close", PAGE_BACKGROUND_SOFT, SURFACE_BORDER, TEXT_PRIMARY);
@@ -3727,12 +3755,79 @@ public class MainFrame extends JFrame {
         actions.add(closeButton);
 
         card.add(header, BorderLayout.NORTH);
-        card.add(scrollPane, BorderLayout.CENTER);
+        card.add(centerScrollPane, BorderLayout.CENTER);
         card.add(actions, BorderLayout.SOUTH);
 
         root.add(card, BorderLayout.CENTER);
         dialog.setContentPane(root);
         dialog.setVisible(true);
+    }
+
+    private JPanel createNotificationEmptyState() {
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+
+        SurfacePanel panel = createSurface(new BorderLayout(0, 18), PAGE_BACKGROUND_SOFT, NOTIFICATION_BORDER, 24);
+        panel.setBorder(new EmptyBorder(28, 28, 28, 28));
+        panel.setPreferredSize(new Dimension(440, 320));
+        panel.setMinimumSize(new Dimension(320, 280));
+        panel.setMaximumSize(new Dimension(440, 320));
+
+        JPanel body = new JPanel();
+        body.setOpaque(false);
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel iconShell = new JPanel(new BorderLayout());
+        iconShell.setOpaque(true);
+        iconShell.setBackground(NOTIFICATION_MUTED_SURFACE);
+        iconShell.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(NOTIFICATION_BORDER, 30, 1),
+                new EmptyBorder(12, 12, 12, 12)));
+        iconShell.setPreferredSize(new Dimension(60, 60));
+        iconShell.setMaximumSize(new Dimension(60, 60));
+        iconShell.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel iconLabel = new JLabel(new MailOutlineIcon(28, 20));
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+        iconLabel.setForeground(TEAL_DARK);
+        iconShell.add(iconLabel, BorderLayout.CENTER);
+
+        JLabel title = new JLabel("Inbox is clear");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 26));
+        title.setForeground(TEXT_PRIMARY);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JTextArea bodyText = createWrappedTextArea(
+                "You are all caught up. New budget warnings will appear here automatically as soon as a category gets close to its limit.",
+                new Font(FONT_FAMILY, Font.PLAIN, 14),
+                TEXT_SECONDARY);
+        bodyText.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bodyText.setMaximumSize(new Dimension(320, Integer.MAX_VALUE));
+
+        SurfacePanel tip = createSurface(new BorderLayout(), SURFACE, SURFACE_BORDER, 16);
+        tip.setBorder(new EmptyBorder(12, 14, 12, 14));
+        tip.setMaximumSize(new Dimension(360, Integer.MAX_VALUE));
+        tip.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel tipLabel = new JLabel("<html><b>Heads up:</b> Alerts appear when spending reaches 85% of a budget or goes over it.</html>");
+        tipLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
+        tipLabel.setForeground(TEXT_SECONDARY);
+        tipLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        tip.add(tipLabel, BorderLayout.CENTER);
+
+        body.add(iconShell);
+        body.add(Box.createVerticalStrut(16));
+        body.add(title);
+        body.add(Box.createVerticalStrut(10));
+        body.add(bodyText);
+        body.add(Box.createVerticalStrut(18));
+        body.add(tip);
+
+        panel.add(body, BorderLayout.CENTER);
+        wrapper.add(panel);
+        return wrapper;
     }
 
     private JPanel createNotificationItemCard(int index, String message) {
@@ -4336,39 +4431,6 @@ public class MainFrame extends JFrame {
         SurfacePanel panel = new SurfacePanel(fillColor, borderColor, radius, SHADOW);
         panel.setLayout(layout);
         return panel;
-    }
-
-    private static class RoundedLineBorder extends AbstractBorder {
-        private final Color color;
-        private final int radius;
-        private final int thickness;
-        RoundedLineBorder(Color color, int radius, int thickness) {
-            this.color = color;
-            this.radius = radius;
-            this.thickness = Math.max(1, thickness);
-        }
-        @Override
-        public Insets getBorderInsets(Component component) {
-            return new Insets(thickness, thickness, thickness, thickness);
-        }
-        @Override
-        public Insets getBorderInsets(Component component, Insets insets) {
-            insets.left = thickness;
-            insets.right = thickness;
-            insets.top = thickness;
-            insets.bottom = thickness;
-            return insets;
-        }
-        @Override
-        public void paintBorder(Component component, Graphics graphics, int x, int y, int width, int height) {
-            Graphics2D g2 = (Graphics2D) graphics.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(color);
-            for (int line = 0; line < thickness; line++) {
-                g2.drawRoundRect(x + line, y + line, width - (line * 2) - 1, height - (line * 2) - 1, radius, radius);
-            }
-            g2.dispose();
-        }
     }
 
     private static class MailOutlineIcon implements Icon {
