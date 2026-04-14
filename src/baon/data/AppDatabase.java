@@ -36,6 +36,7 @@ public final class AppDatabase {
     private AppDatabase() {
     }
 
+    // initialize
     public static synchronized void initialize() {
         if (initialized) {
             return;
@@ -119,14 +120,17 @@ public final class AppDatabase {
         }
     }
 
+    // load
     public static DatabaseState load() {
         return loadForUser(defaultEmail());
     }
 
+    // save
     public static void save(DatabaseState state) {
         saveForUser(defaultEmail(), state);
     }
 
+    // loadForUser
     public static DatabaseState loadForUser(String email) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -149,6 +153,7 @@ public final class AppDatabase {
         return sqliteState;
     }
 
+    // saveForUser
     public static void saveForUser(String email, DatabaseState state) {
         initialize();
         if (state == null) {
@@ -162,6 +167,7 @@ public final class AppDatabase {
         saveSqlStateForUser(normalizedEmail, state);
     }
 
+    // resetFinancialDataForUser
     public static void resetFinancialDataForUser(String email) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -169,6 +175,7 @@ public final class AppDatabase {
         saveSqlStateForUser(normalizedEmail, new DatabaseState());
     }
 
+    // loadSqlStateForUser
     private static DatabaseState loadSqlStateForUser(String normalizedEmail) {
         DatabaseState state = new DatabaseState();
         if (normalizedEmail.isEmpty()) {
@@ -195,6 +202,7 @@ public final class AppDatabase {
         }
     }
 
+    // saveSqlStateForUser
     private static void saveSqlStateForUser(String normalizedEmail, DatabaseState state) {
         if (normalizedEmail.isEmpty() || state == null) {
             return;
@@ -223,10 +231,11 @@ public final class AppDatabase {
             overwriteCategoryBudgets(connection, userId.intValue(), state.categoryBudgetLimits);
             connection.commit();
         } catch (SQLException | IOException exception) {
-            // Keep UI responsive even if persistence fails.
+            // save data fallback logic
         }
     }
 
+    // hasStoredState
     private static boolean hasStoredState(DatabaseState state) {
         return state != null
                 && (Math.abs(state.budgetLimit) > 0.0001
@@ -237,6 +246,7 @@ public final class AppDatabase {
                 || !state.categoryBudgetLimits.isEmpty());
     }
 
+    // userExists
     public static boolean userExists(String email) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -250,6 +260,7 @@ public final class AppDatabase {
         }
     }
 
+    // createUser
     public static boolean createUser(String displayName, String email, String plainPassword) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -273,6 +284,7 @@ public final class AppDatabase {
         }
     }
 
+    // authenticateUser
     public static UserRecord authenticateUser(String email, String plainPassword) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -302,6 +314,7 @@ public final class AppDatabase {
         }
     }
 
+    // updateDisplayName
     public static boolean updateDisplayName(String email, String displayName) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -320,6 +333,7 @@ public final class AppDatabase {
         }
     }
 
+    // updatePassword
     public static boolean updatePassword(String email, String newPassword) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -338,6 +352,7 @@ public final class AppDatabase {
         }
     }
 
+    // sendOtp
     public static OtpDispatchResult sendOtp(String email) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -381,6 +396,7 @@ public final class AppDatabase {
         }
     }
 
+    // verifyOtp
     public static boolean verifyOtp(String email, String otpCode) {
         initialize();
         String normalizedEmail = normalizeEmail(email);
@@ -698,7 +714,7 @@ public final class AppDatabase {
             statement.setString(1, normalizedEmail);
             statement.executeUpdate();
         } catch (SQLException | IOException ignored) {
-            // Nothing else to do if invalidation fails.
+            // otp invalidation fallback logic
         }
     }
 
@@ -856,4 +872,3 @@ public final class AppDatabase {
         }
     }
 }
-

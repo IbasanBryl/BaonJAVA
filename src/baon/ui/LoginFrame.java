@@ -105,11 +105,13 @@ public class LoginFrame extends JFrame {
     private boolean createPasswordVisible;
     private boolean createConfirmPasswordVisible;
 
+    // LoginFrame
     public LoginFrame() {
         super("BaonBrain Login");
         configureFrame();
     }
 
+    // configureFrame
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(680, 540));
@@ -128,6 +130,7 @@ public class LoginFrame extends JFrame {
         }
     }
 
+    // createRoot
     private JPanel createRoot() {
         GradientPanel root = new GradientPanel();
         root.setLayout(new GridLayout(1, 1));
@@ -135,6 +138,7 @@ public class LoginFrame extends JFrame {
         return root;
     }
 
+    // createLoginContent
     private JPanel createLoginContent() {
         JPanel wrap = new JPanel();
         wrap.setOpaque(false);
@@ -190,6 +194,7 @@ public class LoginFrame extends JFrame {
         return wrap;
     }
 
+    // loadBrandLogoIcon
     private Icon loadBrandLogoIcon() {
         ImageIcon icon = new ImageIcon(BRAND_LOGO_PATH);
         if (icon.getIconWidth() <= 0 || icon.getIconHeight() <= 0) {
@@ -221,6 +226,7 @@ public class LoginFrame extends JFrame {
         return pill;
     }
 
+    // createFormCard
     private JPanel createFormCard() {
         ResponsiveFormCardPanel card = new ResponsiveFormCardPanel();
         card.setLayout(new BorderLayout());
@@ -237,8 +243,10 @@ public class LoginFrame extends JFrame {
                 new LineBorder(FIELD_BORDER, 1, true),
                 new EmptyBorder(4, 4, 4, 4)));
 
+        // sign in button logic for tab
         signInTabButton = createTab("Sign In", true);
         signInTabButton.addActionListener(event -> switchTab(TAB_LOGIN));
+        // register button logic for tab
         createAccountTabButton = createTab("Register", false);
         createAccountTabButton.addActionListener(event -> switchTab(TAB_CREATE));
 
@@ -290,6 +298,7 @@ public class LoginFrame extends JFrame {
         return card;
     }
 
+    // createLoginPanel
     private JPanel createLoginPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -323,11 +332,13 @@ public class LoginFrame extends JFrame {
         forgotRow.setAlignmentX(Component.LEFT_ALIGNMENT);
         forgotRow.setMaximumSize(new Dimension(FORM_WIDTH, 24));
         forgotRow.setPreferredSize(new Dimension(FORM_WIDTH, 24));
+        // forgot password button logic for reset
         JButton forgotPasswordButton = createLinkButton("Forgot password?");
         forgotPasswordButton.addActionListener(event -> handleForgotPassword());
         forgotRow.add(forgotPasswordButton);
         rememberAndForgotRow.add(forgotRow, BorderLayout.EAST);
 
+        // sign in button logic for login
         loginButton = createPrimaryButton("Sign In to Dashboard");
         loginButton.addActionListener(event -> handleLogin());
         loginButton.setMaximumSize(new Dimension(FORM_WIDTH, 48));
@@ -354,6 +365,7 @@ public class LoginFrame extends JFrame {
         JLabel signupHint = new JLabel("Don't have an account?");
         signupHint.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
         signupHint.setForeground(TEXT_SECONDARY);
+        // sign up button logic for register
         JButton signupLink = createLinkButton("Sign up");
         signupLink.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         signupLink.addActionListener(event -> switchTab(TAB_CREATE));
@@ -366,6 +378,7 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
+    // createCreateAccountPanel
     private JPanel createCreateAccountPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -401,6 +414,7 @@ public class LoginFrame extends JFrame {
                 "Repeat your password",
                 false);
 
+        // create account button logic for register
         createButton = createPrimaryButton("Create Account");
         createButton.addActionListener(event -> handleCreateAccount());
         createButton.setMaximumSize(new Dimension(FORM_WIDTH, 48));
@@ -429,6 +443,7 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
+    // switchTab
     private void switchTab(String tabKey) {
         formLayout.show(formContentPanel, tabKey);
         boolean loginActive = TAB_LOGIN.equals(tabKey);
@@ -511,6 +526,7 @@ public class LoginFrame extends JFrame {
         return passwordFieldRow;
     }
 
+    // applyRememberedLogin
     private void applyRememberedLogin() {
         RememberedLoginStore.RememberedLogin rememberedLogin = RememberedLoginStore.load();
         if (!rememberedLogin.remembered) {
@@ -532,6 +548,7 @@ public class LoginFrame extends JFrame {
         loginPasswordToggleButton.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 12));
         loginPasswordToggleButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         loginPasswordToggleButton.setPreferredSize(new Dimension(44, 46));
+        // password button logic for login
         loginPasswordToggleButton.addActionListener(event -> setLoginPasswordVisible(!loginPasswordVisible));
     }
 
@@ -546,8 +563,10 @@ public class LoginFrame extends JFrame {
         toggleButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         toggleButton.setPreferredSize(new Dimension(44, 46));
         if (primaryPasswordField) {
+            // password button logic for create account
             toggleButton.addActionListener(event -> setCreatePasswordVisible(!createPasswordVisible));
         } else {
+            // confirm password button logic for create account
             toggleButton.addActionListener(event -> setCreateConfirmPasswordVisible(!createConfirmPasswordVisible));
         }
     }
@@ -680,6 +699,7 @@ public class LoginFrame extends JFrame {
         rememberPasswordCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
+    // handleLogin
     private void handleLogin() {
         String email = loginEmailField.getText().trim().toLowerCase();
         String password = new String(loginPasswordField.getPassword()).trim();
@@ -722,6 +742,7 @@ public class LoginFrame extends JFrame {
         new MainFrame(user.displayName, user.email).setVisible(true);
     }
 
+    // handleCreateAccount
     private void handleCreateAccount() {
         String name = createNameField.getText().trim();
         String email = createEmailField.getText().trim().toLowerCase();
@@ -789,6 +810,7 @@ public class LoginFrame extends JFrame {
         switchTab(TAB_LOGIN);
     }
 
+    // handleForgotPassword
     private void handleForgotPassword() {
         String email = loginEmailField.getText().trim().toLowerCase();
         if (email.isEmpty()) {
@@ -880,6 +902,7 @@ public class LoginFrame extends JFrame {
         }
     }
 
+    // promptForOtp
     private String promptForOtp(String email, String title) {
         JTextField otpField = new JTextField();
         otpField.setColumns(8);
@@ -942,6 +965,7 @@ public class LoginFrame extends JFrame {
             otpField.selectAll();
         }
     }
+    // showOtpDispatchDialog
     private void showOtpDispatchDialog(String title, String message) {
         JPanel panel = new JPanel(new BorderLayout(12, 0));
         panel.setOpaque(false);
@@ -968,6 +992,7 @@ public class LoginFrame extends JFrame {
                 title,
                 JOptionPane.PLAIN_MESSAGE);
     }
+    // showStatus
     private void showStatus(String message, Color color) {
         statusLabel.setText(message);
         statusLabel.setForeground(color);
@@ -1134,4 +1159,3 @@ public class LoginFrame extends JFrame {
         }
     }
 }
-

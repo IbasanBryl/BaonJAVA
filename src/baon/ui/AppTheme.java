@@ -69,7 +69,7 @@ public final class AppTheme {
                 }
                 break;
             } catch (IOException ignored) {
-                // Fall back to defaults when the theme file cannot be read.
+                // theme fallback logic
             }
         }
 
@@ -93,7 +93,7 @@ public final class AppTheme {
                 return new Color(parseChannel(parts[0]), parseChannel(parts[1]), parseChannel(parts[2]), parseAlpha(parts[3]));
             }
         } catch (RuntimeException ignored) {
-            // Fall through to fallback parsing.
+            // color fallback logic
         }
 
         return parseFallbackColor(fallback);
@@ -121,6 +121,5 @@ public final class AppTheme {
         return Color.BLACK;
     }
 }
-
 
 

@@ -21,6 +21,7 @@ public final class BackendServer {
     private BackendServer() {
     }
 
+    // start
     public static synchronized void start(int port) {
         if (server != null) {
             return;
@@ -38,6 +39,7 @@ public final class BackendServer {
         }
     }
 
+    // handleHealth
     private static void handleHealth(HttpExchange exchange) throws IOException {
         addCors(exchange);
         if ("OPTIONS".equals(exchange.getRequestMethod())) {
@@ -51,6 +53,7 @@ public final class BackendServer {
         send(exchange, 200, "{\"status\":\"ok\"}");
     }
 
+    // handleDatabase
     private static void handleDatabase(HttpExchange exchange) throws IOException {
         addCors(exchange);
         if ("OPTIONS".equals(exchange.getRequestMethod())) {
@@ -77,12 +80,14 @@ public final class BackendServer {
         send(exchange, 405, "{\"error\":\"Method not allowed\"}");
     }
 
+    // addCors
     private static void addCors(HttpExchange exchange) {
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
     }
 
+    // send
     private static void send(HttpExchange exchange, int statusCode, String response) throws IOException {
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
@@ -92,6 +97,7 @@ public final class BackendServer {
         }
     }
 
+    // readBody
     private static String readBody(InputStream stream) throws IOException {
         try (InputStream input = stream; ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
             byte[] chunk = new byte[4096];
@@ -103,6 +109,7 @@ public final class BackendServer {
         }
     }
 
+    // loadDatabaseJson
     private static String loadDatabaseJson() throws IOException {
         synchronized (FILE_LOCK) {
             ensureFileExists();
@@ -111,6 +118,7 @@ public final class BackendServer {
         }
     }
 
+    // saveDatabaseJson
     private static void saveDatabaseJson(String json) throws IOException {
         synchronized (FILE_LOCK) {
             ensureFileExists();
@@ -118,6 +126,7 @@ public final class BackendServer {
         }
     }
 
+    // prettyPrintJson
     private static String prettyPrintJson(String json) {
         if (json == null) {
             return "";
@@ -188,12 +197,14 @@ public final class BackendServer {
         return builder.toString().trim();
     }
 
+    // appendIndent
     private static void appendIndent(StringBuilder builder, int indentLevel) {
         for (int index = 0; index < indentLevel; index++) {
             builder.append("  ");
         }
     }
 
+    // ensureFileExists
     private static void ensureFileExists() throws IOException {
         Path parent = DATA_PATH.getParent();
         if (parent != null && !Files.exists(parent)) {
@@ -204,10 +215,12 @@ public final class BackendServer {
         }
     }
 
+    // isLikelyJsonObject
     private static boolean isLikelyJsonObject(String body) {
         return body.startsWith("{") && body.endsWith("}");
     }
 
+    // defaultJson
     private static String defaultJson() {
         return "{\n"
                 + "  \"budgetLimit\": 0.0,\n"
@@ -218,4 +231,3 @@ public final class BackendServer {
                 + "}\n";
     }
 }
-
