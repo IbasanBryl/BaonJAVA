@@ -1,8 +1,58 @@
 {
   "budgetLimit": 0.0,
-  "savingGoalTarget": 0.0,
-  "incomeEntries": [],
-  "expenseEntries": [],
-  "savingEntries": [],
-  "categoryBudgetLimits": {}
+  "savingGoalTarget": 1231.0,
+  "incomeEntries": [
+    {
+      "amount": 100.0,
+      "source": "Allowance",
+      "date": "2026-04-14"
+    }
+  ],
+  "expenseEntries": [
+    {
+      "amount": 50.0,
+      "category": "Food",
+      "item": "abc",
+      "date": "2026-04-14"
+    }
+  ],
+  "savingEntries": [
+    {
+      "amount": 123123.0,
+      "category": "Other",
+      "date": "2026-04-14"
+    }
+  ],
+  "categoryBudgetLimits": {},
+  "savingGoalCategory": "Other",
+  "users": {
+    "ibasanbryl7@gmail.com": {
+      "budgetLimit": 0.0,
+      "savingGoalTarget": 1231.0,
+      "savingGoalCategory": "Other",
+      "incomeEntries": [
+        {
+          "amount": 100.0,
+          "source": "Allowance",
+          "date": "2026-04-14"
+        }
+      ],
+      "expenseEntries": [
+        {
+          "amount": 50.0,
+          "category": "Food",
+          "item": "abc",
+          "date": "2026-04-14"
+        }
+      ],
+      "savingEntries": [
+        {
+          "amount": 123123.0,
+          "category": "Other",
+          "date": "2026-04-14"
+        }
+      ],
+      "categoryBudgetLimits": {}
+    }
+  }
 }

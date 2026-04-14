@@ -60,6 +60,7 @@ public final class AppDatabase {
                     + "user_id INTEGER PRIMARY KEY,"
                     + "budget_limit REAL NOT NULL DEFAULT 0,"
                     + "saving_goal_target REAL NOT NULL DEFAULT 0,"
+                    + "saving_goal_category TEXT NOT NULL DEFAULT 'Other',"
                     + "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
                     + ")");
 
@@ -111,6 +112,7 @@ public final class AppDatabase {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_otp_codes_email ON otp_codes(email)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_income_entries_user ON income_entries(user_id)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_expense_entries_user ON expense_entries(user_id)");
+            ensureSavingGoalCategoryColumn(connection);
             ensureExpenseEntryItemColumn(connection);
             ensureSavingEntryCategoryColumn(connection);
             statement.execute("CREATE INDEX IF NOT EXISTS idx_saving_entries_user ON saving_entries(user_id)");
@@ -436,6 +438,28 @@ public final class AppDatabase {
         }
     }
 
+    private static void ensureSavingGoalCategoryColumn(Connection connection) throws SQLException {
+        boolean hasCategoryColumn = false;
+        String sql = "PRAGMA table_info(user_settings)";
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                if ("saving_goal_category".equalsIgnoreCase(resultSet.getString("name"))) {
+                    hasCategoryColumn = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasCategoryColumn) {
+            return;
+        }
+
+        try (Statement alter = connection.createStatement()) {
+            alter.execute("ALTER TABLE user_settings ADD COLUMN saving_goal_category TEXT NOT NULL DEFAULT 'Other'");
+        }
+    }
+
     private static void ensureExpenseEntryItemColumn(Connection connection) throws SQLException {
         boolean hasItemColumn = false;
         String sql = "PRAGMA table_info(expense_entries)";
@@ -481,13 +505,14 @@ public final class AppDatabase {
     }
 
     private static void loadSettings(Connection connection, int userId, DatabaseState state) throws SQLException {
-        String sql = "SELECT budget_limit, saving_goal_target FROM user_settings WHERE user_id = ?";
+        String sql = "SELECT budget_limit, saving_goal_target, saving_goal_category FROM user_settings WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     state.budgetLimit = resultSet.getDouble("budget_limit");
                     state.savingGoalTarget = resultSet.getDouble("saving_goal_target");
+                    state.savingGoalCategory = resultSet.getString("saving_goal_category");
                 }
             }
         }
@@ -540,22 +565,24 @@ public final class AppDatabase {
     }
 
     private static void overwriteSettings(Connection connection, int userId, DatabaseState state) throws SQLException {
-        String updateSql = "UPDATE user_settings SET budget_limit = ?, saving_goal_target = ? WHERE user_id = ?";
+        String updateSql = "UPDATE user_settings SET budget_limit = ?, saving_goal_target = ?, saving_goal_category = ? WHERE user_id = ?";
         try (PreparedStatement update = connection.prepareStatement(updateSql)) {
             update.setDouble(1, state.budgetLimit);
             update.setDouble(2, state.savingGoalTarget);
-            update.setInt(3, userId);
+            update.setString(3, state.savingGoalCategory == null || state.savingGoalCategory.trim().isEmpty() ? "Other" : state.savingGoalCategory.trim());
+            update.setInt(4, userId);
             int affected = update.executeUpdate();
             if (affected > 0) {
                 return;
             }
         }
 
-        String insertSql = "INSERT INTO user_settings (user_id, budget_limit, saving_goal_target) VALUES (?, ?, ?)";
+        String insertSql = "INSERT INTO user_settings (user_id, budget_limit, saving_goal_target, saving_goal_category) VALUES (?, ?, ?, ?)";
         try (PreparedStatement insert = connection.prepareStatement(insertSql)) {
             insert.setInt(1, userId);
             insert.setDouble(2, state.budgetLimit);
             insert.setDouble(3, state.savingGoalTarget);
+            insert.setString(4, state.savingGoalCategory == null || state.savingGoalCategory.trim().isEmpty() ? "Other" : state.savingGoalCategory.trim());
             insert.executeUpdate();
         }
     }
@@ -840,6 +867,7 @@ public final class AppDatabase {
         public final LinkedHashMap<String, Double> categoryBudgetLimits = new LinkedHashMap<String, Double>();
         public double budgetLimit;
         public double savingGoalTarget;
+        public String savingGoalCategory = "Other";
     }
 
     public static final class UserRecord {

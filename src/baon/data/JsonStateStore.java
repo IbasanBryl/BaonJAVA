@@ -166,6 +166,10 @@ final class JsonStateStore {
 
         state.budgetLimit = asDouble(rawState.get("budgetLimit"));
         state.savingGoalTarget = asDouble(rawState.get("savingGoalTarget"));
+        state.savingGoalCategory = asString(rawState.get("savingGoalCategory"));
+        if (state.savingGoalCategory.isEmpty()) {
+            state.savingGoalCategory = "Other";
+        }
 
         List<Object> incomeEntries = asList(rawState.get("incomeEntries"));
         if (incomeEntries != null) {
@@ -225,6 +229,7 @@ final class JsonStateStore {
         LinkedHashMap<String, Object> rawState = new LinkedHashMap<String, Object>();
         rawState.put("budgetLimit", state.budgetLimit);
         rawState.put("savingGoalTarget", state.savingGoalTarget);
+        rawState.put("savingGoalCategory", state.savingGoalCategory == null || state.savingGoalCategory.trim().isEmpty() ? "Other" : state.savingGoalCategory.trim());
 
         ArrayList<Object> incomeEntries = new ArrayList<Object>();
         for (IncomeEntry entry : state.incomeEntries) {

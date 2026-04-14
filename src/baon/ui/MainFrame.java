@@ -86,6 +86,7 @@ public class MainFrame extends JFrame {
     private static final int DASHBOARD_METRIC_CARD_MIN_HEIGHT = 278;
     private static final int SAVINGS_HISTORY_MIN_PAGE_SIZE = 8;
     private static final double BUDGET_ALERT_THRESHOLD_PERCENT = 85.0;
+    private static final double BUDGET_ALERT_THRESHOLD_REMAINING = 100.0;
     private static final int MAX_STORED_BUDGET_ALERTS = 10;
     private static final String[] BUDGET_CATEGORY_OPTIONS = new String[] { "Food", "Transport", "Leisure", "School", "Other" };
     private static final String[] INCOME_SOURCE_OPTIONS = new String[] { "Allowance", "Salary", "Scholarship", "Gift", "Side Hustle", "Other" };
@@ -293,6 +294,7 @@ public class MainFrame extends JFrame {
     private double budgetLimit = 0.0;
     private final LinkedHashMap<String, Double> categoryBudgetLimits = new LinkedHashMap<String, Double>();    
     private double savingGoalTarget = 0.0;
+    private String savingGoalCategory = "Other";
     private int savingsHistoryCurrentPage = 1;
     private int savingsHistoryLastPageSize = SAVINGS_HISTORY_MIN_PAGE_SIZE;
     private String currentPage = PAGE_DASHBOARD;
@@ -597,7 +599,7 @@ public class MainFrame extends JFrame {
 
         JDialog dialog = new JDialog(this, "Manage Account", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setResizable(true);
+        dialog.setResizable(false);
         dialog.setSize(MANAGE_DIALOG_WIDTH, MANAGE_DIALOG_HEIGHT);
         dialog.setMinimumSize(new Dimension(MANAGE_DIALOG_MIN_WIDTH, MANAGE_DIALOG_MIN_HEIGHT));
         dialog.setLocationRelativeTo(this);
@@ -618,12 +620,13 @@ public class MainFrame extends JFrame {
         SurfacePanel card = createSurface(new BorderLayout(0, MANAGE_SECTION_GAP), cardBackground, cardBorder, MANAGE_CARD_RADIUS);
         card.setBorder(new EmptyBorder(MANAGE_CARD_PADDING, MANAGE_CARD_PADDING, MANAGE_CARD_PADDING - 2, MANAGE_CARD_PADDING));
         card.setPreferredSize(new Dimension(MANAGE_CARD_WIDTH, 0));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.setMaximumSize(new Dimension(MANAGE_CONTENT_WIDTH, Integer.MAX_VALUE));
+        content.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         content.setPreferredSize(new Dimension(MANAGE_CONTENT_WIDTH, content.getPreferredSize().height));
 
         JLabel chip = createManageChipLabel("PROFILE SETTINGS");
@@ -687,6 +690,8 @@ public class MainFrame extends JFrame {
         JPanel securityActionWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         securityActionWrap.setOpaque(false);
         securityActionWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+        securityActionWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, MANAGE_INPUT_HEIGHT + 12));
+        securityActionWrap.setPreferredSize(new Dimension(0, MANAGE_INPUT_HEIGHT + 12));
 
         // change password button logic for account
         JButton changePasswordButton = createManageActionButton("Change Password", MANAGE_ACCENT, MANAGE_ACCENT_DARK, Color.WHITE);
@@ -701,9 +706,8 @@ public class MainFrame extends JFrame {
         securityContent.add(securityHeading);
         securityContent.add(Box.createVerticalStrut(10));
         securityContent.add(securityBody);
-        securityContent.add(Box.createVerticalStrut(MANAGE_FIELD_GAP));
-        securityContent.add(securityActionWrap);
         securityCard.add(securityContent, BorderLayout.CENTER);
+        securityCard.add(securityActionWrap, BorderLayout.SOUTH);
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, MANAGE_ACTION_GAP, 0));
         actions.setOpaque(false);
@@ -752,9 +756,9 @@ public class MainFrame extends JFrame {
         content.add(Box.createVerticalStrut(MANAGE_FIELD_GAP + 2));
         content.add(securityCard);
         content.add(Box.createVerticalStrut(MANAGE_SECTION_GAP));
-        content.add(actions);
 
         card.add(content, BorderLayout.CENTER);
+        card.add(actions, BorderLayout.SOUTH);
 
         JScrollPane scrollPane = new JScrollPane(card);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -825,9 +829,11 @@ public class MainFrame extends JFrame {
         button.setBackground(fillColor);
         button.setOpaque(false);
         button.setContentAreaFilled(false);
+        button.setHorizontalAlignment(SwingConstants.CENTER);
+        button.setVerticalAlignment(SwingConstants.CENTER);
         button.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(borderColor, MANAGE_BUTTON_RADIUS, 1),
-                new EmptyBorder(11, 20, 11, 20)));
+                new EmptyBorder(8, 20, 8, 20)));
         button.setPreferredSize(new Dimension(152, MANAGE_ACTION_HEIGHT));
         installButtonHover(button, fillColor);
         return button;
@@ -1049,6 +1055,7 @@ public class MainFrame extends JFrame {
         budgetLimit = 0.0;
         categoryBudgetLimits.clear();
         savingGoalTarget = 0.0;
+        savingGoalCategory = "Other";
         AppDatabase.resetFinancialDataForUser(accountEmail);
         refreshAllSections();
         showPage(PAGE_DASHBOARD);
@@ -1328,11 +1335,11 @@ public class MainFrame extends JFrame {
     private JPanel createSavingGoalPage() {
         // add daily savings button logic for form
         JButton addDailySavingsButton = createActionButton("Add Daily Savings");
-        addDailySavingsButton.addActionListener(event -> showDailySavingsDialog());
+        addDailySavingsButton.addActionListener(event -> showSavingGoalDialog());
 
         // set saving goal button logic for form
         JButton setSavingGoalButton = createActionButton("Set Saving Goal");
-        setSavingGoalButton.addActionListener(event -> showSavingGoalDialog());
+        setSavingGoalButton.addActionListener(event -> showDailySavingsDialog());
 
         JPanel page = new JPanel(new BorderLayout(18, 18));
         page.setOpaque(false);
@@ -1856,9 +1863,7 @@ public class MainFrame extends JFrame {
         panel.add(createCardHeader("Saving History", "Every savings entry you add will be listed here.",
                 savingsHistoryBadgeLabel), BorderLayout.NORTH);
         savingsHistoryContentPanel.setOpaque(false);
-        savingsHistoryPaginationPanel.setOpaque(false);
         panel.add(savingsHistoryContentPanel, BorderLayout.CENTER);
-        panel.add(savingsHistoryPaginationPanel, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -2208,22 +2213,32 @@ public class MainFrame extends JFrame {
 
     // showSavingGoalDialog
     private void showSavingGoalDialog() {
+        JComboBox<String> categoryBox = new JComboBox<String>(SAVINGS_CATEGORY_OPTIONS);
         JTextField amountField = new JTextField(savingGoalTarget > 0 ? String.valueOf(savingGoalTarget) : "");
+        categoryBox.setEditable(true);
+        categoryBox.setSelectedItem(savingGoalCategory == null || savingGoalCategory.trim().isEmpty() ? "Other" : savingGoalCategory);
+        styleDialogComboBox(categoryBox);
         styleDialogTextField(amountField);
 
-        JPanel form = createDialogForm(new String[] { "Target Amount" }, new Component[] { amountField });
+        JPanel form = createDialogForm(new String[] { "Category", "Target Amount" }, new Component[] { categoryBox, amountField });
         showStyledInputDialog("Set Saving Goal",
                 "Define the target amount you want to build toward.",
                 form,
-                amountField,
-                new Dimension(440, 300),
+                categoryBox,
+                new Dimension(460, 340),
                 dialog -> {
+                    String category = String.valueOf(categoryBox.getEditor().getItem()).trim();
                     Double amount = parseAmount(amountField.getText());
+                    if (category.isEmpty()) {
+                        showValidationMessage(dialog, "Choose or type a savings category before saving.");
+                        return;
+                    }
                     if (amount == null || amount.doubleValue() <= 0) {
                         showValidationMessage(dialog, "Enter a valid goal amount greater than 0.");
                         return;
                     }
 
+                    savingGoalCategory = category;
                     savingGoalTarget = amount.doubleValue();
                     handleFinancialDataChanged();
                     dialog.dispose();
@@ -2516,6 +2531,9 @@ public class MainFrame extends JFrame {
             budgetLimit = calculateBudgetTotal();
         }
         savingGoalTarget = state.savingGoalTarget;
+        savingGoalCategory = state.savingGoalCategory == null || state.savingGoalCategory.trim().isEmpty()
+                ? "Other"
+                : state.savingGoalCategory.trim();
     }
 
     // persistData
@@ -2527,6 +2545,7 @@ public class MainFrame extends JFrame {
         state.categoryBudgetLimits.putAll(categoryBudgetLimits);
         state.budgetLimit = budgetLimit;
         state.savingGoalTarget = savingGoalTarget;
+        state.savingGoalCategory = savingGoalCategory;
         AppDatabase.saveForUser(accountEmail, state);
     }
 
@@ -2760,13 +2779,10 @@ public class MainFrame extends JFrame {
             }
 
             savingsHistoryContentPanel.add(savingsTableScrollPane, BorderLayout.CENTER);
-            buildSavingsHistoryPagination(totalPages);
             styleBadgeLabel(savingsHistoryBadgeLabel, "Showing " + (startIndex + 1) + "-" + endIndex + " of " + savingEntries.size(), SURFACE_TINT, TEAL_DARK);
         }
         savingsHistoryContentPanel.revalidate();
         savingsHistoryContentPanel.repaint();
-        savingsHistoryPaginationPanel.revalidate();
-        savingsHistoryPaginationPanel.repaint();
     }
 
     private int resolveSavingsHistoryPageSize() {
@@ -3667,11 +3683,18 @@ public class MainFrame extends JFrame {
 
         double previousPercent = (previousSpent / limit) * 100.0;
         double newPercent = (newSpent / limit) * 100.0;
+        double previousRemaining = limit - previousSpent;
+        double newRemaining = limit - newSpent;
         if (previousPercent >= 100.0) {
             return null;
         }
         if (previousPercent < 100.0 && newPercent >= 100.0) {
             return label + " just went over by " + currencyFormat.format(newSpent - limit) + ".";
+        }
+        if (previousRemaining > BUDGET_ALERT_THRESHOLD_REMAINING
+                && newRemaining <= BUDGET_ALERT_THRESHOLD_REMAINING
+                && newRemaining >= 0.0) {
+            return label + " only has " + currencyFormat.format(newRemaining) + " left.";
         }
         if (previousPercent < BUDGET_ALERT_THRESHOLD_PERCENT && newPercent >= BUDGET_ALERT_THRESHOLD_PERCENT) {
             return label + " is at " + formatPercent(newPercent) + " of the limit with only "
