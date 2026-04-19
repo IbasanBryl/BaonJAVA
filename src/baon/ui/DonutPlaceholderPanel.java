@@ -53,7 +53,7 @@ public class DonutPlaceholderPanel extends JPanel {
         g2.setColor(centerColor);
         g2.fillOval(x + centerInset, y + centerInset, outer - (centerInset * 2), outer - (centerInset * 2));
         g2.setColor(textColor);
-        g2.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        g2.setFont(new Font(FONT_FAMILY, Font.BOLD, AppTheme.scaled(12)));
 
         String[] lines = text.split("\\n");
         int totalTextHeight = lines.length * 16;

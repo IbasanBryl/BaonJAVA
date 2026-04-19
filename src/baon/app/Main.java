@@ -32,7 +32,7 @@ public class Main {
     // configureLookAndFeel
     private static void configureLookAndFeel() {
         FlatLightLaf.setup();
-        increaseGlobalFontSize(1f);
+        increaseGlobalFontSize(AppTheme.decimal("--ui-default-font-delta", 2f));
         UIManager.put("Component.arc", AppTheme.integer("--ui-component-arc", 20));
         UIManager.put("Button.arc", AppTheme.integer("--ui-button-arc", 22));
         UIManager.put("TextComponent.arc", AppTheme.integer("--ui-text-component-arc", 16));

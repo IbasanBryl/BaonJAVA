@@ -24,17 +24,21 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.GradientPaint;
 import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.Point;
+import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Point2D;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.format.DateTimeParseException;
 import java.text.NumberFormat;
@@ -154,6 +158,14 @@ public class MainFrame extends JFrame {
     private static final Color NOTIFICATION_HOVER = AppTheme.color("--main-notification-hover", "#FFF2D9");
     private static final Color NOTIFICATION_UNREAD = AppTheme.color("--main-notification-unread", "#FFF3DE");
     private static final Color NOTIFICATION_UNREAD_TEXT = AppTheme.color("--main-notification-unread-text", "#C57A21");
+    private static final Color HERO_BACKGROUND_START = AppTheme.color("--main-hero-background-start", "#F6FBF8");
+    private static final Color HERO_BACKGROUND_END = AppTheme.color("--main-hero-background-end", "#EDF7F2");
+    private static final Color HERO_BORDER = AppTheme.color("--main-hero-border", "#D6E7DE");
+    private static final Color HERO_HIGHLIGHT = AppTheme.color("--main-hero-highlight", "rgba(61, 150, 114, 58)");
+    private static final Color HERO_CHIP_BACKGROUND = AppTheme.color("--main-hero-chip-background", "rgba(255, 255, 255, 210)");
+    private static final Color HERO_CHIP_BORDER = AppTheme.color("--main-hero-chip-border", "#D0E1D9");
+    private static final Color HERO_CHIP_TEXT = AppTheme.color("--main-hero-chip-text", "#1D5A46");
+    private static final Color HERO_BODY_TEXT = AppTheme.color("--main-hero-body", "#586D65");
     private static final int MANAGE_DIALOG_WIDTH = AppTheme.integer("--main-manage-dialog-width", 980);
     private static final int MANAGE_DIALOG_HEIGHT = AppTheme.integer("--main-manage-dialog-height", 820);
     private static final int MANAGE_DIALOG_MIN_WIDTH = AppTheme.integer("--main-manage-dialog-min-width", 760);
@@ -200,6 +212,7 @@ public class MainFrame extends JFrame {
 
     private final CardLayout pageLayout = new CardLayout();
     private final JPanel pagePanel = new ResponsivePagePanel(pageLayout);
+    private JPanel contentHeaderBarPanel;
     private JScrollPane contentScrollPane;
 
     private JButton dashboardNavButton;
@@ -210,8 +223,13 @@ public class MainFrame extends JFrame {
     private JButton forecastNavButton;
 
     private JLabel sidebarUsernameLabel;
+    private JLabel sidebarEmailLabel;
     private String accountDisplayName;
     private final String accountEmail;
+    private final JLabel contentHeroTitleLabel = new JLabel();
+    private final JLabel contentHeroBodyLabel = new JLabel();
+    private final JLabel contentHeroPageBadgeLabel = new JLabel();
+    private final JLabel contentHeroDateLabel = new JLabel();
 
     private final JLabel dashboardIncomeValueLabel = new AutoScalingMetricLabel();
     private final JLabel dashboardIncomeBodyLabel = new JLabel();
@@ -329,23 +347,25 @@ public class MainFrame extends JFrame {
     // configureFrame
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1100, 720));
-        setSize(1360, 820);
+        setMinimumSize(new Dimension(1160, 760));
+        setSize(1420, 860);
         setResizable(true);
         setLocationRelativeTo(null);
 
         BackgroundPanel root = new BackgroundPanel(PAGE_BACKGROUND, ROOT_STRIPE, ROOT_ORB);
-        root.setLayout(new BorderLayout(24, 0));
-        root.setBorder(new EmptyBorder(10, 10, 10, 10));
+        root.setLayout(new BorderLayout(18, 0));
+        root.setBorder(new EmptyBorder(16, 16, 16, 16));
         root.add(createSidebar(), BorderLayout.WEST);
         root.add(createContentArea(), BorderLayout.CENTER);
         setContentPane(root);
+        AppTheme.scaleComponentTreeFonts(getContentPane());
     }
 
     // createContentArea
     private JPanel createContentArea() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(4, 0, 4, 0));
         configureNotificationButton();
         panel.add(createPageScrollPane(), BorderLayout.CENTER);
         return panel;
@@ -388,36 +408,169 @@ public class MainFrame extends JFrame {
 
     // refreshContentHeader
     private void refreshContentHeader() {
-        notificationButton.setVisible(PAGE_DASHBOARD.equals(currentPage));
+        boolean dashboardPage = PAGE_DASHBOARD.equals(currentPage);
+        notificationButton.setVisible(dashboardPage);
+        if (contentHeaderBarPanel != null) {
+            contentHeaderBarPanel.setVisible(dashboardPage);
+            contentHeaderBarPanel.revalidate();
+            contentHeaderBarPanel.repaint();
+        }
+        refreshOverviewHero();
         notificationButton.revalidate();
         notificationButton.repaint();
     }
 
     // createContentHeaderBar
     private JPanel createContentHeaderBar() {
-        JPanel panel = new JPanel(new BorderLayout(18, 0));
+        OverviewHeroPanel panel = new OverviewHeroPanel();
+        contentHeaderBarPanel = panel;
+        panel.setLayout(new BorderLayout(24, 0));
         panel.setOpaque(false);
-        panel.setBorder(new EmptyBorder(0, 0, 18, 0));
+        panel.setBorder(new EmptyBorder(0, 0, 22, 0));
+        panel.setVisible(PAGE_DASHBOARD.equals(currentPage));
 
-        JLabel titleLabel = new JLabel("Financial Overview");
-        titleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 46));
-        titleLabel.setForeground(TEXT_PRIMARY);
+        JPanel content = new JPanel(new BorderLayout(24, 0));
+        content.setOpaque(false);
+        content.setBorder(new EmptyBorder(24, 28, 24, 28));
 
-        JPanel accessoryPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        accessoryPanel.setOpaque(false);
-        accessoryPanel.add(notificationButton);
+        JPanel copyBlock = new JPanel();
+        copyBlock.setOpaque(false);
+        copyBlock.setLayout(new BoxLayout(copyBlock, BoxLayout.Y_AXIS));
 
-        panel.add(titleLabel, BorderLayout.WEST);
-        panel.add(accessoryPanel, BorderLayout.EAST);
+        JLabel eyebrow = new JLabel("STUDENT CASHFLOW");
+        configureHeroBadge(eyebrow);
+        eyebrow.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contentHeroTitleLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 38));
+        contentHeroTitleLabel.setForeground(TEXT_PRIMARY);
+        contentHeroTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contentHeroBodyLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 14));
+        contentHeroBodyLabel.setForeground(HERO_BODY_TEXT);
+        contentHeroBodyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        copyBlock.add(eyebrow);
+        copyBlock.add(Box.createVerticalStrut(16));
+        copyBlock.add(contentHeroTitleLabel);
+        copyBlock.add(Box.createVerticalStrut(10));
+        copyBlock.add(contentHeroBodyLabel);
+
+        JPanel accessoryColumn = new JPanel();
+        accessoryColumn.setOpaque(false);
+        accessoryColumn.setLayout(new BoxLayout(accessoryColumn, BoxLayout.Y_AXIS));
+        accessoryColumn.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        configureHeroBadge(contentHeroPageBadgeLabel);
+        configureHeroBadge(contentHeroDateLabel);
+
+        JPanel badgeRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        badgeRow.setOpaque(false);
+        badgeRow.add(contentHeroPageBadgeLabel);
+        badgeRow.add(contentHeroDateLabel);
+
+        JLabel supportLabel = new JLabel("<html><div style='text-align:right; width:210px'>Keep your week steady and your categories easy to scan.</div></html>");
+        supportLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
+        supportLabel.setForeground(HERO_BODY_TEXT);
+        supportLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        actionRow.setOpaque(false);
+        actionRow.add(notificationButton);
+
+        accessoryColumn.add(badgeRow);
+        accessoryColumn.add(Box.createVerticalStrut(14));
+        accessoryColumn.add(supportLabel);
+        accessoryColumn.add(Box.createVerticalGlue());
+        accessoryColumn.add(Box.createVerticalStrut(18));
+        accessoryColumn.add(actionRow);
+
+        content.add(copyBlock, BorderLayout.CENTER);
+        content.add(accessoryColumn, BorderLayout.EAST);
+        panel.add(content, BorderLayout.CENTER);
+        refreshOverviewHero();
         return panel;
+    }
+
+    private void refreshOverviewHero() {
+        contentHeroTitleLabel.setText("Welcome back, " + resolveFirstName(accountDisplayName) + ".");
+        contentHeroBodyLabel.setText("<html><div style='width:520px'>" + escapeHtml(buildOverviewHeroBody()) + "</div></html>");
+        contentHeroPageBadgeLabel.setText(resolvePageDisplayName(currentPage).toUpperCase());
+        contentHeroDateLabel.setText(formatCurrentMonthLabel());
+        if (sidebarEmailLabel != null) {
+            sidebarEmailLabel.setText(accountEmail.isEmpty() ? "Account settings" : accountEmail);
+        }
+    }
+
+    private void configureHeroBadge(JLabel label) {
+        label.setOpaque(true);
+        label.setBackground(HERO_CHIP_BACKGROUND);
+        label.setForeground(HERO_CHIP_TEXT);
+        label.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        label.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(HERO_CHIP_BORDER, 16, 1),
+                new EmptyBorder(7, 12, 7, 12)));
+    }
+
+    private String buildOverviewHeroBody() {
+        if (PAGE_INCOME.equals(currentPage)) {
+            return "Capture every allowance, payout, and side hustle so your monthly picture starts from the money coming in.";
+        }
+        if (PAGE_EXPENSES.equals(currentPage)) {
+            return "Keep a close eye on what leaves your pocket so overspending shows up early instead of at month-end.";
+        }
+        if (PAGE_BUDGET.equals(currentPage)) {
+            return "Set clean category limits and check which budgets are comfortable, tight, or already asking for attention.";
+        }
+        if (PAGE_SAVING_GOAL.equals(currentPage)) {
+            return "Turn savings into a visible habit by tracking your target, your deposits, and what is still left to reach.";
+        }
+        if (PAGE_FORECAST.equals(currentPage)) {
+            return "Project the rest of the month using your current pace so tomorrow's choices feel less surprising.";
+        }
+        return "Start with the big picture, then zoom into the pages that need attention before the rest of the month fills up.";
+    }
+
+    private String resolvePageDisplayName(String pageKey) {
+        if (PAGE_INCOME.equals(pageKey)) {
+            return "Income";
+        }
+        if (PAGE_EXPENSES.equals(pageKey)) {
+            return "Expenses";
+        }
+        if (PAGE_BUDGET.equals(pageKey)) {
+            return "Budget";
+        }
+        if (PAGE_SAVING_GOAL.equals(pageKey)) {
+            return "Saving Goal";
+        }
+        if (PAGE_FORECAST.equals(pageKey)) {
+            return "Forecast";
+        }
+        return "Dashboard";
+    }
+
+    private String resolveFirstName(String displayName) {
+        if (displayName == null) {
+            return "User";
+        }
+        String trimmed = displayName.trim();
+        if (trimmed.isEmpty()) {
+            return "User";
+        }
+        int separator = trimmed.indexOf(' ');
+        return separator < 0 ? trimmed : trimmed.substring(0, separator);
+    }
+
+    private String formatCurrentMonthLabel() {
+        return YearMonth.now().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
     }
 
     // createSidebar
     private JPanel createSidebar() {
-        JPanel panel = new JPanel(new BorderLayout(0, 22));
-        panel.setPreferredSize(new Dimension(220, 0));
-        panel.setBackground(SIDEBAR_BACKGROUND);
-        panel.setBorder(new EmptyBorder(14, 12, 14, 12));
+        SidebarPanel panel = new SidebarPanel();
+        panel.setLayout(new BorderLayout(0, 22));
+        panel.setPreferredSize(new Dimension(248, 0));
+        panel.setBorder(new EmptyBorder(18, 16, 18, 16));
 
         JPanel brandBlock = new JPanel();
         brandBlock.setOpaque(false);
@@ -435,7 +588,7 @@ public class MainFrame extends JFrame {
         brand.setHorizontalTextPosition(SwingConstants.RIGHT);
         brand.setVerticalTextPosition(SwingConstants.CENTER);
 
-        JLabel body = new JLabel("<html>Track spending, plan smarter, and keep your monthly budget under control.</html>");
+        JLabel body = new JLabel("<html>Track spending, plan smarter, and stay calm about the rest of the month.</html>");
         body.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
         body.setForeground(SIDEBAR_MUTED);
         body.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -445,6 +598,11 @@ public class MainFrame extends JFrame {
         brandBlock.add(brand);
         brandBlock.add(Box.createVerticalStrut(10));
         brandBlock.add(body);
+
+        JLabel navigationLabel = new JLabel("NAVIGATION");
+        navigationLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 11));
+        navigationLabel.setForeground(SIDEBAR_MUTED);
+        navigationLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // dashboard button logic for page
         dashboardNavButton = createSidebarButton("Dashboard", PAGE_DASHBOARD);
@@ -475,25 +633,38 @@ public class MainFrame extends JFrame {
         navList.add(forecastNavButton);
         navList.add(Box.createVerticalGlue());
 
+        JPanel navigationBlock = new JPanel(new BorderLayout(0, 14));
+        navigationBlock.setOpaque(false);
+        navigationBlock.add(navigationLabel, BorderLayout.NORTH);
+        navigationBlock.add(navList, BorderLayout.CENTER);
+
         panel.add(brandBlock, BorderLayout.NORTH);
-        panel.add(navList, BorderLayout.CENTER);
+        panel.add(navigationBlock, BorderLayout.CENTER);
         panel.add(createSidebarFooter(), BorderLayout.SOUTH);
         return panel;
     }
 
     // createSidebarFooter
     private JPanel createSidebarFooter() {
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(false);
-        JLabel menuBadge = new JLabel("=");
+
+        JPanel footerCard = new JPanel(new BorderLayout(12, 0));
+        footerCard.setOpaque(true);
+        footerCard.setBackground(new Color(255, 255, 255, 20));
+        footerCard.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(new Color(255, 255, 255, 52), 22, 1),
+                new EmptyBorder(10, 10, 10, 12)));
+
+        JLabel menuBadge = new JLabel("...", SwingConstants.CENTER);
         menuBadge.setOpaque(true);
         menuBadge.setBackground(MENU_BADGE_BACKGROUND);
         menuBadge.setForeground(SIDEBAR_TEXT);
-        menuBadge.setFont(new Font(FONT_FAMILY, Font.BOLD, 22));
+        menuBadge.setFont(new Font(FONT_FAMILY, Font.BOLD, 18));
         menuBadge.setHorizontalAlignment(SwingConstants.CENTER);
-        menuBadge.setPreferredSize(new Dimension(38, 38));
+        menuBadge.setPreferredSize(new Dimension(42, 42));
         menuBadge.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(MENU_BADGE_BORDER, 16, 1),
+                new RoundedLineBorder(MENU_BADGE_BORDER, 18, 1),
                 new EmptyBorder(2, 0, 4, 0)));
         menuBadge.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         JPopupMenu accountMenu = createAccountMenu();
@@ -517,12 +688,26 @@ public class MainFrame extends JFrame {
                 }
             }
         });
-        sidebarUsernameLabel = new JLabel("  " + accountDisplayName);
-        sidebarUsernameLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
+
+        JPanel identity = new JPanel();
+        identity.setOpaque(false);
+        identity.setLayout(new BoxLayout(identity, BoxLayout.Y_AXIS));
+
+        sidebarUsernameLabel = new JLabel(accountDisplayName);
+        sidebarUsernameLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 15));
         sidebarUsernameLabel.setForeground(SIDEBAR_TEXT);
-        footer.add(menuBadge);
-        footer.add(Box.createHorizontalStrut(10));
-        footer.add(sidebarUsernameLabel);
+
+        sidebarEmailLabel = new JLabel(accountEmail.isEmpty() ? "Account settings" : accountEmail);
+        sidebarEmailLabel.setFont(new Font(FONT_FAMILY, Font.PLAIN, 11));
+        sidebarEmailLabel.setForeground(SIDEBAR_MUTED);
+
+        identity.add(sidebarUsernameLabel);
+        identity.add(Box.createVerticalStrut(3));
+        identity.add(sidebarEmailLabel);
+
+        footerCard.add(menuBadge, BorderLayout.WEST);
+        footerCard.add(identity, BorderLayout.CENTER);
+        footer.add(footerCard, BorderLayout.CENTER);
         return footer;
     }
 
@@ -735,8 +920,9 @@ public class MainFrame extends JFrame {
             }
             accountDisplayName = displayName;
             if (sidebarUsernameLabel != null) {
-                sidebarUsernameLabel.setText("  " + accountDisplayName);
+                sidebarUsernameLabel.setText(accountDisplayName);
             }
+            refreshOverviewHero();
             dialog.dispose();
         });
 
@@ -775,6 +961,7 @@ public class MainFrame extends JFrame {
         root.add(scrollPane, constraints);
 
         dialog.setContentPane(root);
+        AppTheme.scaleComponentTreeFonts(dialog.getContentPane());
         dialog.setVisible(true);
     }
 
@@ -1010,6 +1197,7 @@ public class MainFrame extends JFrame {
 
         root.add(content, BorderLayout.CENTER);
         dialog.setContentPane(root);
+        AppTheme.scaleComponentTreeFonts(dialog.getContentPane());
         dialog.getRootPane().setDefaultButton(updateButton);
         dialog.getRootPane().registerKeyboardAction(
                 event -> dialog.dispose(),
@@ -1161,6 +1349,7 @@ public class MainFrame extends JFrame {
         root.add(card, BorderLayout.CENTER);
 
         dialog.setContentPane(root);
+        AppTheme.scaleComponentTreeFonts(dialog.getContentPane());
         dialog.getRootPane().setDefaultButton(cancelButton);
         dialog.getRootPane().registerKeyboardAction(
                 event -> dialog.dispose(),
@@ -1193,8 +1382,8 @@ public class MainFrame extends JFrame {
     private JButton createSidebarButton(String text, String pageKey) {
         JButton button = new RoundedButton(text, 30);
         button.setHorizontalAlignment(SwingConstants.LEFT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
-        button.setPreferredSize(new Dimension(0, 54));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
+        button.setPreferredSize(new Dimension(0, 52));
         button.setMargin(new Insets(10, 18, 10, 18));
         button.setFocusable(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -1214,6 +1403,7 @@ public class MainFrame extends JFrame {
 
         ResponsivePagePanel scrollContent = new ResponsivePagePanel(new BorderLayout());
         scrollContent.setOpaque(false);
+        scrollContent.setBorder(new EmptyBorder(0, 0, 8, 0));
         scrollContent.add(createContentHeaderBar(), BorderLayout.NORTH);
         scrollContent.add(pagePanel, BorderLayout.CENTER);
 
@@ -2020,14 +2210,14 @@ public class MainFrame extends JFrame {
         JButton button = new RoundedButton(text, 32);
         button.setFocusable(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        button.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
         button.setForeground(Color.WHITE);
         button.setBackground(TEAL);
         button.setOpaque(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(TEAL, 32, 1),
+                new RoundedLineBorder(TEAL_DARK, 32, 1),
                 new EmptyBorder(10, 24, 10, 24)));
         return button;
     }
@@ -2401,6 +2591,7 @@ public class MainFrame extends JFrame {
         root.add(card, BorderLayout.CENTER);
 
         dialog.setContentPane(root);
+        AppTheme.scaleComponentTreeFonts(dialog.getContentPane());
         dialog.getRootPane().setDefaultButton(confirmButton);
         bindEscapeKey(dialog, cancelButton);
         dialog.pack();
@@ -3416,12 +3607,12 @@ public class MainFrame extends JFrame {
     private void applySidebarButtonStyle(JButton button, boolean active) {
         button.setBackground(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON);
         button.setForeground(SIDEBAR_TEXT);
-        button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 16));
+        button.setFont(new Font(FONT_FAMILY, active ? Font.BOLD : Font.PLAIN, 15));
         button.setOpaque(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedLineBorder(active ? SIDEBAR_BUTTON_ACTIVE : SIDEBAR_BUTTON, 30, 1),
+                new RoundedLineBorder(active ? SIDEBAR_ACTIVE_BORDER : SIDEBAR_BORDER, 30, 1),
                 new EmptyBorder(10, 18, 10, 18)));
     }
 
@@ -3470,11 +3661,14 @@ public class MainFrame extends JFrame {
 
     private JScrollPane createTableScrollPane(JTable table) {
         table.setFillsViewportHeight(true);
-        table.setRowHeight(28);
+        table.setRowHeight(34);
+        table.setIntercellSpacing(new Dimension(0, 1));
         table.setFont(new Font(FONT_FAMILY, Font.PLAIN, 12));
         table.getTableHeader().setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 34));
         table.getTableHeader().setBackground(EMPTY_TABLE_HEADER_BACKGROUND);
         table.getTableHeader().setForeground(TEXT_SECONDARY);
+        table.getTableHeader().setReorderingAllowed(false);
         table.setGridColor(TABLE_GRID);
         table.setShowHorizontalLines(true);
         table.setShowVerticalLines(false);
@@ -3484,7 +3678,10 @@ public class MainFrame extends JFrame {
         table.setBackground(SURFACE_BLUE);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(EMPTY_TABLE_BORDER));
+        scrollPane.setOpaque(false);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(EMPTY_TABLE_BORDER, 18, 1),
+                new EmptyBorder(1, 1, 1, 1)));
         scrollPane.getViewport().setBackground(SURFACE_BLUE);
         return scrollPane;
     }
@@ -3930,6 +4127,7 @@ public class MainFrame extends JFrame {
 
         root.add(card, BorderLayout.CENTER);
         dialog.setContentPane(root);
+        AppTheme.scaleComponentTreeFonts(dialog.getContentPane());
         dialog.setVisible(true);
     }
 
@@ -4301,7 +4499,7 @@ public class MainFrame extends JFrame {
             int barMaxHeight = Math.max(18, chartHeight - 34);
 
             g2.setColor(gridColor);
-            g2.setFont(new Font(FONT_FAMILY, Font.BOLD, 12));
+            g2.setFont(new Font(FONT_FAMILY, Font.BOLD, AppTheme.scaled(12)));
             for (int row = 0; row < 3; row++) {
                 int y = chartTop + (row * (chartHeight / 2));
                 g2.drawLine(chartLeft, y, chartRight, y);
@@ -4347,7 +4545,7 @@ public class MainFrame extends JFrame {
 
             if (expenseEntries.isEmpty()) {
                 g2.setColor(new Color(123, 94, 52, 180));
-                g2.setFont(new Font(FONT_FAMILY, Font.BOLD, 16));
+                g2.setFont(new Font(FONT_FAMILY, Font.BOLD, AppTheme.scaled(16)));
                 String message = "No spending yet";
                 int messageWidth = g2.getFontMetrics().stringWidth(message);
                 g2.drawString(message, (width - messageWidth) / 2, chartTop + (chartHeight / 2) + 8);
@@ -4384,8 +4582,8 @@ public class MainFrame extends JFrame {
     }
 
     private static class AutoScalingMetricLabel extends JLabel {
-        private static final int MAX_FONT_SIZE = 46;
-        private static final int MIN_FONT_SIZE = 20;
+        private static final int MAX_FONT_SIZE = AppTheme.scaled(46);
+        private static final int MIN_FONT_SIZE = AppTheme.scaled(20);
 
         @Override
         public void setText(String text) {
@@ -4589,6 +4787,112 @@ public class MainFrame extends JFrame {
             primaryPanel.setBounds(0, 0, resolvedPrimaryWidth, sharedHeight);
             secondaryPanel.setBounds(resolvedPrimaryWidth + GAP, 0, resolvedSecondaryWidth, sharedHeight);
         }
+    }
+
+    private class SidebarPanel extends JPanel {
+        SidebarPanel() {
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            super.paintComponent(graphics);
+            Graphics2D g2 = (Graphics2D) graphics.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int width = Math.max(0, getWidth() - 1);
+            int height = Math.max(0, getHeight() - 1);
+            int radius = 34;
+            if (width <= 0 || height <= 0) {
+                g2.dispose();
+                return;
+            }
+
+            g2.setPaint(new GradientPaint(
+                    0,
+                    0,
+                    blend(SIDEBAR_BACKGROUND, Color.WHITE, 0.06f),
+                    0,
+                    Math.max(1, height),
+                    blend(TEAL_DARK, SIDEBAR_BACKGROUND, 0.22f)));
+            g2.fillRoundRect(0, 0, width, height, radius, radius);
+
+            g2.setPaint(new RadialGradientPaint(
+                    new Point2D.Float(width * 0.88f, height * 0.08f),
+                    Math.max(width, height) * 0.58f,
+                    new float[] { 0.0f, 1.0f },
+                    new Color[] { withAlpha(SIDEBAR_ACTIVE_BORDER, 72), withAlpha(SIDEBAR_ACTIVE_BORDER, 0) }));
+            g2.fillRoundRect(0, 0, width, height, radius, radius);
+
+            for (int y = 26; y < height; y += 118) {
+                g2.setColor(withAlpha(Color.WHITE, 12));
+                g2.fillRoundRect(18, y, Math.max(0, width - 36), 1, 1, 1);
+            }
+
+            g2.setColor(withAlpha(Color.WHITE, 46));
+            g2.drawRoundRect(0, 0, width - 1, height - 1, radius, radius);
+            g2.dispose();
+        }
+    }
+
+    private class OverviewHeroPanel extends JPanel {
+        OverviewHeroPanel() {
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            super.paintComponent(graphics);
+            Graphics2D g2 = (Graphics2D) graphics.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int width = Math.max(0, getWidth() - 1);
+            int height = Math.max(0, getHeight() - 8);
+            int radius = 34;
+            if (width <= 0 || height <= 0) {
+                g2.dispose();
+                return;
+            }
+
+            g2.setColor(withAlpha(SHADOW, 26));
+            g2.fillRoundRect(4, 8, Math.max(0, width - 6), height, radius + 4, radius + 4);
+
+            g2.setPaint(new GradientPaint(
+                    0,
+                    0,
+                    HERO_BACKGROUND_START,
+                    Math.max(1, width),
+                    Math.max(1, height),
+                    HERO_BACKGROUND_END));
+            g2.fillRoundRect(0, 0, width, height, radius, radius);
+
+            g2.setPaint(new RadialGradientPaint(
+                    new Point2D.Float(width * 0.92f, height * 0.08f),
+                    Math.max(width, height) * 0.5f,
+                    new float[] { 0.0f, 1.0f },
+                    new Color[] { HERO_HIGHLIGHT, withAlpha(HERO_HIGHLIGHT, 0) }));
+            g2.fillRoundRect(0, 0, width, height, radius, radius);
+
+            g2.setColor(withAlpha(Color.WHITE, 80));
+            g2.fillRoundRect(18, 18, Math.max(0, width - 36), 1, 1, 1);
+
+            g2.setColor(HERO_BORDER);
+            g2.drawRoundRect(0, 0, width - 1, height - 1, radius, radius);
+            g2.dispose();
+        }
+    }
+
+    private static Color withAlpha(Color color, int alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, Math.min(255, alpha)));
+    }
+
+    private static Color blend(Color base, Color accent, float ratio) {
+        float inverse = 1.0f - ratio;
+        int red = Math.round((base.getRed() * inverse) + (accent.getRed() * ratio));
+        int green = Math.round((base.getGreen() * inverse) + (accent.getGreen() * ratio));
+        int blue = Math.round((base.getBlue() * inverse) + (accent.getBlue() * ratio));
+        int alpha = Math.round((base.getAlpha() * inverse) + (accent.getAlpha() * ratio));
+        return new Color(red, green, blue, alpha);
     }
 
     private SurfacePanel createSurface(LayoutManager layout) {

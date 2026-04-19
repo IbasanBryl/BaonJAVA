@@ -1,6 +1,9 @@
 package baon.ui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +33,81 @@ public final class AppTheme {
         }
     }
 
+    public static float decimal(String key, float fallback) {
+        try {
+            return Float.parseFloat(text(key, String.valueOf(fallback)));
+        } catch (NumberFormatException exception) {
+            return fallback;
+        }
+    }
+
     public static Font font(String familyKey, String fallbackFamily, int style, int size) {
         return new Font(text(familyKey, fallbackFamily), style, size);
+    }
+
+    public static float fontScale() {
+        return Math.max(1.0f, decimal("--ui-font-scale", 1.0f));
+    }
+
+    public static int scaled(int size) {
+        return Math.max(1, Math.round(size * fontScale()));
+    }
+
+    public static Font scaledFont(Font font) {
+        if (font == null) {
+            return null;
+        }
+        return font.deriveFont(Math.max(1.0f, font.getSize2D() * fontScale()));
+    }
+
+    public static Dimension scaledDimension(Dimension dimension) {
+        if (dimension == null) {
+            return null;
+        }
+        return new Dimension(scaleDimensionValue(dimension.width), scaleDimensionValue(dimension.height));
+    }
+
+    public static void scaleComponentTreeFonts(Component component) {
+        if (component == null) {
+            return;
+        }
+
+        javax.swing.JComponent swingComponent = component instanceof javax.swing.JComponent
+                ? (javax.swing.JComponent) component
+                : null;
+
+        Font currentFont = component.getFont();
+        if (currentFont != null) {
+            Object scaledMarker = swingComponent == null ? null : swingComponent.getClientProperty("baon.fontScaled");
+            if (!Boolean.TRUE.equals(scaledMarker)) {
+                component.setFont(scaledFont(currentFont));
+                if (swingComponent != null) {
+                    swingComponent.putClientProperty("baon.fontScaled", Boolean.TRUE);
+                }
+            }
+        }
+
+        Object dimensionMarker = swingComponent == null ? null : swingComponent.getClientProperty("baon.dimensionScaled");
+        if (!Boolean.TRUE.equals(dimensionMarker)) {
+            if (component.isPreferredSizeSet()) {
+                component.setPreferredSize(scaledDimension(component.getPreferredSize()));
+            }
+            if (component.isMinimumSizeSet()) {
+                component.setMinimumSize(scaledDimension(component.getMinimumSize()));
+            }
+            if (component.isMaximumSizeSet()) {
+                component.setMaximumSize(scaledDimension(component.getMaximumSize()));
+            }
+            if (swingComponent != null) {
+                swingComponent.putClientProperty("baon.dimensionScaled", Boolean.TRUE);
+            }
+        }
+
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                scaleComponentTreeFonts(child);
+            }
+        }
     }
 
     public static Color color(String key, String fallback) {
@@ -119,6 +195,13 @@ public final class AppTheme {
             return parseColor(fallback, "#000000");
         }
         return Color.BLACK;
+    }
+
+    private static int scaleDimensionValue(int value) {
+        if (value <= 0 || value == Integer.MAX_VALUE) {
+            return value;
+        }
+        return Math.max(1, Math.round(value * fontScale()));
     }
 }
 

@@ -13,12 +13,10 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -42,8 +40,9 @@ import javax.swing.border.LineBorder;
 
 public class LoginFrame extends JFrame {
     private static final String FONT_FAMILY = AppTheme.text("--font-family", "Segoe UI");
-    private static final Color PAGE_TOP = AppTheme.color("--login-page-top", "#E7E9EE");
-    private static final Color PAGE_BOTTOM = AppTheme.color("--login-page-bottom", "#DBDEE6");
+    private static final Color PAGE_BACKGROUND = AppTheme.color("--main-page-background", "#EFF5F1");
+    private static final Color ROOT_STRIPE = AppTheme.color("--main-root-stripe", "rgba(255, 255, 255, 96)");
+    private static final Color ROOT_ORB = AppTheme.color("--main-root-orb", "rgba(192, 224, 209, 70)");
     private static final Color CARD_BACKGROUND = AppTheme.color("--login-card-background", "#F3F4F8");
     private static final Color CARD_BORDER = AppTheme.color("--login-card-border", "#CFD3DC");
     private static final Color CARD_SHADOW = AppTheme.color("--login-card-shadow", "rgba(43, 52, 76, 30)");
@@ -118,6 +117,7 @@ public class LoginFrame extends JFrame {
         setSize(1240, 760);
         setLocationRelativeTo(null);
         setContentPane(createRoot());
+        AppTheme.scaleComponentTreeFonts(getContentPane());
         applyRememberedLogin();
         try {
             AppDatabase.initialize();
@@ -132,7 +132,7 @@ public class LoginFrame extends JFrame {
 
     // createRoot
     private JPanel createRoot() {
-        GradientPanel root = new GradientPanel();
+        BackgroundPanel root = new BackgroundPanel(PAGE_BACKGROUND, ROOT_STRIPE, ROOT_ORB);
         root.setLayout(new GridLayout(1, 1));
         root.add(new ResponsiveCenterPanel(createLoginContent()));
         return root;
@@ -1040,39 +1040,6 @@ public class LoginFrame extends JFrame {
             if (slashed) {
                 g2.drawLine(left + 1, top + iconHeight, left + iconWidth - 1, top);
             }
-            g2.dispose();
-        }
-    }
-
-    private static class GradientPanel extends JPanel {
-        @Override
-        protected void paintComponent(Graphics graphics) {
-            super.paintComponent(graphics);
-            Graphics2D g2 = (Graphics2D) graphics.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setPaint(new GradientPaint(0, 0, PAGE_TOP, 0, getHeight(), PAGE_BOTTOM));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-
-            float[] fractions = new float[] { 0.0f, 0.45f, 1.0f };
-            Color[] colors = new Color[] {
-                    new Color(255, 248, 223, 64),
-                    new Color(255, 248, 223, 26),
-                    new Color(255, 248, 223, 0)
-            };
-            float radius = Math.max(getWidth(), getHeight()) * 0.62f;
-            RadialGradientPaint glow = new RadialGradientPaint(getWidth() / 2.0f, getHeight() / 2.4f, radius, fractions, colors);
-            g2.setPaint(glow);
-            g2.fillRect(0, 0, getWidth(), getHeight());
-
-            g2.setColor(new Color(255, 255, 255, 0));
-            for (int x = -30; x < getWidth() + 70; x += 140) {
-                g2.fillRoundRect(x, 0, 58, getHeight(), 24, 24);
-            }
-
-            g2.setPaint(new GradientPaint(0, 0, new Color(244, 231, 190, 20), getWidth() / 2.0f, 0, new Color(244, 231, 190, 0)));
-            g2.fillRect(0, 0, getWidth() / 2, getHeight());
-            g2.setPaint(new GradientPaint(getWidth(), 0, new Color(244, 231, 190, 20), getWidth() / 2.0f, 0, new Color(244, 231, 190, 0)));
-            g2.fillRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
             g2.dispose();
         }
     }
