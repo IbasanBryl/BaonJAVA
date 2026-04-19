@@ -13,6 +13,7 @@ import javax.swing.plaf.FontUIResource;
 import com.formdev.flatlaf.FlatLightLaf;
 
 public class Main {
+    // main
     public static void main(String[] args) {
         try {
             configureLookAndFeel();
@@ -20,7 +21,7 @@ public class Main {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception fallbackIgnored) {
-                // Fall back to Swing's default look and feel when the system one is unavailable.
+                // look and feel fallback logic
             }
         }
 
@@ -28,6 +29,7 @@ public class Main {
         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 
+    // configureLookAndFeel
     private static void configureLookAndFeel() {
         FlatLightLaf.setup();
         increaseGlobalFontSize(1f);
@@ -41,6 +43,7 @@ public class Main {
         UIManager.put("TitlePane.unifiedBackground", Boolean.TRUE);
     }
 
+    // increaseGlobalFontSize
     private static void increaseGlobalFontSize(float delta) {
         Font baseFont = UIManager.getFont("defaultFont");
         if (baseFont == null) {

@@ -300,10 +300,12 @@ public class MainFrame extends JFrame {
     private int savingsHistoryLastPageSize = SAVINGS_HISTORY_MIN_PAGE_SIZE;
     private String currentPage = PAGE_DASHBOARD;
 
+    // MainFrame
     public MainFrame() {
         this("User", "");
     }
 
+    // MainFrame
     public MainFrame(String accountDisplayName, String accountEmail) {
         super("BaonBrain Financial Overview");
         this.accountEmail = accountEmail == null ? "" : accountEmail.trim().toLowerCase();
@@ -324,6 +326,7 @@ public class MainFrame extends JFrame {
         showPage(PAGE_DASHBOARD);
     }
 
+    // configureFrame
     private void configureFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(1100, 720));
@@ -339,6 +342,7 @@ public class MainFrame extends JFrame {
         setContentPane(root);
     }
 
+    // createContentArea
     private JPanel createContentArea() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -347,6 +351,7 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    // configureNotificationButton
     private void configureNotificationButton() {
         for (java.awt.event.ActionListener listener : notificationButton.getActionListeners()) {
             notificationButton.removeActionListener(listener);
@@ -381,12 +386,14 @@ public class MainFrame extends JFrame {
         refreshNotificationBar();
     }
 
+    // refreshContentHeader
     private void refreshContentHeader() {
         notificationButton.setVisible(PAGE_DASHBOARD.equals(currentPage));
         notificationButton.revalidate();
         notificationButton.repaint();
     }
 
+    // createContentHeaderBar
     private JPanel createContentHeaderBar() {
         JPanel panel = new JPanel(new BorderLayout(18, 0));
         panel.setOpaque(false);
@@ -405,6 +412,7 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    // createSidebar
     private JPanel createSidebar() {
         JPanel panel = new JPanel(new BorderLayout(0, 22));
         panel.setPreferredSize(new Dimension(220, 0));
@@ -448,6 +456,7 @@ public class MainFrame extends JFrame {
         budgetNavButton = createSidebarButton("Budget", PAGE_BUDGET);
         // saving goal button logic for page
         savingGoalNavButton = createSidebarButton("Saving Goal", PAGE_SAVING_GOAL);
+        // forecast button logic for page
         forecastNavButton = createSidebarButton("Forecast", PAGE_FORECAST);
 
         JPanel navList = new JPanel();
@@ -472,6 +481,7 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    // createSidebarFooter
     private JPanel createSidebarFooter() {
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         footer.setOpaque(false);
@@ -524,6 +534,7 @@ public class MainFrame extends JFrame {
         Image scaled = icon.getImage().getScaledInstance(BRAND_LOGO_SIZE, BRAND_LOGO_SIZE, Image.SCALE_SMOOTH);
         return new ImageIcon(scaled);
     }
+    // footer menu logic for popup
     private void showAccountMenu(JPopupMenu menu, Component anchor) {
         int margin = 8;
         int menuHeight = menu.getPreferredSize().height;
@@ -532,7 +543,6 @@ public class MainFrame extends JFrame {
         int availableBelow = getContentPane().getHeight() - (anchorPoint.y + anchor.getHeight()) - margin;
         int x = 0;
         int y = anchor.getHeight() + 6;
-        // Footer menu feels more natural above the profile row.
         if (availableAbove >= menuHeight || availableAbove > availableBelow) {
             y = -menuHeight - 6;
         }
@@ -546,10 +556,13 @@ public class MainFrame extends JFrame {
                 new EmptyBorder(8, 8, 8, 8)));
         menu.setLayout(new GridLayout(0, 1, 0, 8));
         JMenuItem manageAccountItem = createAccountMenuItem("Manage account");
+        // manage account button logic for menu
         manageAccountItem.addActionListener(event -> showManageAccountDialog());
         JMenuItem resetItem = createAccountMenuItem("Reset");
+        // reset button logic for menu
         resetItem.addActionListener(event -> resetFinancialData());
         JMenuItem logOutItem = createAccountMenuItem("Log out");
+        // log out button logic for menu
         logOutItem.addActionListener(event -> logOut());
         menu.add(manageAccountItem);
         menu.add(resetItem);
@@ -575,6 +588,7 @@ public class MainFrame extends JFrame {
         });
         return item;
     }
+    // showManageAccountDialog
     private void showManageAccountDialog() {
         final Color dialogBackground = PAGE_BACKGROUND_SOFT;
         final Color cardBackground = MANAGE_SURFACE;
@@ -677,6 +691,7 @@ public class MainFrame extends JFrame {
         securityActionWrap.setOpaque(false);
         securityActionWrap.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // change password button logic for account
         JButton changePasswordButton = createManageActionButton("Change Password", MANAGE_ACCENT, MANAGE_ACCENT_DARK, Color.WHITE);
         changePasswordButton.setPreferredSize(new Dimension(180, MANAGE_INPUT_HEIGHT));
         changePasswordButton.setMaximumSize(new Dimension(180, MANAGE_INPUT_HEIGHT));
@@ -697,11 +712,13 @@ public class MainFrame extends JFrame {
         actions.setOpaque(false);
         actions.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // cancel button logic for account
         JButton cancelButton = createManageActionButton("Cancel", MANAGE_SECONDARY_BUTTON_FILL, MANAGE_SECONDARY_BUTTON_BORDER, MANAGE_SECONDARY_BUTTON_TEXT);
         cancelButton.setPreferredSize(new Dimension(132, MANAGE_ACTION_HEIGHT));
         cancelButton.setMaximumSize(new Dimension(132, MANAGE_ACTION_HEIGHT));
         cancelButton.addActionListener(event -> dialog.dispose());
 
+        // save changes button logic for account
         JButton saveButton = createManageActionButton("Save Changes", MANAGE_ACCENT,
                 MANAGE_ACCENT_DARK, Color.WHITE);
         saveButton.setPreferredSize(new Dimension(168, MANAGE_ACTION_HEIGHT));
@@ -944,11 +961,13 @@ public class MainFrame extends JFrame {
         actions.setOpaque(false);
         actions.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // cancel button logic for password
         JButton cancelButton = createManageActionButton("Cancel", MANAGE_SECONDARY_BUTTON_FILL,
                 MANAGE_SECONDARY_BUTTON_BORDER, MANAGE_SECONDARY_BUTTON_TEXT);
         cancelButton.setPreferredSize(new Dimension(124, MANAGE_ACTION_HEIGHT));
         cancelButton.addActionListener(event -> dialog.dispose());
 
+        // update password button logic for password
         JButton updateButton = createManageActionButton("Update Password", MANAGE_ACCENT,
                 MANAGE_ACCENT_DARK, Color.WHITE);
         updateButton.setPreferredSize(new Dimension(168, MANAGE_ACTION_HEIGHT));
@@ -1007,6 +1026,7 @@ public class MainFrame extends JFrame {
             JOptionPane.showMessageDialog(owner, "Password updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
+    // resetFinancialData
     private void resetFinancialData() {
         boolean shouldReset = showActionConfirmationDialog(
                 "Reset Data",
@@ -1033,6 +1053,7 @@ public class MainFrame extends JFrame {
         refreshAllSections();
         showPage(PAGE_DASHBOARD);
     }
+    // logOut
     private void logOut() {
         boolean shouldLogOut = showActionConfirmationDialog(
                 "Log out",
@@ -1116,10 +1137,12 @@ public class MainFrame extends JFrame {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
 
+        // cancel button logic for confirm
         JButton cancelButton = createManageActionButton("Cancel", PAGE_BACKGROUND_SOFT, SURFACE_BORDER, TEXT_PRIMARY);
         cancelButton.setPreferredSize(new Dimension(108, 38));
         cancelButton.addActionListener(event -> dialog.dispose());
 
+        // confirm button logic for confirm
         JButton confirmButton = createManageActionButton(confirmLabel, confirmFill, confirmBorder, confirmText);
         confirmButton.setPreferredSize(new Dimension(124, 38));
         confirmButton.addActionListener(event -> {
@@ -1211,6 +1234,7 @@ public class MainFrame extends JFrame {
         return contentScrollPane;
     }
 
+    // createDashboardPage
     private JPanel createDashboardPage() {
         JPanel page = new JPanel(new GridBagLayout());
         page.setOpaque(false);
@@ -1255,6 +1279,7 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
+    // createIncomePage
     private JPanel createIncomePage() {
         // add income button logic for form
         JButton addIncomeButton = createActionButton("Add Income");
@@ -1269,6 +1294,7 @@ public class MainFrame extends JFrame {
         return page;
     }
 
+    // createExpensesPage
     private JPanel createExpensesPage() {
         // add expense button logic for form
         JButton addExpenseButton = createActionButton("Add Expense");
@@ -1283,6 +1309,7 @@ public class MainFrame extends JFrame {
         return page;
     }
 
+    // createBudgetPage
     private JPanel createBudgetPage() {
         // add budget button logic for form
         JButton addBudgetButton = createActionButton("Add Budget");
@@ -1297,6 +1324,7 @@ public class MainFrame extends JFrame {
         return page;
     }
 
+    // createSavingGoalPage
     private JPanel createSavingGoalPage() {
         // add daily savings button logic for form
         addDailySavingsActionButton = createActionButton("Add Daily Savings");
@@ -1322,7 +1350,9 @@ public class MainFrame extends JFrame {
         return page;
     }
 
+    // createForecastPage
     private JPanel createForecastPage() {
+        // run forecast button logic for page
         JButton runForecastButton = createActionButton("Run Forecast");
         runForecastButton.addActionListener(event -> refreshAllSections());
 
@@ -2048,6 +2078,7 @@ public class MainFrame extends JFrame {
         progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 12));
     }
 
+    // showIncomeDialog
     private void showIncomeDialog() {
         JTextField amountField = new JTextField();
         JComboBox<String> sourceBox = new JComboBox<String>(INCOME_SOURCE_OPTIONS);
@@ -2089,6 +2120,7 @@ public class MainFrame extends JFrame {
                 });
     }
 
+    // showExpenseDialog
     private void showExpenseDialog() {
         JComboBox<String> categoryBox = new JComboBox<String>(BUDGET_CATEGORY_OPTIONS);
         PromptTextField itemField = new PromptTextField("Type any item");
@@ -2155,6 +2187,7 @@ public class MainFrame extends JFrame {
         }
     }
 
+    // showBudgetDialog
     private void showBudgetDialog() {
         JComboBox<String> categoryBox = new JComboBox<String>(BUDGET_CATEGORY_OPTIONS);
         JTextField amountField = new JTextField();
@@ -2194,6 +2227,7 @@ public class MainFrame extends JFrame {
                 });
     }
 
+    // showSavingGoalDialog
     private void showSavingGoalDialog() {
         JComboBox<String> categoryBox = new JComboBox<String>(SAVINGS_CATEGORY_OPTIONS);
         JTextField amountField = new JTextField(savingGoalTarget > 0 ? String.valueOf(savingGoalTarget) : "");
@@ -2228,6 +2262,7 @@ public class MainFrame extends JFrame {
                 });
     }
 
+    // showDailySavingsDialog
     private void showDailySavingsDialog() {
         if (savingGoalTarget <= 0.0) {
             JOptionPane.showMessageDialog(this,
@@ -2509,6 +2544,7 @@ public class MainFrame extends JFrame {
         }
     }
 
+    // loadStoredData
     private void loadStoredData() {
         AppDatabase.DatabaseState state = AppDatabase.loadForUser(accountEmail);
         incomeEntries.clear();
@@ -2527,6 +2563,7 @@ public class MainFrame extends JFrame {
         savingGoalCategory = normalizeSavingsCategory(state.savingGoalCategory);
     }
 
+    // persistData
     private void persistData() {
         AppDatabase.DatabaseState state = new AppDatabase.DatabaseState();
         state.incomeEntries.addAll(incomeEntries);
@@ -2539,6 +2576,7 @@ public class MainFrame extends JFrame {
         AppDatabase.saveForUser(accountEmail, state);
     }
 
+    // handleFinancialDataChanged
     private void handleFinancialDataChanged() {
         Point scrollPosition = getContentScrollPosition();
         persistData();
@@ -2546,6 +2584,7 @@ public class MainFrame extends JFrame {
         restoreContentScrollPosition(scrollPosition);
     }
 
+    // refreshAllSections
     private void refreshAllSections() {
         refreshDashboardSection();
         refreshIncomeSection();
@@ -2556,6 +2595,7 @@ public class MainFrame extends JFrame {
         refreshNotificationBar();
     }
 
+    // refreshDashboardSection
     private void refreshDashboardSection() {
         double totalIncome = calculateTotalIncome();
         double totalExpenses = calculateTotalExpenses();
@@ -2618,6 +2658,7 @@ public class MainFrame extends JFrame {
         categoryOverviewContentPanel.repaint();
     }
 
+    // refreshIncomeSection
     private void refreshIncomeSection() {
         double totalIncome = calculateTotalIncome();
         double thisMonthIncome = calculateIncomeForMonth(YearMonth.now());
@@ -2645,6 +2686,7 @@ public class MainFrame extends JFrame {
         incomeRecordsContentPanel.repaint();
     }
 
+    // refreshExpenseSection
     private void refreshExpenseSection() {
         LinkedHashMap<String, ArrayList<ExpenseEntry>> groups = buildExpenseGroups();
         double totalExpenses = calculateTotalExpenses();
@@ -2672,6 +2714,7 @@ public class MainFrame extends JFrame {
         expenseRecordsContentPanel.repaint();
     }
 
+    // refreshBudgetSection
     private void refreshBudgetSection() {
         double totalExpenses = calculateTotalExpenses();
         double totalBudget = budgetLimit;
@@ -2715,6 +2758,7 @@ public class MainFrame extends JFrame {
         budgetProgressContentPanel.repaint();
     }
 
+    // refreshSavingSection
     private void refreshSavingSection() {
         updateAddDailySavingsButtonState();
         String goalCategory = normalizeSavingsCategory(savingGoalCategory);
@@ -2792,7 +2836,7 @@ public class MainFrame extends JFrame {
                 return Math.max(SAVINGS_HISTORY_MIN_PAGE_SIZE, fitFromPanel);
             }
 
-            // Layout is not ready yet: use a stable minimum so pagination is correct on first render.
+            // pagination layout fallback logic
             return SAVINGS_HISTORY_MIN_PAGE_SIZE;
         }
 
@@ -2900,6 +2944,7 @@ public class MainFrame extends JFrame {
         return button;
     }
 
+    // refreshForecastSection
     private void refreshForecastSection() {
         double totalIncome = calculateTotalIncome();
         double totalExpenses = calculateTotalExpenses();
@@ -3380,6 +3425,7 @@ public class MainFrame extends JFrame {
                 new EmptyBorder(10, 18, 10, 18)));
     }
 
+    // showPage
     private void showPage(String pageKey) {
         boolean samePage = pageKey != null && pageKey.equals(currentPage);
         Point scrollPosition = samePage ? getContentScrollPosition() : new Point(0, 0);

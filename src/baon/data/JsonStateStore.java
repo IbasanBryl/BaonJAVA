@@ -37,6 +37,7 @@ final class JsonStateStore {
         }
     }
 
+    // saveState
     static void saveState(String email, AppDatabase.DatabaseState state) {
         if (state == null) {
             return;
@@ -63,11 +64,12 @@ final class JsonStateStore {
 
                 writeRoot(root);
             } catch (IOException ignored) {
-                // Keep UI responsive even if persistence fails.
+                // save state fallback logic
             }
         }
     }
 
+    // clearState
     static void clearState(String email) {
         synchronized (FILE_LOCK) {
             try {
@@ -97,11 +99,12 @@ final class JsonStateStore {
 
                 writeRoot(root);
             } catch (IOException ignored) {
-                // Keep UI responsive even if persistence fails.
+                // clear state fallback logic
             }
         }
     }
 
+    // readRoot
     private static Map<String, Object> readRoot() throws IOException {
         ensureFileExists();
         String json = new String(Files.readAllBytes(DATA_PATH), StandardCharsets.UTF_8).trim();
@@ -117,11 +120,13 @@ final class JsonStateStore {
         }
     }
 
+    // writeRoot
     private static void writeRoot(Map<String, Object> root) throws IOException {
         ensureFileExists();
         Files.write(DATA_PATH, (JsonWriter.write(root) + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
     }
 
+    // ensureFileExists
     private static void ensureFileExists() throws IOException {
         Path parent = DATA_PATH.getParent();
         if (parent != null && !Files.exists(parent)) {
@@ -140,6 +145,7 @@ final class JsonStateStore {
         return email == null ? "" : email.trim().toLowerCase();
     }
 
+    // readUserState
     private static Map<String, Object> readUserState(Map<String, Object> root, String normalizedEmail) {
         if (normalizedEmail.isEmpty()) {
             return null;
@@ -151,6 +157,7 @@ final class JsonStateStore {
         return asObject(users.get(normalizedEmail));
     }
 
+    // toDatabaseState
     private static AppDatabase.DatabaseState toDatabaseState(Map<String, Object> rawState) {
         AppDatabase.DatabaseState state = new AppDatabase.DatabaseState();
         if (rawState == null) {
@@ -217,6 +224,7 @@ final class JsonStateStore {
         return state;
     }
 
+    // fromDatabaseState
     private static Map<String, Object> fromDatabaseState(AppDatabase.DatabaseState state) {
         LinkedHashMap<String, Object> rawState = new LinkedHashMap<String, Object>();
         rawState.put("budgetLimit", state.budgetLimit);
