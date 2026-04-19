@@ -1,8 +1,78 @@
 {
   "budgetLimit": 0.0,
-  "savingGoalTarget": 0.0,
-  "incomeEntries": [],
-  "expenseEntries": [],
-  "savingEntries": [],
-  "categoryBudgetLimits": {}
+  "savingGoalTarget": 1111.0,
+  "incomeEntries": [
+    {
+      "amount": 1231.0,
+      "source": "Allowance",
+      "date": "2026-04-18"
+    },
+    {
+      "amount": 1000.0,
+      "source": "Allowance",
+      "date": "2026-04-19"
+    }
+  ],
+  "expenseEntries": [
+    {
+      "amount": 123.0,
+      "category": "Food",
+      "item": "ax",
+      "date": "2026-04-18"
+    }
+  ],
+  "savingEntries": [
+    {
+      "amount": 111.0,
+      "category": "Other",
+      "date": "2026-04-16"
+    },
+    {
+      "amount": 1111.0,
+      "category": "Other",
+      "date": "2026-04-18"
+    }
+  ],
+  "categoryBudgetLimits": {},
+  "savingGoalCategory": "Other",
+  "users": {
+    "ibasanbryl7@gmail.com": {
+      "budgetLimit": 0.0,
+      "savingGoalTarget": 1111.0,
+      "savingGoalCategory": "Other",
+      "incomeEntries": [
+        {
+          "amount": 1231.0,
+          "source": "Allowance",
+          "date": "2026-04-18"
+        },
+        {
+          "amount": 1000.0,
+          "source": "Allowance",
+          "date": "2026-04-19"
+        }
+      ],
+      "expenseEntries": [
+        {
+          "amount": 123.0,
+          "category": "Food",
+          "item": "ax",
+          "date": "2026-04-18"
+        }
+      ],
+      "savingEntries": [
+        {
+          "amount": 111.0,
+          "category": "Other",
+          "date": "2026-04-16"
+        },
+        {
+          "amount": 1111.0,
+          "category": "Other",
+          "date": "2026-04-18"
+        }
+      ],
+      "categoryBudgetLimits": {}
+    }
+  }
 }

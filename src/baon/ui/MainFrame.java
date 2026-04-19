@@ -262,12 +262,14 @@ public class MainFrame extends JFrame {
     private final JLabel savingsGoalBodyLabel = new JLabel();
     private final JProgressBar savingsGoalProgressBar = new JProgressBar(0, 100);
     private final JLabel savingsTargetValueLabel = new JLabel();
+    private final JLabel savingsCategoryValueLabel = new JLabel();
     private final JLabel savingsSavedValueLabel = new JLabel();
     private final JLabel savingsRemainingValueLabel = new JLabel();
     private final JLabel savingsEntriesValueLabel = new JLabel();
     private final JLabel savingsHistoryBadgeLabel = new JLabel();
     private final JPanel savingsHistoryContentPanel = new JPanel(new BorderLayout());
     private final JPanel savingsHistoryPaginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+    private JButton addDailySavingsActionButton;
 
     private final JLabel forecastRiskBadgeLabel = new JLabel();
     private final JLabel forecastEstimatedRemainingValueLabel = new JLabel();
@@ -293,6 +295,7 @@ public class MainFrame extends JFrame {
     private double budgetLimit = 0.0;
     private final LinkedHashMap<String, Double> categoryBudgetLimits = new LinkedHashMap<String, Double>();    
     private double savingGoalTarget = 0.0;
+    private String savingGoalCategory = "Other";
     private int savingsHistoryCurrentPage = 1;
     private int savingsHistoryLastPageSize = SAVINGS_HISTORY_MIN_PAGE_SIZE;
     private String currentPage = PAGE_DASHBOARD;
@@ -1025,6 +1028,7 @@ public class MainFrame extends JFrame {
         budgetLimit = 0.0;
         categoryBudgetLimits.clear();
         savingGoalTarget = 0.0;
+        savingGoalCategory = "Other";
         AppDatabase.resetFinancialDataForUser(accountEmail);
         refreshAllSections();
         showPage(PAGE_DASHBOARD);
@@ -1295,8 +1299,9 @@ public class MainFrame extends JFrame {
 
     private JPanel createSavingGoalPage() {
         // add daily savings button logic for form
-        JButton addDailySavingsButton = createActionButton("Add Daily Savings");
-        addDailySavingsButton.addActionListener(event -> showDailySavingsDialog());
+        addDailySavingsActionButton = createActionButton("Add Daily Savings");
+        addDailySavingsActionButton.addActionListener(event -> showDailySavingsDialog());
+        updateAddDailySavingsButtonState();
 
         // set saving goal button logic for form
         JButton setSavingGoalButton = createActionButton("Set Saving Goal");
@@ -1305,7 +1310,7 @@ public class MainFrame extends JFrame {
         JPanel page = new JPanel(new BorderLayout(18, 18));
         page.setOpaque(false);
         page.add(createPageHeader("Saving Goal", "Track your target and how much you have already saved.",
-                addDailySavingsButton, setSavingGoalButton), BorderLayout.NORTH);
+                setSavingGoalButton, addDailySavingsActionButton), BorderLayout.NORTH);
 
         JPanel center = new JPanel(new BorderLayout(0, 18));
         center.setOpaque(false);
@@ -1358,7 +1363,7 @@ public class MainFrame extends JFrame {
         panel.add(textBlock, BorderLayout.CENTER);
 
         if (actionButtons != null && actionButtons.length > 0) {
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             actions.setOpaque(false);
             actions.setBorder(new EmptyBorder(18, 0, 0, 0));
             for (JButton button : actionButtons) {
@@ -1789,12 +1794,15 @@ public class MainFrame extends JFrame {
         stack.add(createValueRow("Target", savingsTargetValueLabel, true, TEAL), constraints);
 
         constraints.gridy = 2;
-        stack.add(createValueRow("Saved", savingsSavedValueLabel, false, null), constraints);
+        stack.add(createValueRow("Category", savingsCategoryValueLabel, false, null), constraints);
 
         constraints.gridy = 3;
-        stack.add(createValueRow("Remaining", savingsRemainingValueLabel, false, null), constraints);
+        stack.add(createValueRow("Saved", savingsSavedValueLabel, false, null), constraints);
 
         constraints.gridy = 4;
+        stack.add(createValueRow("Remaining", savingsRemainingValueLabel, false, null), constraints);
+
+        constraints.gridy = 5;
         stack.add(createValueRow("Entries", savingsEntriesValueLabel, false, null), constraints);
 
         JTextArea note = createWrappedTextArea(
@@ -1802,11 +1810,11 @@ public class MainFrame extends JFrame {
                 new Font(FONT_FAMILY, Font.PLAIN, 13),
                 TEXT_SECONDARY);
 
-        constraints.gridy = 5;
+        constraints.gridy = 6;
         constraints.insets = new Insets(6, 0, 0, 0);
         stack.add(createColumnBlock(note), constraints);
 
-        constraints.gridy = 6;
+        constraints.gridy = 7;
         constraints.weighty = 1.0;
         constraints.fill = GridBagConstraints.VERTICAL;
         constraints.insets = new Insets(0, 0, 0, 0);
@@ -1994,6 +2002,23 @@ public class MainFrame extends JFrame {
         return button;
     }
 
+    private void updateAddDailySavingsButtonState() {
+        if (addDailySavingsActionButton == null) {
+            return;
+        }
+
+        boolean enabled = savingGoalTarget > 0.0;
+        addDailySavingsActionButton.setEnabled(enabled);
+        addDailySavingsActionButton.setCursor(Cursor.getPredefinedCursor(
+                enabled ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
+        addDailySavingsActionButton.setForeground(enabled ? Color.WHITE : TEXT_SECONDARY);
+        addDailySavingsActionButton.setBackground(enabled ? TEAL : PAGE_BACKGROUND_SOFT);
+        addDailySavingsActionButton.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(enabled ? TEAL : SURFACE_BORDER, 32, 1),
+                new EmptyBorder(10, 24, 10, 24)));
+        addDailySavingsActionButton.setToolTipText(enabled ? null : "Set a saving goal first.");
+    }
+
     private JLabel createBadgeLabel(String text, Color fillColor, Color textColor) {
         JLabel label = new JLabel(text);
         label.setOpaque(true);
@@ -2170,22 +2195,32 @@ public class MainFrame extends JFrame {
     }
 
     private void showSavingGoalDialog() {
+        JComboBox<String> categoryBox = new JComboBox<String>(SAVINGS_CATEGORY_OPTIONS);
         JTextField amountField = new JTextField(savingGoalTarget > 0 ? String.valueOf(savingGoalTarget) : "");
+        categoryBox.setEditable(true);
+        categoryBox.getEditor().setItem(savingGoalCategory);
+        styleDialogComboBox(categoryBox);
         styleDialogTextField(amountField);
 
-        JPanel form = createDialogForm(new String[] { "Target Amount" }, new Component[] { amountField });
+        JPanel form = createDialogForm(new String[] { "Category", "Target Amount" }, new Component[] { categoryBox, amountField });
         showStyledInputDialog("Set Saving Goal",
-                "Define the target amount you want to build toward.",
+                "Choose the category you want to save for and define the target amount.",
                 form,
-                amountField,
-                new Dimension(440, 300),
+                categoryBox,
+                new Dimension(460, 360),
                 dialog -> {
                     Double amount = parseAmount(amountField.getText());
+                    String category = String.valueOf(categoryBox.getEditor().getItem()).trim();
+                    if (category.isEmpty()) {
+                        showValidationMessage(dialog, "Choose or type a savings goal category before saving.");
+                        return;
+                    }
                     if (amount == null || amount.doubleValue() <= 0) {
                         showValidationMessage(dialog, "Enter a valid goal amount greater than 0.");
                         return;
                     }
 
+                    savingGoalCategory = normalizeSavingsCategory(category);
                     savingGoalTarget = amount.doubleValue();
                     handleFinancialDataChanged();
                     dialog.dispose();
@@ -2194,11 +2229,20 @@ public class MainFrame extends JFrame {
     }
 
     private void showDailySavingsDialog() {
-        JComboBox<String> categoryBox = new JComboBox<String>(SAVINGS_CATEGORY_OPTIONS);
+        if (savingGoalTarget <= 0.0) {
+            JOptionPane.showMessageDialog(this,
+                    "Set a saving goal first before adding daily savings.",
+                    "Saving Goal Required",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        String goalCategory = normalizeSavingsCategory(savingGoalCategory);
+        JComboBox<String> categoryBox = new JComboBox<String>(new String[] { goalCategory });
         JTextField amountField = new JTextField();
         JTextField dateField = new JTextField(LocalDate.now().toString());
 
-        categoryBox.setEditable(true);
+        categoryBox.setEditable(false);
         styleDialogComboBox(categoryBox);
         styleDialogTextField(amountField);
         styleDialogTextField(dateField);
@@ -2206,17 +2250,21 @@ public class MainFrame extends JFrame {
         JPanel form = createDialogForm(new String[] { "Category", "Amount", "Date" },
                 new Component[] { categoryBox, amountField, dateField });
         showStyledInputDialog("Add Daily Savings",
-                "Log a savings deposit, choose its category, and keep your goal progress current.",
+                "Log a savings deposit for your active goal category and keep your goal progress current.",
                 form,
                 categoryBox,
                 new Dimension(460, 380),
                 dialog -> {
                     Double amount = parseAmount(amountField.getText());
-                    String category = String.valueOf(categoryBox.getEditor().getItem()).trim();
+                    String category = normalizeSavingsCategory(String.valueOf(categoryBox.getSelectedItem()));
                     String date = dateField.getText().trim();
 
                     if (category.isEmpty()) {
                         showValidationMessage(dialog, "Choose or type a savings category before saving.");
+                        return;
+                    }
+                    if (!category.equalsIgnoreCase(goalCategory)) {
+                        showValidationMessage(dialog, "Daily savings must use the category set in your saving goal.");
                         return;
                     }
                     if (amount == null || amount.doubleValue() <= 0) {
@@ -2476,6 +2524,7 @@ public class MainFrame extends JFrame {
             budgetLimit = calculateBudgetTotal();
         }
         savingGoalTarget = state.savingGoalTarget;
+        savingGoalCategory = normalizeSavingsCategory(state.savingGoalCategory);
     }
 
     private void persistData() {
@@ -2486,6 +2535,7 @@ public class MainFrame extends JFrame {
         state.categoryBudgetLimits.putAll(categoryBudgetLimits);
         state.budgetLimit = budgetLimit;
         state.savingGoalTarget = savingGoalTarget;
+        state.savingGoalCategory = normalizeSavingsCategory(savingGoalCategory);
         AppDatabase.saveForUser(accountEmail, state);
     }
 
@@ -2666,33 +2716,41 @@ public class MainFrame extends JFrame {
     }
 
     private void refreshSavingSection() {
-        double totalSaved = calculateTotalSavings();
+        updateAddDailySavingsButtonState();
+        String goalCategory = normalizeSavingsCategory(savingGoalCategory);
+        double totalSaved = savingGoalTarget > 0.0
+                ? calculateTotalSavingsForCategory(goalCategory)
+                : calculateTotalSavings();
         double remaining = Math.max(0.0, savingGoalTarget - totalSaved);
         int progress = savingGoalTarget > 0 ? (int) Math.min(100, Math.round((totalSaved / savingGoalTarget) * 100.0)) : 0;
 
         styleBadgeLabel(savingsStatusBadgeLabel, savingGoalTarget > 0 ? "Set" : "Not set", SURFACE_TINT, TEAL_DARK);
         styleBadgeLabel(savingsPercentBadgeLabel, progress + "%", SURFACE_TINT, TEAL_DARK);
         savingsGoalTitleLabel.setText(toWrappedHtml(
-                savingGoalTarget > 0 ? "Saving goal in progress" : "No saving goal yet",
+                savingGoalTarget > 0 ? goalCategory + " goal in progress" : "No saving goal yet",
                 240));
         savingsGoalBodyLabel.setText(toWrappedHtml(
                 savingGoalTarget > 0
-                        ? "You have saved " + currencyFormat.format(totalSaved) + " out of your target."
+                        ? "You have saved " + currencyFormat.format(totalSaved) + " for " + goalCategory + " out of your target."
                         : "Set a target amount to start tracking progress.",
                 240));
         savingsGoalProgressBar.setValue(progress);
 
         savingsTargetValueLabel.setText(currencyFormat.format(savingGoalTarget));
+        savingsCategoryValueLabel.setText(savingGoalTarget > 0 ? goalCategory : "-");
         savingsSavedValueLabel.setText(currencyFormat.format(totalSaved));
         savingsRemainingValueLabel.setText(currencyFormat.format(remaining));
-        savingsEntriesValueLabel.setText(String.valueOf(savingEntries.size()));
+        savingsEntriesValueLabel.setText(String.valueOf(
+                savingGoalTarget > 0.0 ? countSavingsEntriesForCategory(goalCategory) : savingEntries.size()));
 
         savingsHistoryContentPanel.removeAll();
         savingsHistoryPaginationPanel.removeAll();
         if (savingEntries.isEmpty()) {
             savingsHistoryContentPanel.add(createEmptyTableState(new String[] { "Category", "Date", "Amount" },
                     "No savings history yet",
-                    "Add daily savings after setting a goal to build your history here."), BorderLayout.CENTER);
+                    savingGoalTarget > 0.0
+                            ? "Add daily savings to build your history here."
+                            : "Set a saving goal first. Daily savings stays locked until you do."), BorderLayout.CENTER);
             savingsHistoryCurrentPage = 1;
             savingsHistoryLastPageSize = SAVINGS_HISTORY_MIN_PAGE_SIZE;
             styleBadgeLabel(savingsHistoryBadgeLabel, "0 entries", SURFACE_TINT, TEAL_DARK);
@@ -3075,41 +3133,81 @@ public class MainFrame extends JFrame {
     }
 
     private JPanel createForecastBreakdownEmptyPanel() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel visualRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
-        visualRow.setOpaque(false);
-        visualRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setAlignmentX(Component.CENTER_ALIGNMENT);
+        content.setMaximumSize(new Dimension(460, Integer.MAX_VALUE));
 
-        DonutPlaceholderPanel donut = new DonutPlaceholderPanel("", SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY);
-        donut.setPreferredSize(new Dimension(170, 170));
-        donut.setMinimumSize(new Dimension(170, 170));
-        donut.setMaximumSize(new Dimension(170, 170));
+        SurfacePanel hero = createSurface(new BorderLayout(18, 0), PAGE_BACKGROUND_SOFT, CARD_CREAM_BORDER, 26);
+        hero.setBorder(new EmptyBorder(16, 18, 16, 18));
+        hero.setAlignmentX(Component.CENTER_ALIGNMENT);
+        hero.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
 
-        SurfacePanel statusChip = createSurface(new BorderLayout(), SURFACE, CARD_GOLD_BORDER, 44);
-        statusChip.setPreferredSize(new Dimension(92, 92));
-        statusChip.setMinimumSize(new Dimension(92, 92));
-        statusChip.setMaximumSize(new Dimension(92, 92));
+        DonutPlaceholderPanel donut = new DonutPlaceholderPanel("Start\ntracking", SURFACE, DONUT_OUTER, DONUT_RING, TEXT_SECONDARY);
+        donut.setPreferredSize(new Dimension(148, 148));
+        donut.setMinimumSize(new Dimension(148, 148));
+        donut.setMaximumSize(new Dimension(148, 148));
 
-        JLabel chipLabel = new JLabel("No data yet", SwingConstants.CENTER);
-        chipLabel.setFont(new Font(FONT_FAMILY, Font.BOLD, 14));
-        chipLabel.setForeground(TEXT_SECONDARY);
-        statusChip.add(chipLabel, BorderLayout.CENTER);
+        JPanel donutShell = new JPanel(new GridBagLayout());
+        donutShell.setOpaque(false);
+        donutShell.add(donut);
 
-        visualRow.add(donut);
-        visualRow.add(statusChip);
+        JPanel body = new JPanel();
+        body.setOpaque(false);
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel label = new JLabel("No category data yet");
-        label.setFont(new Font(FONT_FAMILY, Font.PLAIN, 13));
-        label.setForeground(TEXT_PRIMARY);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel badge = createBadgeLabel("FORECAST WAITING", SURFACE_TINT, TEAL_DARK);
+        badge.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        panel.add(visualRow);
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(label);
+        JLabel title = new JLabel("Nothing to forecast yet");
+        title.setFont(new Font(FONT_FAMILY, Font.BOLD, 20));
+        title.setForeground(TEXT_PRIMARY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea detail = createWrappedTextArea(
+                "Add a few expense entries and this card will highlight the categories most likely to shape your month-end spending.",
+                new Font(FONT_FAMILY, Font.PLAIN, 13),
+                TEXT_SECONDARY);
+
+        JLabel prompt = new JLabel("Food, transport, and school costs are a great place to start.");
+        prompt.setFont(new Font(FONT_FAMILY, Font.BOLD, 13));
+        prompt.setForeground(TEAL_DARK);
+        prompt.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        body.add(badge);
+        body.add(Box.createVerticalStrut(10));
+        body.add(title);
+        body.add(Box.createVerticalStrut(8));
+        body.add(createColumnBlock(detail));
+        body.add(Box.createVerticalStrut(10));
+        body.add(prompt);
+
+        hero.add(donutShell, BorderLayout.WEST);
+        hero.add(body, BorderLayout.CENTER);
+
+        JPanel note = createHintStrip(
+                "Once expenses are logged, you'll see the highest-impact categories first with spend share and budget context.");
+        note.setAlignmentX(Component.CENTER_ALIGNMENT);
+        note.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+        content.add(hero);
+        content.add(Box.createVerticalStrut(12));
+        content.add(note);
+
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.weightx = 1.0;
+        constraints.weighty = 1.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.insets = new Insets(6, 0, 6, 0);
+        panel.add(content, constraints);
         return panel;
     }
     private JPanel createDonutEmptyPanel(String text) {
@@ -3384,6 +3482,32 @@ public class MainFrame extends JFrame {
             total += entry.amount;
         }
         return total;
+    }
+
+    private double calculateTotalSavingsForCategory(String category) {
+        String normalizedCategory = normalizeSavingsCategory(category);
+        double total = 0.0;
+        for (SavingEntry entry : savingEntries) {
+            if (normalizeSavingsCategory(entry.category).equalsIgnoreCase(normalizedCategory)) {
+                total += entry.amount;
+            }
+        }
+        return total;
+    }
+
+    private int countSavingsEntriesForCategory(String category) {
+        String normalizedCategory = normalizeSavingsCategory(category);
+        int count = 0;
+        for (SavingEntry entry : savingEntries) {
+            if (normalizeSavingsCategory(entry.category).equalsIgnoreCase(normalizedCategory)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String normalizeSavingsCategory(String category) {
+        return category == null || category.trim().isEmpty() ? "Other" : category.trim();
     }
 
     private double calculateIncomeForMonth(YearMonth month) {
