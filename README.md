@@ -24,7 +24,7 @@ BaonBrain is a Java Swing student cashflow app for tracking income, expenses, sa
 
 ## Requirements
 
-- Java 11 or newer JDK
+- Java 17 or newer JDK
 - The bundled jars in `lib/`
 
 ## Run
